@@ -11,23 +11,25 @@ class World {
   public:
 	World(int width, int height): world(b2Vec2(0.0f, 2.0f), true), w(width), h(height)
 	{
-		// Define the ground body.
-		//b2BodyDef groundBodyDef;
-		//groundBodyDef.position.Set(0.0f, -10.0f);
+		float hw = w*0.5, hh = h*0.5;
 
-		// Call the body factory which allocates memory for the ground body
-		// from a pool and creates the ground box shape (also from a pool).
-		// The body is also added to the world.
-		//b2Body* groundBody = world.CreateBody(&groundBodyDef);
+		// Define the border bodies
+		b2BodyDef borderBodyDef;
+		borderBodyDef.position.Set(hw, hh);
+		b2Body* borderBody = world.CreateBody(&borderBodyDef);
 
-		// Define the ground box shape.
-		//b2PolygonShape groundBox;
+		// Define the border shapes
+		b2PolygonShape borderBoxLeft, borderBoxRight, borderBoxTop, borderBoxBottom;
+		borderBoxLeft.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(-hw,hh));
+		borderBoxRight.SetAsEdge(b2Vec2(hw,-hh), b2Vec2(hw,hh));
+		borderBoxTop.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(hw,-hh));
+		borderBoxBottom.SetAsEdge(b2Vec2(-hw,hh), b2Vec2(hw,hh));
 
-		// The extents are the half-widths of the box.
-		//groundBox.SetAsBox(w/2, 10.0f);
-
-		// Add the ground fixture to the ground body.
-		//groundBody->CreateFixture(&groundBox, 0.0f);
+		// Add the border fixtures to the body
+		borderBody->CreateFixture(&borderBoxLeft, 0.0f);
+		borderBody->CreateFixture(&borderBoxRight, 0.0f);
+		borderBody->CreateFixture(&borderBoxTop, 0.0f);
+		borderBody->CreateFixture(&borderBoxBottom, 0.0f);
 
 	}
 

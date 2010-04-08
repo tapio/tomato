@@ -11,7 +11,7 @@ class Player {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Player(World& world, float x = 0.0f, float y = 0.0f, Type t = HUMAN): type(t), dir(-1), color(1.0f, 0.0f, 0.0f)
+	Player(World& world, float x = 0.0f, float y = 0.0f, Type t = HUMAN): type(t), dir(-1), color(1.0f, 0.0f, 0.0f), size(16.0f)
 	{
 		// Define the dynamic body. We set its position and call the body factory.
 		b2BodyDef bodyDef;
@@ -22,7 +22,7 @@ class Player {
 
 		// Define another box shape for our dynamic body.
 		b2PolygonShape dynamicBox;
-		dynamicBox.SetAsBox(1.0f, 1.0f);
+		dynamicBox.SetAsBox(size, size);
 
 		// Define the dynamic body fixture.
 		b2FixtureDef fixtureDef;
@@ -40,12 +40,12 @@ class Player {
 
 	void move(int direction) {
 		std::cout << "MOVE " << direction << std::endl;
-		body->ApplyLinearImpulse(b2Vec2(20.0f * direction, 0.0f), body->GetWorldCenter());
+		body->ApplyLinearImpulse(b2Vec2(20000.0f * direction, 0.0f), body->GetWorldCenter());
 	}
 
 	void jump() {
 		std::cout << "JUMP" << std::endl;
-		body->ApplyLinearImpulse(b2Vec2(0.0f, -20.0f), body->GetWorldCenter());
+		body->ApplyLinearImpulse(b2Vec2(0.0f, -20000.0f), body->GetWorldCenter());
 	}
 
 	void duck() {
@@ -57,14 +57,13 @@ class Player {
 	}
 
 	void draw() const {
-		float s = 20;
 		float x = getX(), y = getY();
 		glColor4fv(color);
 		glBegin(GL_TRIANGLE_STRIP);
-			glVertex2f(x-s, y+s);
-			glVertex2f(x-s, y-s);
-			glVertex2f(x+s, y+s);
-			glVertex2f(x+s, y-s);
+			glVertex2f(x-size, y+size);
+			glVertex2f(x-size, y-size);
+			glVertex2f(x+size, y+size);
+			glVertex2f(x+size, y-size);
 		glEnd();
 	}
 
@@ -83,6 +82,7 @@ class Player {
 
 	b2Body* body;
 	Color color;
+	float size;
 
 };
 
