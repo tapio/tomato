@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <stdexcept>
 #include <cstdio>
@@ -8,21 +10,34 @@
 #include <GL/glu.h>
 #include <SDL.h>
 
+#include "util.hh"
 #include "player.hh"
 #include "world.hh"
 #include "network.hh"
+#include "keys.hh"
 
 #define scrW 800
 #define scrH 600
 
-bool handle_keys() {
+
+bool handle_keys(Players& players) {
 	SDL_Event event;
 	while(SDL_PollEvent(&event)) {
 		switch(event.type) {
-		case SDL_KEYDOWN:
-			return false;
 		case SDL_QUIT:
 			return false;
+		case SDL_KEYDOWN: {
+			int k = event.key.keysym.sym;
+			if (k == SDLK_ESCAPE) return false;
+			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
+				if (k == it->KEY_LEFT) it->move(-1);
+				else if (k == it->KEY_RIGHT) it->move(1);
+				if (k == it->KEY_UP) it->jump();
+				else if (k == it->KEY_DOWN) it->duck();
+				if (k == it->KEY_ACTION) it->action();
+			}
+			break;
+			}
 		}
 	}
 	return true;
@@ -55,13 +70,14 @@ void setup_gl() {
 
 bool main_loop() {
 	World world(scrW, scrH);
-	typedef std::vector<Player> Players;
 	Players players;
 	players.push_back(Player(world, 0, 0));
 	players.push_back(Player(world, 100, 100));
 
+	parse_keys(players);
+
 	// MAIN LOOP
-	while (handle_keys()) {
+	while (handle_keys(players)) {
 		world.draw();
 		flip();
 	}

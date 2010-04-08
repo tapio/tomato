@@ -8,7 +8,9 @@
 
 class Player {
   public:
-	Player(World& world, float x = 0.0f, float y = 0.0f): x(x), y(y), dir(-1), color(1.0f, 0.0f, 0.0f)
+	enum Type { HUMAN, AI, REMOTE } type;
+
+	Player(World& world, float x = 0.0f, float y = 0.0f, Type t = HUMAN): type(t), x(x), y(y), dir(-1), color(1.0f, 0.0f, 0.0f)
 	{
 		body = world.addActor(this);
 
@@ -30,6 +32,22 @@ class Player {
 		body->CreateFixture(&fixtureDef);
 	}
 
+	void move(int direction) {
+
+	}
+
+	void jump() {
+
+	}
+
+	void duck() {
+
+	}
+
+	void action() {
+
+	}
+
 	void draw() const {
 		float s = 20;
 		glColor4fv(color);
@@ -45,9 +63,17 @@ class Player {
 	float y;
 	int dir;
 
+	int KEY_UP;
+	int KEY_DOWN;
+	int KEY_LEFT;
+	int KEY_RIGHT;
+	int KEY_ACTION;
+
   private:
 
 	b2Body* body;
 	Color color;
 
 };
+
+typedef std::vector<Player> Players;

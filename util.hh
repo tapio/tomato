@@ -1,7 +1,6 @@
 #pragma once
 
-
-/// struct to store color information
+/// Struct to store color information
 struct Color {
 	float r, ///< red component
 		  g, ///< green
