@@ -71,13 +71,14 @@ void setup_gl() {
 bool main_loop() {
 	World world(scrW, scrH);
 	Players players;
-	players.push_back(Player(world, 0, 0));
-	players.push_back(Player(world, 100, 100));
+	players.push_back(Player(world, scrW-100, scrH/2));
+	players.push_back(Player(world, 100, scrH/2));
 
 	parse_keys(players);
 
 	// MAIN LOOP
 	while (handle_keys(players)) {
+		world.update();
 		world.draw();
 		flip();
 	}

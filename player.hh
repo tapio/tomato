@@ -11,9 +11,14 @@ class Player {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Player(World& world, float x = 0.0f, float y = 0.0f, Type t = HUMAN): type(t), x(x), y(y), dir(-1), color(1.0f, 0.0f, 0.0f)
+	Player(World& world, float x = 0.0f, float y = 0.0f, Type t = HUMAN): type(t), dir(-1), color(1.0f, 0.0f, 0.0f)
 	{
-		body = world.addActor(this);
+		// Define the dynamic body. We set its position and call the body factory.
+		b2BodyDef bodyDef;
+		bodyDef.type = b2_dynamicBody;
+		bodyDef.position.Set(x, y);
+		body = world.getWorld().CreateBody(&bodyDef);
+		world.addActor(this);
 
 		// Define another box shape for our dynamic body.
 		b2PolygonShape dynamicBox;
@@ -51,6 +56,7 @@ class Player {
 
 	void draw() const {
 		float s = 20;
+		float x = getX(), y = getY();
 		glColor4fv(color);
 		glBegin(GL_TRIANGLE_STRIP);
 			glVertex2f(x-s, y+s);
@@ -60,8 +66,9 @@ class Player {
 		glEnd();
 	}
 
-	float x;
-	float y;
+	float32 getX() const { return body->GetPosition().x; }
+	float32 getY() const { return body->GetPosition().y; }
+
 	int dir;
 
 	int KEY_UP;
