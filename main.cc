@@ -100,6 +100,8 @@ int main(int argc, char** argv) {
 
 	setup_gl();
 
+	SDL_EnableKeyRepeat(80, 80);
+
 	main_loop();
 
 	return 0;

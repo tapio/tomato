@@ -40,10 +40,12 @@ class Player {
 
 	void move(int direction) {
 		std::cout << "MOVE " << direction << std::endl;
+		body->ApplyLinearImpulse(b2Vec2(20.0f * direction, 0.0f), body->GetWorldCenter());
 	}
 
 	void jump() {
 		std::cout << "JUMP" << std::endl;
+		body->ApplyLinearImpulse(b2Vec2(0.0f, -20.0f), body->GetWorldCenter());
 	}
 
 	void duck() {

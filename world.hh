@@ -9,7 +9,7 @@ typedef Player Actor;
 
 class World {
   public:
-	World(int width, int height): world(b2Vec2(0.0f, 10.0f), true), w(width), h(height)
+	World(int width, int height): world(b2Vec2(0.0f, 2.0f), true), w(width), h(height)
 	{
 		// Define the ground body.
 		//b2BodyDef groundBodyDef;
