@@ -1,0 +1,9 @@
+
+* Playable with 1-4 players
+* Network multiplayer (p2p?)
+* Hot-seat multiplayer
+* Any combination of local human, remote human and AI players
+* Threaded
+	- Main thread (input)
+	- Physics thread
+	- Graphics thread?
