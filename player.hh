@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <GL/gl.h>
 #include <Box2D.h>
 
@@ -33,19 +34,19 @@ class Player {
 	}
 
 	void move(int direction) {
-
+		std::cout << "MOVE " << direction << std::endl;
 	}
 
 	void jump() {
-
+		std::cout << "JUMP" << std::endl;
 	}
 
 	void duck() {
-
+		std::cout << "DUCK" << std::endl;
 	}
 
 	void action() {
-
+		std::cout << "ACTION" << std::endl;
 	}
 
 	void draw() const {
