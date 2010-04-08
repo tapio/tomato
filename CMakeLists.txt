@@ -23,6 +23,13 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
 
+find_package(Boost)
+include_directories(${BOOST_INCLUDE_DIRS})
+
+find_package(Box2D)
+include_directories(${BOX2D_INCLUDE_DIRS})
+list(APPEND LIBS ${BOX2D_LIBRARIES})
+
 find_package(OpenGL)
 include_directories(${OPENGL_INCLUDE_DIR})
 list(APPEND LIBS ${OPENGL_LIBRARIES})
@@ -31,12 +38,10 @@ find_package(SDL)
 include_directories(${SDL_INCLUDE_DIR})
 list(APPEND LIBS ${SDL_LIBRARY})
 
-find_package(Box2D)
-include_directories(${BOX2D_INCLUDE_DIRS})
-list(APPEND LIBS ${BOX2D_LIBRARIES})
+find_package(SOIL)
+include_directories(${SOIL_INCLUDE_DIRS})
+list(APPEND LIBS ${SOIL_LIBRARIES})
 
-find_package(Boost)
-include_directories(${BOOST_INCLUDE_DIRS})
 
 file(GLOB SOURCE_FILES "*.cc")
 file(GLOB HEADER_FILES "*.hh")

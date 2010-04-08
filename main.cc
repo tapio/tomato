@@ -15,6 +15,7 @@
 #include "world.hh"
 #include "network.hh"
 #include "keys.hh"
+#include "texture.hh"
 
 #define scrW 800
 #define scrH 600
@@ -64,15 +65,15 @@ void setup_gl() {
 	glColor4ub(255, 255, 255, 255);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
 }
 
 
 bool main_loop() {
+	TextureMap tm = load_textures();
 	World world(scrW, scrH);
 	Players players;
-	players.push_back(Player(world, scrW-100, scrH/2));
-	players.push_back(Player(world, 100, scrH/2));
+	players.push_back(Player(world, scrW-100, scrH/2, tm.find("tomato")->second));
+	players.push_back(Player(world, 100, scrH/2, tm.find("tomato")->second));
 
 	parse_keys(players);
 
@@ -82,12 +83,12 @@ bool main_loop() {
 		world.draw();
 		flip();
 	}
+
 	return false;
 }
 
 
 int main(int argc, char** argv) {
-	std::atexit(SDL_Quit);
 	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
 	//SDL_WM_SetCaption(PACKAGE " " VERSION, PACKAGE);
 
@@ -97,12 +98,12 @@ int main(int argc, char** argv) {
 	SDL_Surface* screen = 0;
 	screen = SDL_SetVideoMode(800, 600, 32, SDL_OPENGL);
 	if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
+	SDL_EnableKeyRepeat(80, 80);
 
 	setup_gl();
 
-	SDL_EnableKeyRepeat(80, 80);
-
 	main_loop();
 
+	SDL_Quit();
 	return 0;
 }
