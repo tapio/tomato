@@ -20,19 +20,16 @@ class Player {
 		body = world.getWorld().CreateBody(&bodyDef);
 		world.addActor(this);
 
-		// Define another box shape for our dynamic body.
-		b2PolygonShape dynamicBox;
-		dynamicBox.SetAsBox(size, size);
+		// Define a circle shape for our dynamic body.
+		b2CircleShape circle;
+		circle.m_radius = size;
 
 		// Define the dynamic body fixture.
 		b2FixtureDef fixtureDef;
-		fixtureDef.shape = &dynamicBox;
+		fixtureDef.shape = &circle;
 
-		// Set the box density to be non-zero, so it will be dynamic.
+		// Set the density to be non-zero, so it will be dynamic.
 		fixtureDef.density = 1.0f;
-
-		// Override the default friction.
-		fixtureDef.friction = 0.3f;
 
 		// Add the shape to the body.
 		body->CreateFixture(&fixtureDef);
