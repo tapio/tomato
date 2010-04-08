@@ -35,6 +35,9 @@ find_package(Box2D)
 include_directories(${BOX2D_INCLUDE_DIRS})
 list(APPEND LIBS ${BOX2D_LIBRARIES})
 
+find_package(Boost)
+include_directories(${BOOST_INCLUDE_DIRS})
+
 file(GLOB SOURCE_FILES "*.cc")
 file(GLOB HEADER_FILES "*.hh")
 
