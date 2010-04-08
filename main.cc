@@ -75,7 +75,7 @@ bool main_loop() {
 	players.push_back(Player(world, scrW-100, scrH/2, tm.find("tomato")->second));
 	players.push_back(Player(world, 100, scrH/2, tm.find("tomato")->second));
 
-	parse_keys(players);
+	parse_keys(players, "../keys.conf");
 
 	// MAIN LOOP
 	while (handle_keys(players)) {
