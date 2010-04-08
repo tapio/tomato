@@ -104,6 +104,7 @@ int main(int argc, char** argv) {
 
 	main_loop();
 
-	SDL_Quit();
+	// TODO: SDL_Quit creates a crash if Texture_2D is enabled in player.draw()
+	//SDL_Quit();
 	return 0;
 }
