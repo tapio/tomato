@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstdlib>
+#include <cmath>
+#include <sstream>
+
 /// Struct to store color information
 struct Color {
 	float r, ///< red component
@@ -13,3 +17,27 @@ struct Color {
 	/// overload float const cast
 	operator float const*() const { return reinterpret_cast<float const*>(this); }
 };
+
+
+/// Math
+
+bool inline randbool() { return rand() % 2 == 0; }
+
+int inline randint(int hi) { return rand() % hi; }
+
+int inline randint(int lo, int hi) {
+	return (rand() % (hi - lo + 1)) + lo;
+}
+
+void inline swapdir(int& dir) { if (dir == 1) dir = -1; else dir = 1; }
+
+int inline randdir() { return randbool() ? 1 : -1; }
+
+void inline randdir(int& dx, int &dy) {
+	if (randbool()) { dx = randdir(); dy = randint(-1,1); }
+	else { dx = randint(-1,1); dy = randdir(); }
+}
+
+
+template<typename T>
+std::string num2str(T i) { std::ostringstream oss; oss << i; return oss.str(); }

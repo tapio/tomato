@@ -1,7 +1,52 @@
 #pragma once
 
 #include <vector>
+#include <GL/gl.h>
 #include <Box2D.h>
+
+struct Platform {
+	Platform(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize)
+	{ }
+
+	void draw() const {
+		float x = getX(), y = getY();
+		float hw = getW() * 0.5, hh = getH() * 0.5;
+		//float xmax = w > h ? w / h : 1.0f;
+		//float ymax = h > w ? h / w : 1.0f;
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glBegin(GL_TRIANGLE_STRIP);
+			for (int j = 0; j < h; j++) {
+				for (int i = 0; i < w; i++) {
+					float xx = x - hw + i * tilesize;
+					float yy = y - hh + j * tilesize;
+					glTexCoord2f(0.0f, 0.0f);
+					glVertex2f(xx, yy + tilesize);
+					glTexCoord2f(0.0f, 1.0f);
+					glVertex2f(xx, yy);
+					glTexCoord2f(1.0f, 0.0f);
+					glVertex2f(xx + tilesize, yy + tilesize);
+					glTexCoord2f(1.0f, 1.0f);
+					glVertex2f(xx + tilesize, yy);
+				}
+			}
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
+	}
+
+	float getX() const { return body->GetPosition().x; };
+	float getY() const { return body->GetPosition().y; };
+	float getW() const { return w * tilesize; };
+	float getH() const { return h * tilesize; };
+
+	b2Body* body;
+	float w, h;
+	GLuint texture;
+	GLuint tileid;
+	int tilesize;
+};
+
+typedef std::vector<Platform> Platforms;
 
 class Player;
 
@@ -9,7 +54,7 @@ typedef Player Actor;
 
 class World {
   public:
-	World(int width, int height): world(b2Vec2(0.0f, 2.0f), true), w(width), h(height)
+	World(int width, int height, GLuint tex): world(b2Vec2(0.0f, 2.0f), true), w(width), h(height), texture(tex)
 	{
 		float hw = w*0.5, hh = h*0.5;
 
@@ -31,9 +76,14 @@ class World {
 		borderBody->CreateFixture(&borderBoxTop, 0.0f);
 		borderBody->CreateFixture(&borderBoxBottom, 0.0f);
 
+		generate();
 	}
 
 	void addActor(Actor* actor);
+
+	void addPlatform(float x, float y, float w);
+
+	void generate();
 
 	void update();
 
@@ -46,9 +96,9 @@ class World {
 	b2World world;
 	int w;
 	int h;
+	GLuint texture;
 	typedef std::vector<Actor*> Actors;
 	Actors actors;
-	typedef std::vector<b2Body*> GroundBodies;
-	GroundBodies groundBodies;
+	Platforms platforms;
 
 };

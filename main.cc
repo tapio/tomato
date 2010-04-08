@@ -70,7 +70,7 @@ void setup_gl() {
 
 bool main_loop() {
 	TextureMap tm = load_textures();
-	World world(scrW, scrH);
+	World world(scrW, scrH, tm.find("ground")->second);
 	Players players;
 	players.push_back(Player(world, scrW-100, scrH/2, tm.find("tomato")->second));
 	players.push_back(Player(world, 100, scrH/2, tm.find("tomato")->second));
@@ -101,6 +101,7 @@ int main(int argc, char** argv) {
 	SDL_EnableKeyRepeat(80, 80);
 
 	setup_gl();
+	srand(time(NULL)); // Randomize RNG
 
 	main_loop();
 
