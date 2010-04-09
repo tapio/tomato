@@ -16,20 +16,34 @@ struct Platform {
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glBegin(GL_TRIANGLE_STRIP);
-			for (int j = 0; j < h; j++) {
-				for (int i = 0; i < w; i++) {
-					float xx = x - hw + i * tilesize;
-					float yy = y - hh + j * tilesize;
-					glTexCoord2f(0.0f, 0.0f);
-					glVertex2f(xx, yy + tilesize);
-					glTexCoord2f(0.0f, 1.0f);
-					glVertex2f(xx, yy);
-					glTexCoord2f(1.0f, 0.0f);
-					glVertex2f(xx + tilesize, yy + tilesize);
-					glTexCoord2f(1.0f, 1.0f);
-					glVertex2f(xx + tilesize, yy);
-				}
+			glTexCoord2f(0.0f, 0.0f);
+			glVertex2f(x - hw, y - hh + tilesize);
+			glTexCoord2f(0.0f, 1.0f);
+			glVertex2f(x - hw, y - hh);
+			glTexCoord2f(0.25f, 0.0f);
+			glVertex2f(x - hw + tilesize*0.5f, y - hh + tilesize);
+			glTexCoord2f(0.25f, 1.0f);
+			glVertex2f(x - hw + tilesize*0.5f, y - hh);
+			for (int i = 0; i < w-1; i++) {
+				float xx = x - hw + tilesize * 0.5f + i * tilesize;
+				float yy = y - hh; //+ tilesize * 0.5f + j * tilesize;
+				glTexCoord2f(0.25f, 0.0f);
+				glVertex2f(xx, yy + tilesize);
+				glTexCoord2f(0.25f, 1.0f);
+				glVertex2f(xx, yy);
+				glTexCoord2f(0.75f, 0.0f);
+				glVertex2f(xx + tilesize, yy + tilesize);
+				glTexCoord2f(0.75f, 1.0f);
+				glVertex2f(xx + tilesize, yy);
 			}
+			glTexCoord2f(0.75f, 0.0f);
+			glVertex2f(x + hw - tilesize*0.5f, y - hh + tilesize);
+			glTexCoord2f(0.75f, 1.0f);
+			glVertex2f(x + hw - tilesize*0.5f, y - hh);
+			glTexCoord2f(1.0f, 0.0f);
+			glVertex2f(x + hw, y - hh + tilesize);
+			glTexCoord2f(1.0f, 1.0f);
+			glVertex2f(x + hw, y - hh);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 	}
