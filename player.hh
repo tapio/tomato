@@ -11,30 +11,8 @@ class Player {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Player(World& world, float x = 0.0f, float y = 0.0f, GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
-	{
-		// Define the dynamic body. We set its position and call the body factory.
-		b2BodyDef bodyDef;
-		bodyDef.type = b2_dynamicBody;
-		bodyDef.position.Set(x, y);
-		bodyDef.fixedRotation = true;
-		body = world.getWorld().CreateBody(&bodyDef);
-		world.addActor(this);
-
-		// Define a circle shape for our dynamic body.
-		b2CircleShape circle;
-		circle.m_radius = size;
-
-		// Define the dynamic body fixture.
-		b2FixtureDef fixtureDef;
-		fixtureDef.shape = &circle;
-
-		// Set the density to be non-zero, so it will be dynamic.
-		fixtureDef.density = 1.0f;
-
-		// Add the shape to the body.
-		body->CreateFixture(&fixtureDef);
-	}
+	Player(GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), airborne(true), jumping(false), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
+	{ }
 
 	void move(int direction) {
 		std::cout << "MOVE " << direction << std::endl;
@@ -42,7 +20,8 @@ class Player {
 	}
 
 	void jump() {
-		std::cout << "JUMP" << std::endl;
+		std::cout << "JUMP, airborne: " << airborne << std::endl;
+		jumping = true;
 		body->ApplyLinearImpulse(b2Vec2(0.0f, -20000.0f), body->GetWorldCenter());
 	}
 
@@ -74,6 +53,9 @@ class Player {
 
 	float32 getX() const { return body->GetPosition().x; }
 	float32 getY() const { return body->GetPosition().y; }
+	b2Body* getBody() { return body; }
+	float getSize() { return size; }
+	bool can_jump() const { return !airborne || jumping; }
 
 	int dir;
 
@@ -83,9 +65,13 @@ class Player {
 	int KEY_RIGHT;
 	int KEY_ACTION;
 
-  private:
+	bool airborne;
+	bool jumping;
 
 	b2Body* body;
+
+  private:
+
 	GLuint texture;
 	Color color;
 	float size;

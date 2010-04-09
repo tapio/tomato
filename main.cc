@@ -33,13 +33,21 @@ bool handle_keys(Players& players) {
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (k == it->KEY_LEFT) it->move(-1);
 				else if (k == it->KEY_RIGHT) it->move(1);
-				if (k == it->KEY_UP) it->jump();
+				if (k == it->KEY_UP && it->can_jump()) it->jump();
 				else if (k == it->KEY_DOWN) it->duck();
 				if (k == it->KEY_ACTION) it->action();
 			}
 			break;
 			}
+		case SDL_KEYUP: {
+			int k = event.key.keysym.sym;
+			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
+				if (k == it->KEY_UP) it->jumping = false;
+				//else if (k == it->KEY_DOWN) it->duck();
+			}
+			break;
 		}
+		} // end switch
 	}
 	return true;
 }
@@ -71,10 +79,9 @@ void setup_gl() {
 bool main_loop() {
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm);
-	Players players;
-	players.push_back(Player(world, scrW-100, scrH/2, tm.find("tomato")->second));
-	players.push_back(Player(world, 100, scrH/2, tm.find("tomato")->second));
-
+	world.addActor(scrW-100, scrH/2, tm.find("tomato")->second);
+	world.addActor(100, scrH/2, tm.find("tomato")->second);
+	Players& players = world.getActors();
 	parse_keys(players, "../keys.conf");
 
 	// MAIN LOOP

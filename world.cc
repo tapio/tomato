@@ -4,7 +4,31 @@
 #include "world.hh"
 #include "player.hh"
 
-void World::addActor(Actor* actor) {
+
+void World::addActor(float x, float y, GLuint tex) {
+	Actor actor(tex);
+	// Define the dynamic body. We set its position and call the body factory.
+	b2BodyDef bodyDef;
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position.Set(x, y);
+	bodyDef.fixedRotation = true;
+	actor.body = world.CreateBody(&bodyDef);
+	//world.addActor(this);
+
+	// Define a circle shape for our dynamic body.
+	b2CircleShape circle;
+	circle.m_radius = actor.getSize();
+
+	// Define the dynamic body fixture.
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &circle;
+	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.friction = 1.0f; // Stronger friction
+	fixtureDef.restitution = 0.25f; // A little bounciness
+
+	// Add the shape to the body.
+	actor.getBody()->CreateFixture(&fixtureDef);
+
 	actors.push_back(actor);
 }
 
@@ -23,6 +47,7 @@ void World::addPlatform(float x, float y, float w) {
 	// Create fixture
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
+	fixtureDef.friction = 1.0f;
 	p.body->CreateFixture(&fixtureDef);
 
 	platforms.push_back(p);
@@ -51,6 +76,14 @@ void World::update() {
 	// Clear applied body forces. We didn't apply any forces, but you
 	// should know about this function.
 	world.ClearForces();
+
+	// Update actors' airborne status
+	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
+		it->airborne = true;
+		for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->contact; ce = ce->next) {
+			it->airborne = false; break;
+		}
+	}
 }
 
 
@@ -82,6 +115,6 @@ void World::draw() const {
 	}
 	// Players
 	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
-		(*it)->draw();
+		it->draw();
 	}
 }

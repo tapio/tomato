@@ -62,15 +62,15 @@ struct Platform {
 	int tilesize;
 };
 
-typedef std::vector<Platform> Platforms;
-
 class Player;
 
 typedef Player Actor;
+typedef std::vector<Actor> Actors;
+typedef std::vector<Platform> Platforms;
 
 class World {
   public:
-	World(int width, int height, std::map<std::string, GLuint>& tm): world(b2Vec2(0.0f, 2.0f), true), w(width), h(height)
+	World(int width, int height, std::map<std::string, GLuint>& tm): world(b2Vec2(0.0f, 10.0f), true), w(width), h(height)
 	{
 		float hw = w*0.5, hh = h*0.5;
 
@@ -98,7 +98,7 @@ class World {
 		generate();
 	}
 
-	void addActor(Actor* actor);
+	void addActor(float x, float y, GLuint tex);
 
 	void addPlatform(float x, float y, float w);
 
@@ -109,6 +109,7 @@ class World {
 	void draw() const;
 
 	b2World& getWorld() { return world; }
+	Actors& getActors() { return actors; }
 
   private:
 
@@ -117,7 +118,6 @@ class World {
 	int h;
 	GLuint texture_background;
 	GLuint texture_ground;
-	typedef std::vector<Actor*> Actors;
 	Actors actors;
 	Platforms platforms;
 
