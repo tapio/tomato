@@ -1,6 +1,8 @@
 #pragma once
 
+#include <string>
 #include <vector>
+#include <map>
 #include <GL/gl.h>
 #include <Box2D.h>
 
@@ -68,7 +70,7 @@ typedef Player Actor;
 
 class World {
   public:
-	World(int width, int height, GLuint tex): world(b2Vec2(0.0f, 2.0f), true), w(width), h(height), texture(tex)
+	World(int width, int height, std::map<std::string, GLuint>& tm): world(b2Vec2(0.0f, 2.0f), true), w(width), h(height)
 	{
 		float hw = w*0.5, hh = h*0.5;
 
@@ -90,6 +92,9 @@ class World {
 		borderBody->CreateFixture(&borderBoxTop, 0.0f);
 		borderBody->CreateFixture(&borderBoxBottom, 0.0f);
 
+		texture_background = tm.find("background")->second;
+		texture_ground = tm.find("ground")->second;
+
 		generate();
 	}
 
@@ -110,7 +115,8 @@ class World {
 	b2World world;
 	int w;
 	int h;
-	GLuint texture;
+	GLuint texture_background;
+	GLuint texture_ground;
 	typedef std::vector<Actor*> Actors;
 	Actors actors;
 	Platforms platforms;

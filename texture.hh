@@ -1,7 +1,10 @@
 #pragma once
+
+#include <map>
+#include <string>
+#include <stdexcept>
 #include <SOIL.h>
 #include <GL/gl.h>
-#include <map>
 
 typedef std::map<std::string, GLuint> TextureMap;
 
@@ -22,6 +25,7 @@ GLuint load_texture(const char* filename) {
 
 TextureMap load_textures() {
 	TextureMap tmap;
+	tmap.insert(std::pair<std::string, GLuint>("background", load_texture("../images/bg.png")));
 	tmap.insert(std::pair<std::string, GLuint>("ground", load_texture("../images/ground.png")));
 	tmap.insert(std::pair<std::string, GLuint>("tomato", load_texture("../images/tomaatti.png")));
 

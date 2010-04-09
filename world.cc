@@ -1,3 +1,4 @@
+#include <cmath>
 #include <Box2D.h>
 
 #include "world.hh"
@@ -11,7 +12,7 @@ void World::addActor(Actor* actor) {
 void World::addPlatform(float x, float y, float w) {
 	float h = 1;
 	int tilesize = 32;
-	Platform p(w, h, texture, 0, tilesize);
+	Platform p(w, h, texture_ground, 0, tilesize);
 	// Create body
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x, y);
@@ -54,11 +55,32 @@ void World::update() {
 
 
 void World::draw() const {
-
+	// Background
+	int texsize = 512;
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture_background);
+	for (int j = 0; j < h/texsize + 1; j++) {
+		for (int i = 0; i < w/texsize + 1; i++) {
+			float xx = i * texsize;
+			float yy = j * texsize;
+			glBegin(GL_TRIANGLE_STRIP);
+				glTexCoord2f(0.0f, 0.0f);
+				glVertex2f(xx, yy + texsize);
+				glTexCoord2f(0.0f, 1.0f);
+				glVertex2f(xx, yy);
+				glTexCoord2f(1.0f, 0.0f);
+				glVertex2f(xx + texsize, yy + texsize);
+				glTexCoord2f(1.0f, 1.0f);
+				glVertex2f(xx + texsize, yy);
+			glEnd();
+		}
+	}
+	glDisable(GL_TEXTURE_2D);
+	// Platforms
 	for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
 		it->draw();
 	}
-
+	// Players
 	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
 		(*it)->draw();
 	}
