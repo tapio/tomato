@@ -3,6 +3,7 @@
 
 #include "world.hh"
 #include "player.hh"
+#include "util.hh"
 
 
 void World::addActor(float x, float y, GLuint tex) {
@@ -90,25 +91,17 @@ void World::update() {
 void World::draw() const {
 	// Background
 	int texsize = 512;
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texture_background);
 	for (int j = 0; j < h/texsize + 1; j++) {
 		for (int i = 0; i < w/texsize + 1; i++) {
 			float xx = i * texsize;
 			float yy = j * texsize;
-			glBegin(GL_TRIANGLE_STRIP);
-				glTexCoord2f(0.0f, 0.0f);
-				glVertex2f(xx, yy + texsize);
-				glTexCoord2f(0.0f, 1.0f);
-				glVertex2f(xx, yy);
-				glTexCoord2f(1.0f, 0.0f);
-				glVertex2f(xx + texsize, yy + texsize);
-				glTexCoord2f(1.0f, 1.0f);
-				glVertex2f(xx + texsize, yy);
-			glEnd();
+			float verts[] = { xx, yy + texsize,
+			                  xx, yy,
+			                  xx + texsize, yy + texsize,
+			                  xx + texsize, yy };
+			drawVertexArray(&verts[0], &tex_square[0], 4, texture_background);
 		}
 	}
-	glDisable(GL_TEXTURE_2D);
 	// Platforms
 	for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
 		it->draw();

@@ -1,10 +1,13 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
 #include <GL/gl.h>
 #include <Box2D.h>
+
+#include "util.hh"
 
 struct Platform {
 	Platform(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize)
@@ -15,39 +18,37 @@ struct Platform {
 		float hw = getW() * 0.5, hh = getH() * 0.5;
 		//float xmax = w > h ? w / h : 1.0f;
 		//float ymax = h > w ? h / w : 1.0f;
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glBegin(GL_TRIANGLE_STRIP);
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2f(x - hw, y - hh + tilesize);
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex2f(x - hw, y - hh);
-			glTexCoord2f(0.25f, 0.0f);
-			glVertex2f(x - hw + tilesize*0.5f, y - hh + tilesize);
-			glTexCoord2f(0.25f, 1.0f);
-			glVertex2f(x - hw + tilesize*0.5f, y - hh);
-			for (int i = 0; i < w-1; i++) {
-				float xx = x - hw + tilesize * 0.5f + i * tilesize;
-				float yy = y - hh; //+ tilesize * 0.5f + j * tilesize;
-				glTexCoord2f(0.25f, 0.0f);
-				glVertex2f(xx, yy + tilesize);
-				glTexCoord2f(0.25f, 1.0f);
-				glVertex2f(xx, yy);
-				glTexCoord2f(0.75f, 0.0f);
-				glVertex2f(xx + tilesize, yy + tilesize);
-				glTexCoord2f(0.75f, 1.0f);
-				glVertex2f(xx + tilesize, yy);
-			}
-			glTexCoord2f(0.75f, 0.0f);
-			glVertex2f(x + hw - tilesize*0.5f, y - hh + tilesize);
-			glTexCoord2f(0.75f, 1.0f);
-			glVertex2f(x + hw - tilesize*0.5f, y - hh);
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex2f(x + hw, y - hh + tilesize);
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex2f(x + hw, y - hh);
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
+		const static float tc_beg[] = { 0.00f,0.0f, 0.00f,1.0f, 0.25f,0.0f, 0.25f,1.0f };
+		const static float tc_mid[] = { 0.25f,0.0f, 0.25f,1.0f, 0.75f,0.0f, 0.75f,1.0f };
+		const static float tc_end[] = { 0.75f,0.0f, 0.75f,1.0f, 1.00f,0.0f, 1.00f,1.0f };
+		float vc_beg[] = { x - hw, y - hh + tilesize,
+		                   x - hw, y - hh,
+		                   x - hw + tilesize*0.5f, y - hh + tilesize,
+		                   x - hw + tilesize*0.5f, y - hh };
+		float vc_end[] = { x + hw - tilesize*0.5f, y - hh + tilesize,
+		                   x + hw - tilesize*0.5f, y - hh,
+		                   x + hw, y - hh + tilesize,
+		                   x + hw, y - hh };
+		CoordArray v_arr, t_arr;
+		// Beginning
+		v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
+		t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
+		// Middle
+		for (int i = 0; i < w-1; i++) {
+			float xx = x - hw + tilesize * 0.5f + i * tilesize;
+			float yy = y - hh; //+ tilesize * 0.5f + j * tilesize;
+			float vc_mid[] = { xx, yy + tilesize,
+			                   xx, yy,
+			                   xx + tilesize, yy + tilesize,
+			                   xx + tilesize, yy };
+			v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
+			t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
+		}
+		// End
+		v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
+		t_arr.insert(t_arr.end(), &tc_end[0], &tc_end[8]);
+		// Draw
+		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture);
 	}
 
 	float getX() const { return body->GetPosition().x; };

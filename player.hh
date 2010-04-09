@@ -36,20 +36,12 @@ class Player {
 
 	void draw() const {
 		float x = getX(), y = getY();
-		//glColor4fv(color);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glBegin(GL_TRIANGLE_STRIP);
-			glTexCoord2f(0.0f, 0.0f);
-			glVertex2f(x-size, y+size);
-			glTexCoord2f(0.0f, 1.0f);
-			glVertex2f(x-size, y-size);
-			glTexCoord2f(1.0f, 0.0f);
-			glVertex2f(x+size, y+size);
-			glTexCoord2f(1.0f, 1.0f);
-			glVertex2f(x+size, y-size);
-		glEnd();
-		glDisable(GL_TEXTURE_2D);
+		float vc[] = { x-size, y+size,
+		               x-size, y-size,
+		               x+size, y+size,
+		               x+size, y-size };
+
+		drawVertexArray(&vc[0], &tex_square[0], 4, texture);
 	}
 
 	float32 getX() const { return body->GetPosition().x; }
