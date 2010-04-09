@@ -55,7 +55,7 @@ void World::addPlatform(float x, float y, float w) {
 
 
 void World::generate() {
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 10; i++) {
 		addPlatform(randint(0,w), randint(0,h), randint(2,6));
 	}
 }

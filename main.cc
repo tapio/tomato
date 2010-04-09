@@ -42,7 +42,7 @@ bool handle_keys(Players& players) {
 		case SDL_KEYUP: {
 			int k = event.key.keysym.sym;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (k == it->KEY_UP) it->jumping = false;
+				if (k == it->KEY_UP) it->jumping = 0;
 				//else if (k == it->KEY_DOWN) it->duck();
 			}
 			break;

@@ -15,14 +15,15 @@ class Player {
 	{ }
 
 	void move(int direction) {
-		std::cout << "MOVE " << direction << std::endl;
-		body->ApplyLinearImpulse(b2Vec2(20000.0f * direction, 0.0f), body->GetWorldCenter());
+		if (direction != dir && !can_jump()) return;
+		dir = direction;
+		body->ApplyLinearImpulse(b2Vec2(10000.0f * direction, 0.0f), body->GetWorldCenter());
 	}
 
 	void jump() {
 		std::cout << "JUMP, airborne: " << airborne << std::endl;
-		jumping = true;
-		body->ApplyLinearImpulse(b2Vec2(0.0f, -20000.0f), body->GetWorldCenter());
+		body->ApplyLinearImpulse(b2Vec2(0.0f, -10000.0f), body->GetWorldCenter());
+		jumping++;
 	}
 
 	void duck() {
@@ -55,7 +56,7 @@ class Player {
 	float32 getY() const { return body->GetPosition().y; }
 	b2Body* getBody() { return body; }
 	float getSize() { return size; }
-	bool can_jump() const { return !airborne || jumping; }
+	bool can_jump() const { return !airborne || (jumping > 0 && jumping < 5); }
 
 	int dir;
 
@@ -66,7 +67,7 @@ class Player {
 	int KEY_ACTION;
 
 	bool airborne;
-	bool jumping;
+	int jumping;
 
 	b2Body* body;
 

@@ -70,7 +70,7 @@ typedef std::vector<Platform> Platforms;
 
 class World {
   public:
-	World(int width, int height, std::map<std::string, GLuint>& tm): world(b2Vec2(0.0f, 10.0f), true), w(width), h(height)
+	World(int width, int height, std::map<std::string, GLuint>& tm): world(b2Vec2(0.0f, 15.0f), true), w(width), h(height)
 	{
 		float hw = w*0.5, hh = h*0.5;
 
