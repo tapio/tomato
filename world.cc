@@ -25,7 +25,7 @@ void World::addActor(float x, float y, GLuint tex) {
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
 	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
-	fixtureDef.friction = 1.0f; // Stronger friction
+	fixtureDef.friction = 0.1f; // Stronger friction
 	fixtureDef.restitution = 0.25f; // A little bounciness
 
 	// Add the shape to the body.

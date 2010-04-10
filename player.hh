@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <algorithm>
 #include <GL/gl.h>
 #include <Box2D.h>
 
@@ -12,14 +13,24 @@ class Player {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Player(GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), anim_frame(0), airborne(true), jumping(false), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
+	Player(GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), anim_frame(0), airborne(true), jumping(0), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
 	{ }
 
 	void move(int direction) {
-		if (direction != dir && !can_jump()) return;
-		dir = direction;
-		body->ApplyLinearImpulse(b2Vec2(10000.0f * direction, 0.0f), body->GetWorldCenter());
+		if (direction == dir || can_jump()) {
+			float speed = airborne ? 25.0f : 50.0f;
+			b2Vec2 v = body->GetLinearVelocity();
+			if (direction == dir) speed = std::max(speed, v.x); // Don't kill existing higher velocity
+			body->SetLinearVelocity(b2Vec2(speed * direction, v.y));
+		}
 		anim_frame = (anim_frame + 1) % 4;
+		dir = direction;
+	}
+
+	void stop() {
+		if (!airborne) {
+			body->SetLinearVelocity(b2Vec2(0.0f, body->GetLinearVelocity().y));
+		}
 	}
 
 	void jump() {

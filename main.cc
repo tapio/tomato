@@ -43,7 +43,8 @@ bool handle_keys(Players& players) {
 			int k = event.key.keysym.sym;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (k == it->KEY_UP) it->jumping = 0;
-				//else if (k == it->KEY_DOWN) it->duck();
+				//if (k == it->KEY_DOWN) it->duck();
+				if (k == it->KEY_LEFT || k == it->KEY_RIGHT) it->stop();
 			}
 			break;
 		}
