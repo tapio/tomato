@@ -32,24 +32,24 @@ TextureMap load_textures() {
 }
 
 
-const float* getTileTexCoords(int tileid, int tilesize, int texsize, bool horiz_flip) {
+const float* getTileTexCoords(int tileid, int xtiles, int ytiles, bool horiz_flip) {
 	static CoordArray tc;
-	int tiles_per_row = texsize / tilesize;
-	float tiletexsize = (float)tilesize / texsize;
-	float x = (tileid % tiles_per_row) * tiletexsize;
-	float y = 1.0 - int(tileid / tiles_per_row) * tiletexsize;
+	float tilew = 1.0f / xtiles;
+	float tileh = 1.0f / ytiles;
+	float x = (tileid % xtiles) * tilew;
+	float y = 1.0 - int(tileid / xtiles) * tileh;
 	tc.clear();
-	if (horiz_flip) {
-		float temp[] = { x + tiletexsize, y - tiletexsize,
-		                 x + tiletexsize, y,
+	if (horiz_flip) { // Flipped
+		float temp[] = { x + tilew, y - tileh,
+		                 x + tilew, y,
 		                 x, y,
-		                 x, y - tiletexsize };
+		                 x, y - tileh };
 		tc.insert(tc.end(), &temp[0], &temp[8]);
-	} else {
-		float temp[] = { x, y - tiletexsize,
+	} else { // Non-flipped
+		float temp[] = { x, y - tileh,
 		                 x, y,
-		                 x + tiletexsize, y,
-		                 x + tiletexsize, y - tiletexsize };
+		                 x + tilew, y,
+		                 x + tilew, y - tileh };
 		tc.insert(tc.end(), &temp[0], &temp[8]);
 	}
 	return &tc[0];

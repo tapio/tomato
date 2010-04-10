@@ -43,7 +43,7 @@ class Player {
 		               x+size, y-size,
 		               x+size, y+size };
 
-		drawVertexArray(&vc[0], getTileTexCoords(anim_frame, 32, 128, dir < 0), 4, texture);
+		drawVertexArray(&vc[0], getTileTexCoords(anim_frame, 4, 4, dir < 0), 4, texture);
 	}
 
 	float32 getX() const { return body->GetPosition().x; }
