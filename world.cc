@@ -4,6 +4,7 @@
 #include "world.hh"
 #include "player.hh"
 #include "util.hh"
+#include "texture.hh"
 
 
 void World::addActor(float x, float y, GLuint tex) {

@@ -7,7 +7,7 @@
 #include <GL/gl.h>
 #include <Box2D.h>
 
-#include "util.hh"
+#include "texture.hh"
 
 struct Platform {
 	Platform(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize)
@@ -71,7 +71,7 @@ typedef std::vector<Platform> Platforms;
 
 class World {
   public:
-	World(int width, int height, std::map<std::string, GLuint>& tm): world(b2Vec2(0.0f, 15.0f), true), w(width), h(height)
+	World(int width, int height, TextureMap& tm): world(b2Vec2(0.0f, 15.0f), true), w(width), h(height)
 	{
 		float hw = w*0.5, hh = h*0.5;
 

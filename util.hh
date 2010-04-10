@@ -44,16 +44,3 @@ void inline randdir(int& dx, int &dy) {
 
 template<typename T>
 std::string num2str(T i) { std::ostringstream oss; oss << i; return oss.str(); }
-
-
-/// GLutil
-
-typedef std::vector<float> CoordArray;
-
-const static float tex_square[] = { 0.0f, 0.0f,
-	                                0.0f, 1.0f,
-	                                1.0f, 0.0f,
-	                                1.0f, 1.0f };
-
-
-void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex);

@@ -2,32 +2,26 @@
 
 #include <map>
 #include <string>
-#include <stdexcept>
-#include <SOIL.h>
+#include <vector>
 #include <GL/gl.h>
 
 typedef std::map<std::string, GLuint> TextureMap;
+typedef std::vector<float> CoordArray;
 
-GLuint load_texture(const char* filename) {
-	GLuint handle = SOIL_load_OGL_texture
-		(
-			filename,
-			SOIL_LOAD_AUTO,
-			SOIL_CREATE_NEW_ID,
-			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y
-		);
-
-	/* check for an error during the load process */
-	if (0 == handle) throw std::runtime_error(std::string("SOIL couldn't load image ") + filename + std::string(": ") + SOIL_last_result());
-	return handle;
-}
+const static float tex_square[] = { 0.0f, 0.0f,
+	                                0.0f, 1.0f,
+	                                1.0f, 0.0f,
+	                                1.0f, 1.0f };
 
 
-TextureMap load_textures() {
-	TextureMap tmap;
-	tmap.insert(std::pair<std::string, GLuint>("background", load_texture("../images/bg.png")));
-	tmap.insert(std::pair<std::string, GLuint>("ground", load_texture("../images/ground.png")));
-	tmap.insert(std::pair<std::string, GLuint>("tomato", load_texture("../images/tomaatti.png")));
+/// Load a single texture
+GLuint load_texture(const char* filename);
 
-	return tmap;
-}
+/// Load all textures used by the program
+TextureMap load_textures();
+
+/// Compose texture coordinate array from a tile index
+float* getTileTexCoords(int tileid, int tilesize, int texsize);
+
+/// Draw a given vertex array with triangle strip
+void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex);

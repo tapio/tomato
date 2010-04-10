@@ -6,6 +6,7 @@
 
 #include "util.hh"
 #include "world.hh"
+#include "texture.hh"
 
 class Player {
   public:
