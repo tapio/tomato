@@ -7,6 +7,11 @@
 #include "texture.hh"
 
 
+namespace {
+	enum ElementType { NONE, PLATFORM, LADDER };
+	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER };
+}
+
 void World::addActor(float x, float y, GLuint tex) {
 	Actor actor(tex);
 	// Define the dynamic body. We set its position and call the body factory.
@@ -24,8 +29,8 @@ void World::addActor(float x, float y, GLuint tex) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
-	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
-	fixtureDef.friction = 0.1f; // Stronger friction
+	fixtureDef.density = 2.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.friction = 0.25f; // Friction
 	fixtureDef.restitution = 0.25f; // A little bounciness
 
 	// Add the shape to the body.
@@ -41,13 +46,14 @@ void World::addPlatform(float x, float y, float w) {
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x + w/2 * tilesize, y + tilesize*0.5f);
 	p.body = world.CreateBody(&bodyDef);
+	p.body->SetUserData(&ElementTypes[PLATFORM]);
 	// Create shape
 	b2PolygonShape box;
 	box.SetAsBox(w/2*tilesize, 0.5f*tilesize);
 	// Create fixture
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.friction = 1.0f; // Higher friction
+	fixtureDef.friction = 4.0f; // Higher friction
 	p.body->CreateFixture(&fixtureDef);
 
 	platforms.push_back(p);
@@ -60,12 +66,14 @@ void World::addLadder(float x, float y, float h) {
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x + tilesize*0.5f, y + h/2 * tilesize);
 	l.body = world.CreateBody(&bodyDef);
+	l.body->SetUserData(&ElementTypes[LADDER]);
 	// Create shape
-	b2PolygonShape box;
-	box.SetAsBox(0.5f*tilesize, h/2*tilesize);
+	b2PolygonShape laddershape;
+	//laddershape.SetAsEdge(b2Vec2(0.5f*tilesize, y), b2Vec2(0.5f*tilesize, h));
+	laddershape.SetAsBox(0.10f*tilesize, h/2*tilesize);
 	// Create fixture
 	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &box;
+	fixtureDef.shape = &laddershape;
 	fixtureDef.isSensor = true; // No collision response
 	l.body->CreateFixture(&fixtureDef);
 
@@ -121,9 +129,13 @@ void World::update() {
 	// Update actors' airborne status
 	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 		it->airborne = true;
-		for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->contact; ce = ce->next) {
-			it->airborne = false; break;
+		it->climbing = Player::NO;
+		for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
+			if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == LADDER)
+				it->climbing = Player::YES;
+			else it->airborne = false;
 		}
+		if (it->climbing == Player::YES && !it->airborne) it->climbing = Player::ROOT;
 	}
 }
 

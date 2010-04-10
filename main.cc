@@ -33,7 +33,7 @@ bool handle_keys(Players& players) {
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (k == it->KEY_LEFT) it->move(-1);
 				else if (k == it->KEY_RIGHT) it->move(1);
-				if (k == it->KEY_UP && it->can_jump()) it->jump();
+				if (k == it->KEY_UP) it->jump();
 				else if (k == it->KEY_DOWN) it->duck();
 				if (k == it->KEY_ACTION) it->action();
 			}
@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
 	SDL_Surface* screen = 0;
 	screen = SDL_SetVideoMode(800, 600, 32, SDL_OPENGL);
 	if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
-	SDL_EnableKeyRepeat(80, 80);
+	SDL_EnableKeyRepeat(50, 50);
 
 	setup_gl();
 	srand(time(NULL)); // Randomize RNG

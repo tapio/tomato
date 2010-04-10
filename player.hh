@@ -13,15 +13,24 @@ class Player {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Player(GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), anim_frame(0), airborne(true), jumping(0), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
+	Player(GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), anim_frame(0), airborne(true), climbing(NO), jumping(0), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
 	{ }
 
 	void move(int direction) {
+		if (direction != dir) { dir = direction; return; }
 		if (direction == dir || can_jump()) {
-			float speed = airborne ? 25.0f : 50.0f;
+			// Calc base speed depending on state
+			float speed = airborne ? 20.0f : 30.0f;
+			if (climbing == YES) speed = 10.0f;
+			// Apply direction
+			speed *= direction;
+			// Get old speed
 			b2Vec2 v = body->GetLinearVelocity();
-			if (direction == dir) speed = std::max(speed, v.x); // Don't kill existing higher velocity
-			body->SetLinearVelocity(b2Vec2(speed * direction, v.y));
+			// If airborne, only slow down the existing speed if trying to turn
+			if (airborne && direction != sign(v.x) && std::abs(v.x) > 0.01f) speed = v.x * 0.9;
+			// Don't kill existing higher velocity
+			else if (direction == dir && std::abs(v.x) > std::abs(speed)) speed = v.x;
+			body->SetLinearVelocity(b2Vec2(speed, v.y));
 		}
 		anim_frame = (anim_frame + 1) % 4;
 		dir = direction;
@@ -33,14 +42,22 @@ class Player {
 		}
 	}
 
-	void jump() {
-		std::cout << "JUMP, airborne: " << airborne << std::endl;
-		body->ApplyLinearImpulse(b2Vec2(0.0f, -10000.0f), body->GetWorldCenter());
+	void jump(bool forcejump = false) {
+		std::cout << "JUMP, airborne: " << airborne << ", climbing: " << climbing <<std::endl;
+		if (climbing != NO) {
+			body->SetLinearVelocity(b2Vec2(climbing == YES ? 0.0f : body->GetLinearVelocity().x, -30.0f));
+			return;
+		}
+		if (!can_jump() && !forcejump) return;
+		body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, -30.0f));
 		jumping++;
 	}
 
 	void duck() {
-		std::cout << "DUCK" << std::endl;
+		if (climbing == YES) {
+			body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, 30.0f));
+			return;
+		}
 	}
 
 	void action() {
@@ -73,6 +90,7 @@ class Player {
 	int KEY_ACTION;
 
 	bool airborne;
+	enum Climb { NO, ROOT, YES } climbing;
 	int jumping;
 
 	b2Body* body;

@@ -24,6 +24,9 @@ struct Color {
 
 /// Math
 
+template<typename T>
+int inline sign(T num) { return num > 0 ? 1 : (num < 0 ? -1 : 0); }
+
 bool inline randbool() { return rand() % 2 == 0; }
 
 int inline randint(int hi) { return rand() % hi; }
