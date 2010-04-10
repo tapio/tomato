@@ -115,7 +115,7 @@ typedef std::vector<Ladder> Ladders;
 
 class World {
   public:
-	World(int width, int height, TextureMap& tm): world(b2Vec2(0.0f, 15.0f), true), w(width), h(height), tilesize(32)
+	World(int width, int height, TextureMap& tm): world(b2Vec2(0.0f, 15.0f), true), w(width), h(height), tilesize(32), water_height(64)
 	{
 		float hw = w*0.5, hh = h*0.5;
 
@@ -137,7 +137,19 @@ class World {
 		borderBody->CreateFixture(&borderBoxTop, 0.0f);
 		borderBody->CreateFixture(&borderBoxBottom, 0.0f);
 
+		// Create water
+		b2BodyDef waterBodyDef;
+		waterBodyDef.position.Set(hw, hh);
+		b2Body* waterBody = world.CreateBody(&waterBodyDef);
+		b2PolygonShape waterBox;
+		waterBox.SetAsBox(w*0.5f, water_height*0.5f);
+		b2FixtureDef fixtureDef;
+		fixtureDef.shape = &waterBox;
+		fixtureDef.isSensor = true; // No collision response
+		waterBody->CreateFixture(&fixtureDef);
+
 		texture_background = tm.find("background")->second;
+		texture_water = tm.find("water")->second;
 		texture_ground = tm.find("ground")->second;
 		texture_ladder = tm.find("ladder")->second;
 
@@ -163,7 +175,9 @@ class World {
 	int w;
 	int h;
 	int tilesize;
+	int water_height;
 	GLuint texture_background;
+	GLuint texture_water;
 	GLuint texture_ground;
 	GLuint texture_ladder;
 	Actors actors;

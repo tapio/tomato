@@ -154,4 +154,14 @@ void World::draw() const {
 	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
 		it->draw();
 	}
+	// Water
+	for (int i = 0; i < w / water_height + 1; i++) {
+		float xx = i * water_height;
+		float yy = h - water_height;
+		float verts[] = { xx, yy + water_height,
+						  xx, yy,
+						  xx + water_height, yy,
+						  xx + water_height, yy + water_height };
+		drawVertexArray(&verts[0], &tex_square[0], 4, texture_water);
+	}
 }

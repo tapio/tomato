@@ -24,6 +24,7 @@ GLuint load_texture(const char* filename) {
 TextureMap load_textures() {
 	TextureMap tmap;
 	tmap.insert(std::pair<std::string, GLuint>("background", load_texture("../images/bg.png")));
+	tmap.insert(std::pair<std::string, GLuint>("water", load_texture("../images/water.png")));
 	tmap.insert(std::pair<std::string, GLuint>("ground", load_texture("../images/ground.png")));
 	tmap.insert(std::pair<std::string, GLuint>("ladder", load_texture("../images/ladder.png")));
 	tmap.insert(std::pair<std::string, GLuint>("tomato", load_texture("../images/player_1.png")));
