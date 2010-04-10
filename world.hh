@@ -139,7 +139,7 @@ class World {
 
 		// Create water
 		b2BodyDef waterBodyDef;
-		waterBodyDef.position.Set(hw, hh);
+		waterBodyDef.position.Set(hw, h - water_height*0.5f);
 		b2Body* waterBody = world.CreateBody(&waterBodyDef);
 		b2PolygonShape waterBox;
 		waterBox.SetAsBox(w*0.5f, water_height*0.5f);
