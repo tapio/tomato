@@ -21,7 +21,7 @@ GLuint load_texture(const char* filename);
 TextureMap load_textures();
 
 /// Compose texture coordinate array from a tile index
-float* getTileTexCoords(int tileid, int tilesize, int texsize);
+const float* getTileTexCoords(int tileid, int tilesize, int texsize, bool horiz_flip = false);
 
 /// Draw a given vertex array with triangle strip
 void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex);
