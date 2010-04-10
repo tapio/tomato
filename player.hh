@@ -12,13 +12,14 @@ class Player {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Player(GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), airborne(true), jumping(false), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
+	Player(GLuint tex = 0, Type t = HUMAN): type(t), dir(-1), anim_frame(0), airborne(true), jumping(false), texture(tex), color(1.0f, 0.0f, 0.0f), size(16.0f)
 	{ }
 
 	void move(int direction) {
 		if (direction != dir && !can_jump()) return;
 		dir = direction;
 		body->ApplyLinearImpulse(b2Vec2(10000.0f * direction, 0.0f), body->GetWorldCenter());
+		anim_frame = (anim_frame + 1) % 4;
 	}
 
 	void jump() {
@@ -42,7 +43,7 @@ class Player {
 		               x+size, y+size,
 		               x+size, y-size };
 
-		drawVertexArray(&vc[0], &tex_square[0], 4, texture);
+		drawVertexArray(&vc[0], getTileTexCoords(anim_frame, 32, 128, dir < 0), 4, texture);
 	}
 
 	float32 getX() const { return body->GetPosition().x; }
@@ -52,6 +53,7 @@ class Player {
 	bool can_jump() const { return !airborne || (jumping > 0 && jumping < 5); }
 
 	int dir;
+	int anim_frame;
 
 	int KEY_UP;
 	int KEY_DOWN;
