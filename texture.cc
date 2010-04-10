@@ -42,14 +42,14 @@ const float* getTileTexCoords(int tileid, int tilesize, int texsize, bool horiz_
 	if (horiz_flip) {
 		float temp[] = { x + tiletexsize, y - tiletexsize,
 		                 x + tiletexsize, y,
-		                 x, y - tiletexsize,
-		                 x, y };
+		                 x, y,
+		                 x, y - tiletexsize };
 		tc.insert(tc.end(), &temp[0], &temp[8]);
 	} else {
 		float temp[] = { x, y - tiletexsize,
 		                 x, y,
-		                 x + tiletexsize, y - tiletexsize,
-		                 x + tiletexsize, y };
+		                 x + tiletexsize, y,
+		                 x + tiletexsize, y - tiletexsize };
 		tc.insert(tc.end(), &temp[0], &temp[8]);
 	}
 	return &tc[0];
@@ -63,7 +63,7 @@ void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex) {
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(2, GL_FLOAT, 0, t_a);
 	glVertexPointer(2, GL_FLOAT, 0, v_a);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, n);
+	glDrawArrays(GL_QUADS, 0, n);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisable(GL_TEXTURE_2D);

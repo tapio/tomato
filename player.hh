@@ -40,8 +40,8 @@ class Player {
 		float x = getX(), y = getY();
 		float vc[] = { x-size, y+size,
 		               x-size, y-size,
-		               x+size, y+size,
-		               x+size, y-size };
+		               x+size, y-size,
+		               x+size, y+size };
 
 		drawVertexArray(&vc[0], getTileTexCoords(anim_frame, 32, 128, dir < 0), 4, texture);
 	}

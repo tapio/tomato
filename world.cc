@@ -120,8 +120,8 @@ void World::draw() const {
 			float yy = j * texsize;
 			float verts[] = { xx, yy + texsize,
 			                  xx, yy,
-			                  xx + texsize, yy + texsize,
-			                  xx + texsize, yy };
+			                  xx + texsize, yy,
+			                  xx + texsize, yy + texsize };
 			drawVertexArray(&verts[0], &tex_square[0], 4, texture_background);
 		}
 	}

@@ -10,8 +10,8 @@ typedef std::vector<float> CoordArray;
 
 const static float tex_square[] = { 0.0f, 0.0f,
 	                                0.0f, 1.0f,
-	                                1.0f, 0.0f,
-	                                1.0f, 1.0f };
+	                                1.0f, 1.0f,
+	                                1.0f, 0.0f };
 
 
 /// Load a single texture
@@ -23,5 +23,5 @@ TextureMap load_textures();
 /// Compose texture coordinate array from a tile index
 const float* getTileTexCoords(int tileid, int tilesize, int texsize, bool horiz_flip = false);
 
-/// Draw a given vertex array with triangle strip and given texture
+/// Draw a given vertex array with quads and given texture
 void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex);

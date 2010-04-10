@@ -19,18 +19,18 @@ struct WorldElement {
 		//float xmax = w > h ? w / h : 1.0f;
 		//float ymax = h > w ? h / w : 1.0f;
 		CoordArray v_arr, t_arr;
-		if (w > h) {
-			float tc_beg[] = { 0.00f,0.0f, 0.00f,1.0f, 0.25f,0.0f, 0.25f,1.0f };
-			float tc_mid[] = { 0.25f,0.0f, 0.25f,1.0f, 0.75f,0.0f, 0.75f,1.0f };
-			float tc_end[] = { 0.75f,0.0f, 0.75f,1.0f, 1.00f,0.0f, 1.00f,1.0f };
+		if (w > h) { // Horizontal
+			float tc_beg[] = { 0.00f,0.0f, 0.00f,1.0f, 0.25f,1.0f, 0.25f,0.0f };
+			float tc_mid[] = { 0.25f,0.0f, 0.25f,1.0f, 0.75f,1.0f, 0.75f,0.0f };
+			float tc_end[] = { 0.75f,0.0f, 0.75f,1.0f, 1.00f,1.0f, 1.00f,0.0f };
 			float vc_beg[] = { x - hw, y - hh + tilesize,
 							   x - hw, y - hh,
-							   x - hw + tilesize*0.5f, y - hh + tilesize,
-							   x - hw + tilesize*0.5f, y - hh };
+							   x - hw + tilesize*0.5f, y - hh,
+							   x - hw + tilesize*0.5f, y - hh + tilesize };
 			float vc_end[] = { x + hw - tilesize*0.5f, y - hh + tilesize,
 							   x + hw - tilesize*0.5f, y - hh,
-							   x + hw, y - hh + tilesize,
-							   x + hw, y - hh };
+							   x + hw, y - hh,
+							   x + hw, y - hh + tilesize };
 			// Beginning
 			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
 			t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
@@ -40,26 +40,26 @@ struct WorldElement {
 				float yy = y - hh; //+ tilesize * 0.5f + j * tilesize;
 				float vc_mid[] = { xx, yy + tilesize,
 								   xx, yy,
-								   xx + tilesize, yy + tilesize,
-								   xx + tilesize, yy };
+								   xx + tilesize, yy,
+								   xx + tilesize, yy + tilesize };
 				v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
 				t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
 			}
 			// End
 			v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
 			t_arr.insert(t_arr.end(), &tc_end[0], &tc_end[8]);
-		} else {
-			float tc_beg[] = { 0.0f,0.00f, 0.0f,0.25f, 1.0f,0.00f, 1.0f,0.25f };
-			float tc_mid[] = { 0.0f,0.25f, 0.0f,0.75f, 1.0f,0.25f, 1.0f,0.75f };
-			float tc_end[] = { 0.0f,0.75f, 0.0f,1.00f, 1.0f,0.75f, 1.0f,1.00f };
-			float vc_beg[] = { x - hw, y - hh + tilesize,
+		} else { // Vertical
+			float tc_beg[] = { 0.0f,0.75f, 0.0f,1.00f, 1.0f,1.00f, 1.0f,0.75f };
+			float tc_mid[] = { 0.0f,0.25f, 0.0f,0.75f, 1.0f,0.75f, 1.0f,0.25f };
+			float tc_end[] = { 0.0f,0.00f, 0.0f,0.25f, 1.0f,0.25f, 1.0f,0.00f };
+			float vc_beg[] = { x - hw, y - hh + tilesize*0.5f,
 							   x - hw, y - hh,
-							   x - hw + tilesize, y - hh + tilesize,
-							   x - hw + tilesize, y - hh };
-			float vc_end[] = { x + hw, y - hh + tilesize,
-							   x + hw, y - hh,
-							   x + hw - tilesize, y - hh + tilesize,
-							   x + hw - tilesize, y - hh };
+							   x - hw + tilesize, y - hh,
+							   x - hw + tilesize, y - hh + tilesize*0.5f };
+			float vc_end[] = { x + hw - tilesize, y + hh,
+							   x + hw - tilesize, y + hh - tilesize*0.5f,
+							   x + hw, y + hh - tilesize*0.5f,
+							   x + hw, y + hh };
 			// Beginning
 			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
 			t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
@@ -69,8 +69,8 @@ struct WorldElement {
 				float yy = y - hh + tilesize * 0.5f + j * tilesize;
 				float vc_mid[] = { xx, yy + tilesize,
 								   xx, yy,
-								   xx + tilesize, yy + tilesize,
-								   xx + tilesize, yy };
+								   xx + tilesize, yy,
+								   xx + tilesize, yy + tilesize };
 				v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
 				t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
 			}
