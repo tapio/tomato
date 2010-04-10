@@ -8,61 +8,57 @@
 #include <Box2D.h>
 
 #include "texture.hh"
+#include "util.hh"
 
 struct WorldElement {
-	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize)
+	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize), seed(randint(1000))
 	{ }
 	// ARGH, horibble spaghetti below
 	void draw() const {
+		srand(seed);
 		float x = getX(), y = getY();
 		float hw = getW() * 0.5, hh = getH() * 0.5;
 		//float xmax = w > h ? w / h : 1.0f;
 		//float ymax = h > w ? h / w : 1.0f;
 		CoordArray v_arr, t_arr;
 		if (w > h) { // Horizontal
-			float tc_beg[] = { 0.00f,0.0f, 0.00f,1.0f, 0.25f,1.0f, 0.25f,0.0f };
-			float tc_mid[] = { 0.25f,0.0f, 0.25f,1.0f, 0.75f,1.0f, 0.75f,0.0f };
-			float tc_end[] = { 0.75f,0.0f, 0.75f,1.0f, 1.00f,1.0f, 1.00f,0.0f };
+			// Left side (beginning)
+			float* tc = getTileTexCoords(0, 8, 1);
+			t_arr.insert(t_arr.end(), tc, tc+8);
 			float vc_beg[] = { x - hw, y - hh + tilesize,
 							   x - hw, y - hh,
 							   x - hw + tilesize*0.5f, y - hh,
 							   x - hw + tilesize*0.5f, y - hh + tilesize };
-			float vc_end[] = { x + hw - tilesize*0.5f, y - hh + tilesize,
-							   x + hw - tilesize*0.5f, y - hh,
-							   x + hw, y - hh,
-							   x + hw, y - hh + tilesize };
-			// Beginning
 			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
-			t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
 			// Middle
 			for (int i = 0; i < w-1; i++) {
 				float xx = x - hw + tilesize * 0.5f + i * tilesize;
-				float yy = y - hh; //+ tilesize * 0.5f + j * tilesize;
+				float yy = y - hh;
 				float vc_mid[] = { xx, yy + tilesize,
 								   xx, yy,
 								   xx + tilesize, yy,
 								   xx + tilesize, yy + tilesize };
 				v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
-				t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
+				tc = getTileTexCoords(randint(0,2), 4, 1, false, 1.0f/8.0f); // xoffset for the left ending
+				t_arr.insert(t_arr.end(), tc, tc+8);
 			}
-			// End
+			// Right side (end)
+			tc = getTileTexCoords(7, 8, 1);
+			t_arr.insert(t_arr.end(), tc, tc+8);
+			float vc_end[] = { x + hw - tilesize*0.5f, y - hh + tilesize,
+							   x + hw - tilesize*0.5f, y - hh,
+							   x + hw, y - hh,
+							   x + hw, y - hh + tilesize };
 			v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
-			t_arr.insert(t_arr.end(), &tc_end[0], &tc_end[8]);
 		} else { // Vertical
-			float tc_beg[] = { 0.0f,0.75f, 0.0f,1.00f, 1.0f,1.00f, 1.0f,0.75f };
-			float tc_mid[] = { 0.0f,0.25f, 0.0f,0.75f, 1.0f,0.75f, 1.0f,0.25f };
-			float tc_end[] = { 0.0f,0.00f, 0.0f,0.25f, 1.0f,0.25f, 1.0f,0.00f };
+			// Top (beginning)
+			float* tc = getTileTexCoords(0, 1, 8);
+			t_arr.insert(t_arr.end(), tc, tc+8);
 			float vc_beg[] = { x - hw, y - hh + tilesize*0.5f,
 							   x - hw, y - hh,
 							   x - hw + tilesize, y - hh,
 							   x - hw + tilesize, y - hh + tilesize*0.5f };
-			float vc_end[] = { x + hw - tilesize, y + hh,
-							   x + hw - tilesize, y + hh - tilesize*0.5f,
-							   x + hw, y + hh - tilesize*0.5f,
-							   x + hw, y + hh };
-			// Beginning
 			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
-			t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
 			// Middle
 			for (int j = 0; j < h-1; j++) {
 				float xx = x - hw;
@@ -72,11 +68,17 @@ struct WorldElement {
 								   xx + tilesize, yy,
 								   xx + tilesize, yy + tilesize };
 				v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
-				t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
+				tc = getTileTexCoords(randint(0,2), 1, 4, false, 0.0f, 1.0f/8.0f); // yoffset for the half-top
+				t_arr.insert(t_arr.end(), tc, tc+8);
 			}
-			// End
+			// Bottom (end)
+			tc = getTileTexCoords(7, 1, 8);
+			t_arr.insert(t_arr.end(), tc, tc+8);
+			float vc_end[] = { x + hw - tilesize, y + hh,
+							   x + hw - tilesize, y + hh - tilesize*0.5f,
+							   x + hw, y + hh - tilesize*0.5f,
+							   x + hw, y + hh };
 			v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
-			t_arr.insert(t_arr.end(), &tc_end[0], &tc_end[8]);
 		}
 		// Draw
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture);
@@ -92,7 +94,7 @@ struct WorldElement {
 	GLuint texture;
 	GLuint tileid;
 	int tilesize;
-
+	int seed;
 
 };
 

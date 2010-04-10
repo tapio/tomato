@@ -32,12 +32,12 @@ TextureMap load_textures() {
 }
 
 
-const float* getTileTexCoords(int tileid, int xtiles, int ytiles, bool horiz_flip) {
+float* getTileTexCoords(int tileid, int xtiles, int ytiles, bool horiz_flip, float xoff, float yoff) {
 	static CoordArray tc;
 	float tilew = 1.0f / xtiles;
 	float tileh = 1.0f / ytiles;
-	float x = (tileid % xtiles) * tilew;
-	float y = 1.0 - int(tileid / xtiles) * tileh;
+	float x = (tileid % xtiles) * tilew + xoff;
+	float y = 1.0 - int(tileid / xtiles) * tileh - yoff;
 	tc.clear();
 	if (horiz_flip) { // Flipped
 		float temp[] = { x + tilew, y - tileh,

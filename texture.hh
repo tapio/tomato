@@ -21,7 +21,7 @@ GLuint load_texture(const char* filename);
 TextureMap load_textures();
 
 /// Compose texture coordinate array from a tile index
-const float* getTileTexCoords(int tileid, int xtiles, int ytiles, bool horiz_flip = false);
+float* getTileTexCoords(int tileid, int xtiles, int ytiles, bool horiz_flip = false, float xoff = 0.0f, float yoff = 0.0f);
 
 /// Draw a given vertex array with quads and given texture
 void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex);
