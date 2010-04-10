@@ -7,3 +7,17 @@
 	- Main thread (input)
 	- Physics thread
 	- Graphics thread?
+
+Power-ups
+---------
+* Classics
+	- Mine
+	- Invisibility
+	- Minigun
+	- Deadly touch
+	- Death
+* New
+	- Double-jump
+	- Punch
+	- Super-restitution? (very bouncy)
+	- Very light / very heavy?
