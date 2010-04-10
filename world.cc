@@ -36,11 +36,10 @@ void World::addActor(float x, float y, GLuint tex) {
 
 
 void World::addPlatform(float x, float y, float w) {
-	int tilesize = 32;
 	Platform p(w, texture_ground, 0, tilesize);
 	// Create body
 	b2BodyDef bodyDef;
-	bodyDef.position.Set(x, y);
+	bodyDef.position.Set(x + w/2 * tilesize, y + tilesize*0.5f);
 	p.body = world.CreateBody(&bodyDef);
 	// Create shape
 	b2PolygonShape box;
@@ -56,11 +55,10 @@ void World::addPlatform(float x, float y, float w) {
 
 
 void World::addLadder(float x, float y, float h) {
-	int tilesize = 32;
 	Ladder l(h, texture_ladder, 0, tilesize);
 	// Create body
 	b2BodyDef bodyDef;
-	bodyDef.position.Set(x, y);
+	bodyDef.position.Set(x + tilesize*0.5f, y + h/2 * tilesize);
 	l.body = world.CreateBody(&bodyDef);
 	// Create shape
 	b2PolygonShape box;
@@ -76,12 +74,31 @@ void World::addLadder(float x, float y, float h) {
 
 
 void World::generate() {
-	for (int i = 0; i < 10; i++) {
+	// Create starting platforms
+	float x = randf(1.5*tilesize, 2.5*tilesize);
+	float y1 = randf(3*tilesize, 5*tilesize);
+	float y2 = randf(h-8*tilesize, h-5*tilesize);
+	int ytilediff = int((y2-y1) / tilesize) + 1;
+	addPlatform(x + tilesize, y1, randint(2,4)); // Top left
+	addPlatform(x, y2, randint(2,4)); // Bottom left
+	addLadder(x, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
+
+	float w1 = randint(2,4);
+	float w2 = randint(2,4);
+	x = randf(w - 2.5*tilesize - tilesize, w - 1.5*tilesize - tilesize);
+	y1 = randf(3*tilesize,5*tilesize);
+	y2 = randf(h-8*tilesize,h-5*tilesize);
+	ytilediff = int((y2-y1) / tilesize) + 1;
+	addPlatform(x - w1*tilesize - tilesize, y1, w1); // Top right
+	addPlatform(x - w2*tilesize, y2, w2); // Bottom right
+	addLadder(x - tilesize, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
+	// Create rest
+	for (int i = 0; i < 5; i++) {
 		addPlatform(randint(0,w), randint(0,h), randint(2,6));
 	}
-	for (int i = 0; i < 5; i++) {
-		addLadder(randint(0,w), randint(0,h), randint(2,6));
-	}
+	//for (int i = 0; i < 4; i++) {
+		//addLadder(randint(0,w), randint(0,h), randint(2,6));
+	//}
 }
 
 

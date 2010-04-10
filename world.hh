@@ -113,7 +113,7 @@ typedef std::vector<Ladder> Ladders;
 
 class World {
   public:
-	World(int width, int height, TextureMap& tm): world(b2Vec2(0.0f, 15.0f), true), w(width), h(height)
+	World(int width, int height, TextureMap& tm): world(b2Vec2(0.0f, 15.0f), true), w(width), h(height), tilesize(32)
 	{
 		float hw = w*0.5, hh = h*0.5;
 
@@ -160,6 +160,7 @@ class World {
 	b2World world;
 	int w;
 	int h;
+	int tilesize;
 	GLuint texture_background;
 	GLuint texture_ground;
 	GLuint texture_ladder;

@@ -32,6 +32,10 @@ int inline randint(int lo, int hi) {
 	return (rand() % (hi - lo + 1)) + lo;
 }
 
+float inline randf(float lo, float hi) {
+	return (rand() / float(RAND_MAX) * (hi - lo )) + lo;
+}
+
 void inline swapdir(int& dir) { if (dir == 1) dir = -1; else dir = 1; }
 
 int inline randdir() { return randbool() ? 1 : -1; }
