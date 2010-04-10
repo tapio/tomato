@@ -130,7 +130,7 @@ void World::update() {
 
 void World::draw() const {
 	// Background
-	int texsize = 512;
+	int texsize = 256;
 	for (int j = 0; j < h/texsize + 1; j++) {
 		for (int i = 0; i < w/texsize + 1; i++) {
 			float xx = i * texsize;
