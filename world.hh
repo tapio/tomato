@@ -9,44 +9,75 @@
 
 #include "texture.hh"
 
-struct Platform {
-	Platform(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize)
+struct WorldElement {
+	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize)
 	{ }
-
+	// ARGH, horibble spaghetti below
 	void draw() const {
 		float x = getX(), y = getY();
 		float hw = getW() * 0.5, hh = getH() * 0.5;
 		//float xmax = w > h ? w / h : 1.0f;
 		//float ymax = h > w ? h / w : 1.0f;
-		const static float tc_beg[] = { 0.00f,0.0f, 0.00f,1.0f, 0.25f,0.0f, 0.25f,1.0f };
-		const static float tc_mid[] = { 0.25f,0.0f, 0.25f,1.0f, 0.75f,0.0f, 0.75f,1.0f };
-		const static float tc_end[] = { 0.75f,0.0f, 0.75f,1.0f, 1.00f,0.0f, 1.00f,1.0f };
-		float vc_beg[] = { x - hw, y - hh + tilesize,
-		                   x - hw, y - hh,
-		                   x - hw + tilesize*0.5f, y - hh + tilesize,
-		                   x - hw + tilesize*0.5f, y - hh };
-		float vc_end[] = { x + hw - tilesize*0.5f, y - hh + tilesize,
-		                   x + hw - tilesize*0.5f, y - hh,
-		                   x + hw, y - hh + tilesize,
-		                   x + hw, y - hh };
 		CoordArray v_arr, t_arr;
-		// Beginning
-		v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
-		t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
-		// Middle
-		for (int i = 0; i < w-1; i++) {
-			float xx = x - hw + tilesize * 0.5f + i * tilesize;
-			float yy = y - hh; //+ tilesize * 0.5f + j * tilesize;
-			float vc_mid[] = { xx, yy + tilesize,
-			                   xx, yy,
-			                   xx + tilesize, yy + tilesize,
-			                   xx + tilesize, yy };
-			v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
-			t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
+		if (w > h) {
+			float tc_beg[] = { 0.00f,0.0f, 0.00f,1.0f, 0.25f,0.0f, 0.25f,1.0f };
+			float tc_mid[] = { 0.25f,0.0f, 0.25f,1.0f, 0.75f,0.0f, 0.75f,1.0f };
+			float tc_end[] = { 0.75f,0.0f, 0.75f,1.0f, 1.00f,0.0f, 1.00f,1.0f };
+			float vc_beg[] = { x - hw, y - hh + tilesize,
+							   x - hw, y - hh,
+							   x - hw + tilesize*0.5f, y - hh + tilesize,
+							   x - hw + tilesize*0.5f, y - hh };
+			float vc_end[] = { x + hw - tilesize*0.5f, y - hh + tilesize,
+							   x + hw - tilesize*0.5f, y - hh,
+							   x + hw, y - hh + tilesize,
+							   x + hw, y - hh };
+			// Beginning
+			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
+			t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
+			// Middle
+			for (int i = 0; i < w-1; i++) {
+				float xx = x - hw + tilesize * 0.5f + i * tilesize;
+				float yy = y - hh; //+ tilesize * 0.5f + j * tilesize;
+				float vc_mid[] = { xx, yy + tilesize,
+								   xx, yy,
+								   xx + tilesize, yy + tilesize,
+								   xx + tilesize, yy };
+				v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
+				t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
+			}
+			// End
+			v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
+			t_arr.insert(t_arr.end(), &tc_end[0], &tc_end[8]);
+		} else {
+			float tc_beg[] = { 0.0f,0.00f, 0.0f,0.25f, 1.0f,0.00f, 1.0f,0.25f };
+			float tc_mid[] = { 0.0f,0.25f, 0.0f,0.75f, 1.0f,0.25f, 1.0f,0.75f };
+			float tc_end[] = { 0.0f,0.75f, 0.0f,1.00f, 1.0f,0.75f, 1.0f,1.00f };
+			float vc_beg[] = { x - hw, y - hh + tilesize,
+							   x - hw, y - hh,
+							   x - hw + tilesize, y - hh + tilesize,
+							   x - hw + tilesize, y - hh };
+			float vc_end[] = { x + hw, y - hh + tilesize,
+							   x + hw, y - hh,
+							   x + hw - tilesize, y - hh + tilesize,
+							   x + hw - tilesize, y - hh };
+			// Beginning
+			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
+			t_arr.insert(t_arr.end(), &tc_beg[0], &tc_beg[8]);
+			// Middle
+			for (int j = 0; j < h-1; j++) {
+				float xx = x - hw;
+				float yy = y - hh + tilesize * 0.5f + j * tilesize;
+				float vc_mid[] = { xx, yy + tilesize,
+								   xx, yy,
+								   xx + tilesize, yy + tilesize,
+								   xx + tilesize, yy };
+				v_arr.insert(v_arr.end(), &vc_mid[0], &vc_mid[8]);
+				t_arr.insert(t_arr.end(), &tc_mid[0], &tc_mid[8]);
+			}
+			// End
+			v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
+			t_arr.insert(t_arr.end(), &tc_end[0], &tc_end[8]);
 		}
-		// End
-		v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
-		t_arr.insert(t_arr.end(), &tc_end[0], &tc_end[8]);
 		// Draw
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture);
 	}
@@ -61,6 +92,16 @@ struct Platform {
 	GLuint texture;
 	GLuint tileid;
 	int tilesize;
+
+
+};
+
+struct Platform: public WorldElement {
+	Platform(int w, GLuint tex, GLuint tile, int tsize): WorldElement(w, 1, tex, tile, tsize) {}
+};
+
+struct Ladder: public WorldElement {
+	Ladder(int h, GLuint tex, GLuint tile, int tsize): WorldElement(1, h, tex, tile, tsize) {}
 };
 
 class Player;
@@ -68,6 +109,7 @@ class Player;
 typedef Player Actor;
 typedef std::vector<Actor> Actors;
 typedef std::vector<Platform> Platforms;
+typedef std::vector<Ladder> Ladders;
 
 class World {
   public:
@@ -95,13 +137,14 @@ class World {
 
 		texture_background = tm.find("background")->second;
 		texture_ground = tm.find("ground")->second;
+		texture_ladder = tm.find("ladder")->second;
 
 		generate();
 	}
 
 	void addActor(float x, float y, GLuint tex);
-
 	void addPlatform(float x, float y, float w);
+	void addLadder(float x, float y, float h);
 
 	void generate();
 
@@ -119,7 +162,9 @@ class World {
 	int h;
 	GLuint texture_background;
 	GLuint texture_ground;
+	GLuint texture_ladder;
 	Actors actors;
 	Platforms platforms;
+	Ladders ladders;
 
 };

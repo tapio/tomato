@@ -36,29 +36,51 @@ void World::addActor(float x, float y, GLuint tex) {
 
 
 void World::addPlatform(float x, float y, float w) {
-	float h = 1;
 	int tilesize = 32;
-	Platform p(w, h, texture_ground, 0, tilesize);
+	Platform p(w, texture_ground, 0, tilesize);
 	// Create body
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x, y);
 	p.body = world.CreateBody(&bodyDef);
 	// Create shape
 	b2PolygonShape box;
-	box.SetAsBox(w/2*tilesize, h/2*tilesize);
+	box.SetAsBox(w/2*tilesize, 0.5f*tilesize);
 	// Create fixture
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.friction = 1.0f;
+	fixtureDef.friction = 1.0f; // Higher friction
 	p.body->CreateFixture(&fixtureDef);
 
 	platforms.push_back(p);
 }
 
 
+void World::addLadder(float x, float y, float h) {
+	int tilesize = 32;
+	Ladder l(h, texture_ladder, 0, tilesize);
+	// Create body
+	b2BodyDef bodyDef;
+	bodyDef.position.Set(x, y);
+	l.body = world.CreateBody(&bodyDef);
+	// Create shape
+	b2PolygonShape box;
+	box.SetAsBox(0.5f*tilesize, h/2*tilesize);
+	// Create fixture
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &box;
+	fixtureDef.isSensor = true; // No collision response
+	l.body->CreateFixture(&fixtureDef);
+
+	ladders.push_back(l);
+}
+
+
 void World::generate() {
 	for (int i = 0; i < 10; i++) {
 		addPlatform(randint(0,w), randint(0,h), randint(2,6));
+	}
+	for (int i = 0; i < 5; i++) {
+		addLadder(randint(0,w), randint(0,h), randint(2,6));
 	}
 }
 
@@ -102,6 +124,10 @@ void World::draw() const {
 			                  xx + texsize, yy };
 			drawVertexArray(&verts[0], &tex_square[0], 4, texture_background);
 		}
+	}
+	// Ladders
+	for (Ladders::const_iterator it = ladders.begin(); it != ladders.end(); ++it) {
+		it->draw();
 	}
 	// Platforms
 	for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {

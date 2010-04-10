@@ -1,5 +1,6 @@
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 #include <SOIL.h>
 #include <GL/gl.h>
 
@@ -24,6 +25,7 @@ TextureMap load_textures() {
 	TextureMap tmap;
 	tmap.insert(std::pair<std::string, GLuint>("background", load_texture("../images/bg.png")));
 	tmap.insert(std::pair<std::string, GLuint>("ground", load_texture("../images/ground.png")));
+	tmap.insert(std::pair<std::string, GLuint>("ladder", load_texture("../images/ladder.png")));
 	tmap.insert(std::pair<std::string, GLuint>("tomato", load_texture("../images/player_1.png")));
 
 	return tmap;
@@ -66,3 +68,4 @@ void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex) {
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisable(GL_TEXTURE_2D);
 }
+
