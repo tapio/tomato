@@ -30,9 +30,10 @@ void Powerup::unequip(Actor* owner) {
 void Powerup::touch(Actor* owner, Actor* other) {
 	if (!owner || !other) return;
 	if (type == PUNCH) {
+		std::cout << "PUNCH" << std::endl;
 		b2Vec2 v = other->getBody()->GetWorldCenter() - owner->getBody()->GetWorldCenter();
 		v.Normalize();
-		other->getBody()->ApplyLinearImpulse(1000.0f * v, other->getBody()->GetWorldCenter());
+		other->getBody()->ApplyLinearImpulse(50000.0f * v, other->getBody()->GetWorldCenter());
 	}
 }
 

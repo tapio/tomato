@@ -9,8 +9,8 @@
 
 
 namespace {
-	enum ElementType { NONE, PLATFORM, LADDER, POWERUP };
-	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, POWERUP };
+	enum ElementType { NONE, PLATFORM, LADDER, POWERUP, ACTOR };
+	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, POWERUP, ACTOR };
 	struct WorldElement {
 		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
 		ElementType type;
@@ -26,19 +26,16 @@ void World::addActor(float x, float y, GLuint tex) {
 	bodyDef.position.Set(x, y);
 	bodyDef.fixedRotation = true;
 	actor.body = world.CreateBody(&bodyDef);
-	//world.addActor(this);
-
+	actor.body->SetUserData(&ElementTypes[ACTOR]);
 	// Define a circle shape for our dynamic body.
 	b2CircleShape circle;
 	circle.m_radius = actor.getSize();
-
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
 	fixtureDef.density = 2.0f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.friction = 0.25f; // Friction
 	fixtureDef.restitution = 0.25f; // A little bounciness
-
 	// Add the shape to the body.
 	actor.getBody()->CreateFixture(&fixtureDef);
 
@@ -194,6 +191,17 @@ void World::update() {
 						break;
 					}
 				}
+			// Other players
+			} else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == ACTOR) {
+				ce->other->SetUserData(NULL);
+				// Find the actor
+				for (Actors::iterator ac = actors.begin(); ac != actors.end(); ++ac) {
+					if (!ac->getBody()->GetUserData()) {
+						it->powerup.touch(&(*it), &(*ac));
+						break;
+					}
+				}
+				ce->other->SetUserData(&ElementTypes[ACTOR]);
 			// Ground
 			} else it->airborne = false;
 		}
