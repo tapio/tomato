@@ -16,7 +16,7 @@ struct Powerup {
 	const static Type PowerupTypes[];
 	static Type Random() { return PowerupTypes[randint(POWERUPS)]; }
 
-	Powerup(Type type = PUNCH): type(type) { }
+	Powerup(Type type = NONE): type(type) { }
 	void equip(Actor* owner);
 	void unequip(Actor* owner);
 	void touch(Actor* owner, Actor* other);

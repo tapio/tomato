@@ -165,6 +165,8 @@ void World::update() {
 	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 		it->airborne = true;
 		it->climbing = Actor::NO;
+		// Water
+		if (it->getBody()->GetWorldCenter().y + it->getSize() >= h - water_height) it->die();
 		// Death
 		if (it->is_dead()) {
 			srand(time(NULL));
