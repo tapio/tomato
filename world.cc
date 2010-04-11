@@ -5,6 +5,7 @@
 #include "player.hh"
 #include "util.hh"
 #include "texture.hh"
+#include "powerups.hh"
 
 
 namespace {
@@ -81,6 +82,35 @@ void World::addLadder(float x, float y, float h) {
 }
 
 
+void World::addPowerup(float x, float y, Powerup::Type type) {
+	Powerup pw(type, texture_powerups);
+	// Define the dynamic body. We set its position and call the body factory.
+	b2BodyDef bodyDef;
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position.Set(x, y);
+	bodyDef.fixedRotation = true;
+	pw.body = world.CreateBody(&bodyDef);
+
+	// Define a circle shape for our dynamic body.
+	b2PolygonShape box;
+	box.SetAsBox(pw.getSize(), pw.getSize());
+
+	// Define the dynamic body fixture.
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &box;
+	fixtureDef.density = 0.1f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.restitution = 1.0f; // Full bounciness
+	pw.getBody()->CreateFixture(&fixtureDef);
+
+	// Set a random velocity
+	float a = randf(0.0f, 2*PI);
+	float spd = randf(GRAVITY*0.5f, GRAVITY*1.5f);
+	pw.getBody()->SetLinearVelocity(b2Vec2(cos(a)*spd, sin(a)*spd));
+
+	powerups.push_back(pw);
+}
+
+
 void World::generate() {
 	// Create starting platforms
 	float x = randf(1.5*tilesize, 2.5*tilesize);
@@ -126,7 +156,7 @@ void World::update() {
 	// should know about this function.
 	world.ClearForces();
 
-	// Update actors' airborne status
+	// Update actors' airborne etc. status + gravity
 	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 		it->airborne = true;
 		it->climbing = Player::NO;
@@ -136,6 +166,17 @@ void World::update() {
 			else it->airborne = false;
 		}
 		if (it->climbing == Player::YES && !it->airborne) it->climbing = Player::ROOT;
+		// Gravity;
+		b2Body* b = it->getBody();
+		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
+	}
+
+	// Create power-ups
+	if (timer_powerup()) {
+		srand(time(NULL));
+		float offset = 50.0f;
+		addPowerup(randf(offset, w-offset), randf(offset, h-offset), PowerupTypes[randint(Powerup::POWERUPS)]);
+		timer_powerup = Countdown(randf(5.0f, 8.0f));
 	}
 }
 
@@ -164,6 +205,10 @@ void World::draw() const {
 	}
 	// Players
 	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
+		it->draw();
+	}
+	// Power-ups
+	for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
 		it->draw();
 	}
 	// Water

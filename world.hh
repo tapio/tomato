@@ -8,10 +8,14 @@
 #include <Box2D.h>
 
 #include "texture.hh"
+#include "powerups.hh"
 #include "util.hh"
 
+#define GRAVITY 25.0f
+
 struct WorldElement {
-	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): w(w), h(h), texture(tex), tileid(tile), tilesize(tsize), seed(randint(1000))
+	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize):
+	  w(w), h(h), texture(tex), tileid(tile), tilesize(tsize), seed(randint(1000))
 	{ }
 	// ARGH, horibble spaghetti below
 	void draw() const {
@@ -115,7 +119,8 @@ typedef std::vector<Ladder> Ladders;
 
 class World {
   public:
-	World(int width, int height, TextureMap& tm): world(b2Vec2(0.0f, 25.0f), true), w(width), h(height), tilesize(32), water_height(64)
+	World(int width, int height, TextureMap& tm):
+	  world(b2Vec2(0.0f, 0.0f), true), w(width), h(height), tilesize(32), water_height(64), timer_powerup(randf(4.0f, 7.0f))
 	{
 		float hw = w*0.5, hh = h*0.5;
 
@@ -152,6 +157,7 @@ class World {
 		texture_water = tm.find("water")->second;
 		texture_ground = tm.find("ground")->second;
 		texture_ladder = tm.find("ladder")->second;
+		texture_powerups = tm.find("powerups")->second;
 
 		generate();
 	}
@@ -159,6 +165,7 @@ class World {
 	void addActor(float x, float y, GLuint tex);
 	void addPlatform(float x, float y, float w);
 	void addLadder(float x, float y, float h);
+	void addPowerup(float x, float y, Powerup::Type type);
 
 	void generate();
 
@@ -180,8 +187,10 @@ class World {
 	GLuint texture_water;
 	GLuint texture_ground;
 	GLuint texture_ladder;
+	GLuint texture_powerups;
 	Actors actors;
 	Platforms platforms;
 	Ladders ladders;
-
+	Powerups powerups;
+	Countdown timer_powerup;
 };

@@ -6,6 +6,17 @@
 #include <vector>
 
 #include <GL/gl.h>
+#include <SDL.h>
+
+#define PI 3.1415926535
+
+/// Timer
+struct Countdown {
+	Countdown(float seconds): endtime(SDL_GetTicks() + seconds*1000) { }
+	bool operator()() { return SDL_GetTicks() >= endtime; }
+	unsigned int endtime;
+};
+
 
 /// Struct to store color information
 struct Color {
