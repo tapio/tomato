@@ -11,6 +11,9 @@ class Actor;
 
 struct Powerup {
 	enum Type { DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, MINIGUN, POWERUPS, NONE } type;
+	const static Type PowerupTypes[];
+	static Type Random() { return PowerupTypes[randint(POWERUPS)]; }
+
 	Powerup(Type type = NONE): type(type) { }
 	void equip(Actor* owner);
 	void unequip(Actor* owner);

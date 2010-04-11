@@ -9,7 +9,6 @@
 
 
 namespace {
-	const static Powerup::Type PowerupTypes[] = { Powerup::DEATH, Powerup::INVISIBILITY, Powerup::MINE, Powerup::DOUBLEJUMP, Powerup::PUNCH, Powerup::MINIGUN };
 	enum ElementType { NONE, PLATFORM, LADDER, POWERUP };
 	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, POWERUP };
 	struct WorldElement {
@@ -196,7 +195,7 @@ void World::update() {
 	if (timer_powerup()) {
 		srand(time(NULL));
 		float offset = 50.0f;
-		addPowerup(randf(offset, w-offset), randf(offset, h-offset), PowerupTypes[randint(Powerup::POWERUPS)]);
+		addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
 		timer_powerup = Countdown(randf(5.0f, 8.0f));
 	}
 }

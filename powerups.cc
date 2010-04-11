@@ -1,6 +1,8 @@
 #include "powerups.hh"
 #include "player.hh"
 
+const Powerup::Type Powerup::PowerupTypes[] =
+	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, MINIGUN };
 
 void Powerup::equip(Actor* owner) {
 	lifetime = Countdown(3600);
