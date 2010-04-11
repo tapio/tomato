@@ -15,7 +15,8 @@ class Actor: public Entity {
 	enum Type { HUMAN, AI, REMOTE } type;
 
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex),
-	  type(t), dir(-1), anim_frame(0), airborne(true), climbing(NO), jumping(0), powerup()
+	  type(t), points(0), dead(false), dir(-1), anim_frame(0), airborne(true), climbing(NO), jumping(0), powerup(),
+	  invisible(false), doublejump(DJUMP_DISALLOW)
 	{ }
 
 	void move(int direction) {
@@ -45,13 +46,16 @@ class Actor: public Entity {
 	}
 
 	void jump(bool forcejump = false) {
-		std::cout << "JUMP, airborne: " << airborne << ", climbing: " << climbing <<std::endl;
+		std::cout << "JUMP, airborne: " << airborne << ", climbing: " << climbing << ", djump: " << doublejump << std::endl;
 		if (climbing != NO) {
 			body->SetLinearVelocity(b2Vec2(climbing == YES ? 0.0f : body->GetLinearVelocity().x, -30.0f));
 			return;
 		}
 		if (!can_jump() && !forcejump) return;
 		body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, -30.0f));
+		// Handle double jump
+		if (airborne && jumping == 0 && doublejump == DJUMP_ALLOW)
+			doublejump = DJUMP_JUMPED;
 		jumping++;
 	}
 
@@ -66,17 +70,26 @@ class Actor: public Entity {
 		powerup.action(this);
 	}
 
-	void equip(Powerup& p) {
+	void equip(Powerup p) {
 		powerup.unequip(this);
 		powerup = p;
 		powerup.equip(this);
 	}
 
-	virtual void draw() const { Entity::draw(anim_frame, 4, dir < 0); }
-	bool can_jump() const { return !airborne || (jumping > 0 && jumping < 5); }
+	void unequip() { equip(Powerup()); }
 
-	int dir;
-	int anim_frame;
+	void die() {
+		unequip();
+		dead = true;
+		points--;
+		std::cout << "DEATH! Points: " << points << std::endl;
+	}
+
+	virtual void draw() const { Entity::draw(anim_frame, 4, dir < 0); }
+
+	bool is_dead() const { return dead; }
+	bool can_jump() const { return !airborne || (jumping > 0 && jumping < 5)
+		|| (jumping == 0 && doublejump == DJUMP_ALLOW); }
 
 	int KEY_UP;
 	int KEY_DOWN;
@@ -84,10 +97,20 @@ class Actor: public Entity {
 	int KEY_RIGHT;
 	int KEY_ACTION;
 
+	// Flags / states
+	int points;
+	bool dead;
+	int dir;
+	int anim_frame;
 	bool airborne;
 	enum Climb { NO, ROOT, YES } climbing;
 	int jumping;
+
 	Powerup powerup;
+
+	// Power-up attributes
+	bool invisible;
+	DoubleJumpStatus doublejump;
 };
 
 typedef std::vector<Actor> Actors;

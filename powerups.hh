@@ -9,8 +9,10 @@
 
 class Actor;
 
+enum DoubleJumpStatus { DJUMP_DISALLOW, DJUMP_ALLOW, DJUMP_JUMPED };
+
 struct Powerup {
-	enum Type { DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, MINIGUN, POWERUPS, NONE } type;
+	enum Type { DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, POWERUPS, NONE } type;
 	const static Type PowerupTypes[];
 	static Type Random() { return PowerupTypes[randint(POWERUPS)]; }
 
@@ -19,6 +21,7 @@ struct Powerup {
 	void unequip(Actor* owner);
 	void touch(Actor* owner, Actor* other);
 	void action(Actor* owner);
+	bool expired() const { return lifetime() || ammo <= 0; }
 
 	int ammo;
 	Countdown lifetime;

@@ -162,15 +162,27 @@ void World::update() {
 	// should know about this function.
 	world.ClearForces();
 
+	float offset = 50.0f; // For spawning things away from borders
+
 	// Update actors' airborne etc. status + gravity
 	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 		it->airborne = true;
 		it->climbing = Actor::NO;
+		// Death
+		if (it->is_dead()) {
+			srand(time(NULL));
+			it->getBody()->SetLinearVelocity(b2Vec2());
+			it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h-offset)), 0);
+			it->dead = false;
+			continue;
+		}
+		if (it->powerup.expired()) it->unequip();
+		// Check for contacts
 		for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
 			// Ladders
 			if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == LADDER)
 				it->climbing = Actor::YES;
-			// Powerups
+			// Power-ups
 			else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == POWERUP) {
 				ce->other->SetUserData(NULL);
 				// Find the powerup
@@ -185,7 +197,10 @@ void World::update() {
 			// Ground
 			} else it->airborne = false;
 		}
-		if (it->climbing == Actor::YES && !it->airborne) it->climbing = Actor::ROOT;
+		if (!it->airborne) {
+			if (it->climbing == Actor::YES) it->climbing = Actor::ROOT;
+			if (it->doublejump == DJUMP_JUMPED) it->doublejump = DJUMP_ALLOW;
+		}
 		// Gravity;
 		b2Body* b = it->getBody();
 		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
@@ -194,7 +209,6 @@ void World::update() {
 	// Create power-ups
 	if (timer_powerup()) {
 		srand(time(NULL));
-		float offset = 50.0f;
 		addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
 		timer_powerup = Countdown(randf(5.0f, 8.0f));
 	}
@@ -225,7 +239,7 @@ void World::draw() const {
 	}
 	// Players
 	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
-		it->draw();
+		if (!it->invisible && !it->is_dead()) it->draw();
 	}
 	// Power-ups
 	for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
