@@ -4,38 +4,32 @@
 #include <Box2D.h>
 #include <GL/gl.h>
 
+#include "util.hh"
+#include "entity.hh"
+
+class Actor;
+
 struct Powerup {
-	enum Type { DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, MINIGUN, POWERUPS } type;
-	Powerup(Type type, GLuint tex): type(type), size(16), texture(tex)
-	{ }
-
-	void equip() {}
-	void unequip() {}
-	void action() {}
-	void draw() const {
-		float x = getX(), y = getY();
-		float vc[] = { x-size, y+size,
-		               x-size, y-size,
-		               x+size, y-size,
-		               x+size, y+size };
-
-		drawVertexArray(&vc[0], getTileTexCoords(type, 4, 4), 4, texture);
-	}
-
-	float32 getX() const { return body->GetPosition().x; }
-	float32 getY() const { return body->GetPosition().y; }
-	float getSize() { return size; }
-	b2Body* getBody() { return body; }
-
-	b2Body* body;
+	enum Type { DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, MINIGUN, POWERUPS, NONE } type;
+	Powerup(Type type = NONE): type(type) { }
+	void equip(Actor* owner);
+	void unequip(Actor* owner);
+	void touch(Actor* owner, Actor* other);
+	void action(Actor* owner);
 
 	int ammo;
-	float lifetime;
+	Countdown lifetime;
+};
 
-	float size;
-	GLuint texture;
+struct PowerupEntity: public Entity {
+
+	PowerupEntity(Powerup::Type type, GLuint tex): Entity(16, tex), effect(type)
+	{ }
+
+	virtual void draw() const { Entity::draw(effect.type); }
+
+	Powerup effect;
 };
 
 
-typedef std::vector<Powerup> Powerups;
-static Powerup::Type PowerupTypes[] = { Powerup::DEATH, Powerup::INVISIBILITY, Powerup::MINE, Powerup::DOUBLEJUMP, Powerup::PUNCH, Powerup::MINIGUN };
+typedef std::vector<PowerupEntity> Powerups;

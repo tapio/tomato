@@ -9,8 +9,14 @@
 
 
 namespace {
-	enum ElementType { NONE, PLATFORM, LADDER };
-	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER };
+	const static Powerup::Type PowerupTypes[] = { Powerup::DEATH, Powerup::INVISIBILITY, Powerup::MINE, Powerup::DOUBLEJUMP, Powerup::PUNCH, Powerup::MINIGUN };
+	enum ElementType { NONE, PLATFORM, LADDER, POWERUP };
+	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, POWERUP };
+	struct WorldElement {
+		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
+		ElementType type;
+		void* ptr;
+	};
 }
 
 void World::addActor(float x, float y, GLuint tex) {
@@ -83,13 +89,14 @@ void World::addLadder(float x, float y, float h) {
 
 
 void World::addPowerup(float x, float y, Powerup::Type type) {
-	Powerup pw(type, texture_powerups);
+	PowerupEntity pw(type, texture_powerups);
 	// Define the dynamic body. We set its position and call the body factory.
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.position.Set(x, y);
 	bodyDef.fixedRotation = true;
 	pw.body = world.CreateBody(&bodyDef);
+	pw.body->SetUserData(&ElementTypes[POWERUP]);
 
 	// Define a circle shape for our dynamic body.
 	b2PolygonShape box;
@@ -159,13 +166,27 @@ void World::update() {
 	// Update actors' airborne etc. status + gravity
 	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 		it->airborne = true;
-		it->climbing = Player::NO;
+		it->climbing = Actor::NO;
 		for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
+			// Ladders
 			if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == LADDER)
-				it->climbing = Player::YES;
-			else it->airborne = false;
+				it->climbing = Actor::YES;
+			// Powerups
+			else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == POWERUP) {
+				ce->other->SetUserData(NULL);
+				// Find the powerup
+				for (Powerups::iterator pu = powerups.begin(); pu != powerups.end(); ++pu) {
+					if (!pu->getBody()->GetUserData()) {
+						it->equip(pu->effect);
+						world.DestroyBody(ce->other);
+						powerups.erase(pu);
+						break;
+					}
+				}
+			// Ground
+			} else it->airborne = false;
 		}
-		if (it->climbing == Player::YES && !it->airborne) it->climbing = Player::ROOT;
+		if (it->climbing == Actor::YES && !it->airborne) it->climbing = Actor::ROOT;
 		// Gravity;
 		b2Body* b = it->getBody();
 		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());

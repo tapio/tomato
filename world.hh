@@ -10,12 +10,13 @@
 #include "texture.hh"
 #include "powerups.hh"
 #include "util.hh"
+#include "player.hh"
 
 #define GRAVITY 25.0f
 
-struct WorldElement {
-	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize):
-	  w(w), h(h), texture(tex), tileid(tile), tilesize(tsize), seed(randint(1000))
+struct WorldElement: public Entity {
+	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): Entity(0, tex),
+	  w(w), h(h), tileid(tile), tilesize(tsize), seed(randint(1000))
 	{ }
 	// ARGH, horibble spaghetti below
 	void draw() const {
@@ -88,14 +89,10 @@ struct WorldElement {
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture);
 	}
 
-	float getX() const { return body->GetPosition().x; };
-	float getY() const { return body->GetPosition().y; };
 	float getW() const { return w * tilesize; };
 	float getH() const { return h * tilesize; };
 
-	b2Body* body;
 	float w, h;
-	GLuint texture;
 	GLuint tileid;
 	int tilesize;
 	int seed;
@@ -110,10 +107,7 @@ struct Ladder: public WorldElement {
 	Ladder(int h, GLuint tex, GLuint tile, int tsize): WorldElement(1, h, tex, tile, tsize) {}
 };
 
-class Player;
 
-typedef Player Actor;
-typedef std::vector<Actor> Actors;
 typedef std::vector<Platform> Platforms;
 typedef std::vector<Ladder> Ladders;
 

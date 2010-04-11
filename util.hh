@@ -12,7 +12,7 @@
 
 /// Timer
 struct Countdown {
-	Countdown(float seconds): endtime(SDL_GetTicks() + seconds*1000) { }
+	Countdown(float seconds = 0): endtime(SDL_GetTicks() + seconds*1000) { }
 	bool operator()() { return SDL_GetTicks() >= endtime; }
 	unsigned int endtime;
 };
