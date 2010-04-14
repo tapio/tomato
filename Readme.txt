@@ -4,3 +4,4 @@ Libraries used
 * Box2D
 * OpenGL
 * SDL
+* SOIL
