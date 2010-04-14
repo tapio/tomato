@@ -21,8 +21,8 @@ struct Entity {
 
 	float32 getX() const { return body->GetPosition().x; }
 	float32 getY() const { return body->GetPosition().y; }
-	float getSize() { return size; }
-	b2Body* getBody() { return body; }
+	float getSize() const { return size; }
+	b2Body* getBody() const { return body; }
 
 	b2Body* body;
 	float size;
