@@ -9,8 +9,8 @@
 
 
 namespace {
-	enum ElementType { NONE, PLATFORM, LADDER, POWERUP, ACTOR };
-	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, POWERUP, ACTOR };
+	enum ElementType { NONE, PLATFORM, LADDER, CRATE, POWERUP, ACTOR };
+	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, CRATE, POWERUP, ACTOR };
 	struct WorldElement {
 		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
 		ElementType type;
@@ -84,6 +84,30 @@ void World::addLadder(float x, float y, float h) {
 }
 
 
+void World::addCrate(float x, float y) {
+	Crate cr(texture_crate, 0, tilesize);
+	// Define the dynamic body. We set its position and call the body factory.
+	b2BodyDef bodyDef;
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position.Set(x, y);
+	cr.body = world.CreateBody(&bodyDef);
+	cr.body->SetUserData(&ElementTypes[CRATE]);
+
+	// Define a shape for our dynamic body.
+	b2PolygonShape box;
+	box.SetAsBox(0.5f*tilesize, 0.5f*tilesize);
+
+	// Define the dynamic body fixture.
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &box;
+	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.restitution = 0.05f;
+	cr.getBody()->CreateFixture(&fixtureDef);
+
+	crates.push_back(cr);
+}
+
+
 void World::addPowerup(float x, float y, Powerup::Type type) {
 	PowerupEntity pw(type, texture_powerups);
 	// Define the dynamic body. We set its position and call the body factory.
@@ -133,13 +157,18 @@ void World::generate() {
 	addPlatform(x - w1*tilesize - tilesize, y1, w1); // Top right
 	addPlatform(x - w2*tilesize, y2, w2); // Bottom right
 	addLadder(x - tilesize, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
-	// Create rest
+	// Create rest of platforms
 	for (int i = 0; i < 5; i++) {
 		addPlatform(randint(0,w), randint(0,h), randint(2,6));
 	}
 	//for (int i = 0; i < 4; i++) {
 		//addLadder(randint(0,w), randint(0,h), randint(2,6));
 	//}
+	// Create crates
+	for (int i = 0; i < 15; i++) {
+		addCrate(randint(0,w), randint(0,h));
+	}
+
 }
 
 
@@ -215,7 +244,11 @@ void World::update() {
 		b2Body* b = it->getBody();
 		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
 	}
-
+	// Gravity for crates
+	for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
+		b2Body* b = it->getBody();
+		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
+	}
 	// Create power-ups
 	if (timer_powerup()) {
 		srand(time(NULL));
@@ -246,6 +279,13 @@ void World::draw() const {
 	// Platforms
 	for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
 		it->draw();
+	}
+	// Crates
+	for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
+		glPushMatrix();
+		it->draw();
+		glRotatef(it->getBody()->GetAngle() * 180.0 / 3.1415, 0, 0, -1);
+		glPopMatrix();
 	}
 	// Players
 	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {

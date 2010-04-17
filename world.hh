@@ -26,7 +26,15 @@ struct WorldElement: public Entity {
 		//float xmax = w > h ? w / h : 1.0f;
 		//float ymax = h > w ? h / w : 1.0f;
 		CoordArray v_arr, t_arr;
-		if (w > h) { // Horizontal
+		if (w == h) { // Square
+			float* tc = getTileTexCoords(0, 1, 1);
+			t_arr.insert(t_arr.end(), tc, tc+8);
+			float vc_beg[] = { x - hw, y + hh,
+							   x - hw, y - hh,
+							   x + hw, y - hh,
+							   x + hw, y + hh };
+			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
+		} else if (w > h) { // Horizontal
 			// Left side (beginning)
 			float* tc = getTileTexCoords(0, 8, 1);
 			t_arr.insert(t_arr.end(), tc, tc+8);
@@ -107,9 +115,14 @@ struct Ladder: public WorldElement {
 	Ladder(int h, GLuint tex, GLuint tile, int tsize): WorldElement(1, h, tex, tile, tsize) {}
 };
 
+struct Crate: public WorldElement {
+	Crate(GLuint tex, GLuint tile, int tsize):  WorldElement(1, 1, tex, tile, tsize) {}
+};
+
 
 typedef std::vector<Platform> Platforms;
 typedef std::vector<Ladder> Ladders;
+typedef std::vector<Crate> Crates;
 
 class World {
   public:
@@ -151,6 +164,7 @@ class World {
 		texture_water = tm.find("water")->second;
 		texture_ground = tm.find("ground")->second;
 		texture_ladder = tm.find("ladder")->second;
+		texture_crate = tm.find("crate")->second;
 		texture_powerups = tm.find("powerups")->second;
 
 		generate();
@@ -159,6 +173,7 @@ class World {
 	void addActor(float x, float y, GLuint tex);
 	void addPlatform(float x, float y, float w);
 	void addLadder(float x, float y, float h);
+	void addCrate(float x, float y);
 	void addPowerup(float x, float y, Powerup::Type type);
 
 	void generate();
@@ -181,10 +196,12 @@ class World {
 	GLuint texture_water;
 	GLuint texture_ground;
 	GLuint texture_ladder;
+	GLuint texture_crate;
 	GLuint texture_powerups;
 	Actors actors;
 	Platforms platforms;
 	Ladders ladders;
+	Crates crates;
 	Powerups powerups;
 	Countdown timer_powerup;
 };
