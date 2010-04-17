@@ -1,12 +1,22 @@
 
+To Be Fixed
+-----------
+* Level generator
+	- No overlapping platforms, not too close (y-dir)
+	- Ladders
+
+
+Main Goals
+----------
 * Playable with 1-4 players
 * Network multiplayer (p2p?)
 * Hot-seat multiplayer
 * Any combination of local human, remote human and AI players
-* Threaded
+* Threaded?
 	- Main thread (input)
 	- Physics thread
 	- Graphics thread?
+
 
 Power-ups
 ---------
