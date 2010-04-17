@@ -287,8 +287,10 @@ void World::draw() const {
 	// Crates
 	for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
 		glPushMatrix();
+		glTranslatef(it->getBody()->GetWorldCenter().x, it->getBody()->GetWorldCenter().y, 0);
+		glRotatef(it->getBody()->GetAngle() * 180.0 / PI, 0, 0, 1);
+		glTranslatef(-it->getBody()->GetWorldCenter().x, -it->getBody()->GetWorldCenter().y, 0);
 		it->draw();
-		glRotatef(it->getBody()->GetAngle() * 180.0 / 3.1415, 0, 0, -1);
 		glPopMatrix();
 	}
 	// Players
