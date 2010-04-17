@@ -139,8 +139,10 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 
 
 void World::generate() {
+	float xoff = 1.5*tilesize;
+	float yoff = 2.5*tilesize;
 	// Create starting platforms
-	float x = randf(1.5*tilesize, 2.5*tilesize);
+	float x = randf(xoff, xoff+tilesize);
 	float y1 = randf(3*tilesize, 5*tilesize);
 	float y2 = randf(h-8*tilesize, h-5*tilesize);
 	int ytilediff = int((y2-y1) / tilesize) + 1;
@@ -150,7 +152,7 @@ void World::generate() {
 
 	float w1 = randint(2,4);
 	float w2 = randint(2,4);
-	x = randf(w - 2.5*tilesize - tilesize, w - 1.5*tilesize - tilesize);
+	x = randf(w - xoff - tilesize - tilesize, w - xoff - tilesize);
 	y1 = randf(3*tilesize,5*tilesize);
 	y2 = randf(h-8*tilesize,h-5*tilesize);
 	ytilediff = int((y2-y1) / tilesize) + 1;
@@ -158,8 +160,10 @@ void World::generate() {
 	addPlatform(x - w2*tilesize, y2, w2); // Bottom right
 	addLadder(x - tilesize, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
 	// Create rest of platforms
-	for (int i = 0; i < 5; i++) {
-		addPlatform(randint(0,w), randint(0,h), randint(2,6));
+	for (int j = yoff; j < h - water_height - yoff; j += 4*tilesize) {
+		for (int i = xoff + 6*tilesize; i < w - xoff - 6*tilesize; i += 7*tilesize) {
+			addPlatform(i + randf(-2*tilesize,2*tilesize), j + randf(tilesize,tilesize), randint(2,6));
+		}
 	}
 	//for (int i = 0; i < 4; i++) {
 		//addLadder(randint(0,w), randint(0,h), randint(2,6));
