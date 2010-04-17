@@ -119,12 +119,12 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 	pw.body->SetUserData(&ElementTypes[POWERUP]);
 
 	// Define a circle shape for our dynamic body.
-	b2PolygonShape box;
-	box.SetAsBox(pw.getSize(), pw.getSize());
+	b2CircleShape shape;
+	shape.m_radius = pw.getSize();
 
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &box;
+	fixtureDef.shape = &shape;
 	fixtureDef.density = 0.1f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.restitution = 1.0f; // Full bounciness
 	pw.getBody()->CreateFixture(&fixtureDef);
