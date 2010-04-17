@@ -5,7 +5,7 @@
 #include "player.hh"
 
 const Powerup::Type Powerup::PowerupTypes[] =
-	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN };
+	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION };
 
 void Powerup::equip(Actor* owner) {
 	if (type == DEATH) { owner->die(); return; }
@@ -13,6 +13,7 @@ void Powerup::equip(Actor* owner) {
 	float time = 3600;
 	ammo = 10000;
 	if (type == INVISIBILITY) { time = 10; owner->invisible = true; }
+	else if (type == CONFUSION) { time = 10; owner->reversecontrols = true; }
 	else if (type == PUNCH) { time = 10; }
 	else if (type == MINE) { ammo = 1; }
 	else if (type == GUN) { ammo = 3; }
@@ -23,6 +24,7 @@ void Powerup::equip(Actor* owner) {
 
 void Powerup::unequip(Actor* owner) {
 	if (type == INVISIBILITY) { owner->invisible = false; }
+	else if (type == CONFUSION) { owner->reversecontrols = false; }
 	else if (type == DOUBLEJUMP) { owner->doublejump = DJUMP_DISALLOW; }
 }
 

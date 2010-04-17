@@ -16,10 +16,11 @@ class Actor: public Entity {
 
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex),
 	  type(t), points(0), dead(false), dir(-1), anim_frame(0), airborne(true), climbing(NO), jumping(0), powerup(),
-	  invisible(false), doublejump(DJUMP_DISALLOW)
+	  invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false)
 	{ }
 
 	void move(int direction) {
+		if (reversecontrols) direction = -direction;
 		if (direction != dir) { dir = direction; return; }
 		if (direction == dir || can_jump()) {
 			// Calc base speed depending on state
@@ -111,6 +112,7 @@ class Actor: public Entity {
 	// Power-up attributes
 	bool invisible;
 	DoubleJumpStatus doublejump;
+	bool reversecontrols;
 };
 
 typedef std::vector<Actor> Actors;
