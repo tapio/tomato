@@ -12,6 +12,13 @@
 
 #define PLAYER_RESTITUTION 0.25f
 
+#define speed_move_ground 30.0f
+#define speed_move_airborne (speed_move_ground / 3.0f * 2.0f)
+#define speed_move_ladder (speed_move_ground / 3.0f)
+#define speed_jump speed_move_ground
+#define speed_climb speed_jump
+
+
 class Actor: public Entity {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
@@ -32,8 +39,8 @@ class Actor: public Entity {
 		if (direction != dir) { dir = direction; return; }
 		if (direction == dir || can_jump()) {
 			// Calc base speed depending on state
-			float speed = airborne ? 20.0f : 30.0f;
-			if (ladder == LADDER_CLIMBING) speed = 10.0f;
+			float speed = airborne ? speed_move_airborne : speed_move_ground;
+			if (ladder == LADDER_CLIMBING) speed = speed_move_ladder;
 			// Apply direction
 			speed *= direction;
 			// Get old speed
@@ -58,11 +65,11 @@ class Actor: public Entity {
 		std::cout << "JUMP, airborne: " << airborne << ", climbing: " << ladder << ", djump: " << doublejump << std::endl;
 		if (ladder != LADDER_NO) {
 			ladder = LADDER_CLIMBING;
-			body->SetLinearVelocity(b2Vec2(0.0f, -30.0f));
+			body->SetLinearVelocity(b2Vec2(0.0f, -speed_climb));
 			return;
 		}
 		if (!can_jump() && !forcejump) return;
-		body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, -30.0f));
+		body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, -speed_jump));
 		// Handle double jump
 		if (airborne && jumping == 0 && doublejump == DJUMP_ALLOW)
 			doublejump = DJUMP_JUMPED;
@@ -72,7 +79,7 @@ class Actor: public Entity {
 	void duck() {
 		if (ladder == LADDER_YES || ladder == LADDER_CLIMBING) {
 			ladder = LADDER_CLIMBING;
-			body->SetLinearVelocity(b2Vec2(0.0f, 30.0f));
+			body->SetLinearVelocity(b2Vec2(0.0f, speed_climb));
 			return;
 		}
 	}
