@@ -17,7 +17,7 @@ class Actor: public Entity {
 	enum Type { HUMAN, AI, REMOTE } type;
 
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex),
-	  type(t), points(0), dead(false), dir(-1), anim_frame(0), airborne(true), climbing(NO), jumping(0), powerup(),
+	  type(t), points(0), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), powerup(),
 	  invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
@@ -33,7 +33,7 @@ class Actor: public Entity {
 		if (direction == dir || can_jump()) {
 			// Calc base speed depending on state
 			float speed = airborne ? 20.0f : 30.0f;
-			if (climbing == YES) speed = 10.0f;
+			if (ladder == LADDER_CLIMBING) speed = 10.0f;
 			// Apply direction
 			speed *= direction;
 			// Get old speed
@@ -49,15 +49,16 @@ class Actor: public Entity {
 	}
 
 	void stop() {
-		if (!airborne) {
+		if (!airborne || ladder == LADDER_CLIMBING) {
 			body->SetLinearVelocity(b2Vec2(0.0f, body->GetLinearVelocity().y));
 		}
 	}
 
 	void jump(bool forcejump = false) {
-		std::cout << "JUMP, airborne: " << airborne << ", climbing: " << climbing << ", djump: " << doublejump << std::endl;
-		if (climbing != NO) {
-			body->SetLinearVelocity(b2Vec2(climbing == YES ? 0.0f : body->GetLinearVelocity().x, -30.0f));
+		std::cout << "JUMP, airborne: " << airborne << ", climbing: " << ladder << ", djump: " << doublejump << std::endl;
+		if (ladder != LADDER_NO) {
+			ladder = LADDER_CLIMBING;
+			body->SetLinearVelocity(b2Vec2(0.0f, -30.0f));
 			return;
 		}
 		if (!can_jump() && !forcejump) return;
@@ -69,9 +70,17 @@ class Actor: public Entity {
 	}
 
 	void duck() {
-		if (climbing == YES) {
-			body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, 30.0f));
+		if (ladder == LADDER_YES || ladder == LADDER_CLIMBING) {
+			ladder = LADDER_CLIMBING;
+			body->SetLinearVelocity(b2Vec2(0.0f, 30.0f));
 			return;
+		}
+	}
+
+	void end_jumping() {
+		jumping = 0;
+		if (ladder == Actor::LADDER_CLIMBING) {
+			body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, 0.0f));
 		}
 	}
 
@@ -112,7 +121,7 @@ class Actor: public Entity {
 	int dir;
 	int anim_frame;
 	bool airborne;
-	enum Climb { NO, ROOT, YES } climbing;
+	enum Ladder { LADDER_NO, LADDER_ROOT, LADDER_YES, LADDER_CLIMBING } ladder;
 	int jumping;
 
 	Powerup powerup;

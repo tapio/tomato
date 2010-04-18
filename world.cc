@@ -198,7 +198,8 @@ void World::update() {
 	// Update actors' airborne etc. status + gravity
 	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 		it->airborne = true;
-		it->climbing = Actor::NO;
+		bool climbing = (it->ladder == Actor::LADDER_CLIMBING);
+		it->ladder = Actor::LADDER_NO;
 		// Water
 		if (it->getBody()->GetWorldCenter().y + it->getSize() >= h - water_height) it->die();
 		// Death
@@ -214,7 +215,7 @@ void World::update() {
 		for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
 			// Ladders
 			if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == LADDER)
-				it->climbing = Actor::YES;
+				it->ladder = Actor::LADDER_YES;
 			// Power-ups
 			else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == POWERUP) {
 				ce->other->SetUserData(NULL);
@@ -242,12 +243,14 @@ void World::update() {
 			} else it->airborne = false;
 		}
 		if (!it->airborne) {
-			if (it->climbing == Actor::YES) it->climbing = Actor::ROOT;
+			if (it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_ROOT;
 			if (it->doublejump == DJUMP_JUMPED) it->doublejump = DJUMP_ALLOW;
 		}
+		if (climbing && it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_CLIMBING;
 		// Gravity
+		float grav_mult = (it->lograv ? 0.1 : 1.0) * (it->ladder == Actor::LADDER_CLIMBING ? 0.0 : 1.0);
 		b2Body* b = it->getBody();
-		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * (it->lograv ? 0.1 : 1.0)), b->GetWorldCenter());
+		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * grav_mult), b->GetWorldCenter());
 		// AI
 		if (it->type == Actor::AI) it->brains();
 	}

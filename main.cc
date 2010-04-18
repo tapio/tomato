@@ -45,8 +45,7 @@ bool handle_keys(Players& players) {
 			int k = event.key.keysym.sym;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (it->type != Actor::HUMAN) continue;
-				if (k == it->KEY_UP) it->jumping = 0;
-				//if (k == it->KEY_DOWN) it->duck();
+				if (k == it->KEY_UP || k == it->KEY_DOWN) it->end_jumping();
 				if (k == it->KEY_LEFT || k == it->KEY_RIGHT) it->stop();
 			}
 			break;
