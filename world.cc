@@ -206,7 +206,7 @@ void World::update() {
 		if (it->is_dead()) {
 			srand(time(NULL));
 			it->getBody()->SetLinearVelocity(b2Vec2());
-			it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h-offset)), 0);
+			it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
 			it->dead = false;
 			continue;
 		}
