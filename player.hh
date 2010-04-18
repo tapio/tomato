@@ -21,6 +21,12 @@ class Actor: public Entity {
 	  invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
+	void brains() {
+		srand(time(NULL));
+		if (randbool()) stop();
+		else move(randbool() ? -1 : 1);
+	}
+
 	void move(int direction) {
 		if (reversecontrols) direction = -direction;
 		if (direction != dir) { dir = direction; return; }

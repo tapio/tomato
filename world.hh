@@ -185,7 +185,7 @@ class World {
 		generate();
 	}
 
-	void addActor(float x, float y, GLuint tex);
+	void addActor(float x, float y, Actor::Type type, GLuint tex);
 	void addPlatform(float x, float y, float w);
 	void addLadder(float x, float y, float h);
 	void addCrate(float x, float y);

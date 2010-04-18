@@ -19,8 +19,8 @@ namespace {
 	};
 }
 
-void World::addActor(float x, float y, GLuint tex) {
-	Actor actor(tex);
+void World::addActor(float x, float y, Actor::Type type, GLuint tex) {
+	Actor actor(tex, type);
 	// Define the dynamic body. We set its position and call the body factory.
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_dynamicBody;
@@ -248,6 +248,8 @@ void World::update() {
 		// Gravity
 		b2Body* b = it->getBody();
 		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * (it->lograv ? 0.1 : 1.0)), b->GetWorldCenter());
+		// AI
+		if (it->type == Actor::AI) it->brains();
 	}
 	// Gravity for crates
 	for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
