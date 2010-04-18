@@ -121,7 +121,7 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 
 	// Define a circle shape for our dynamic body.
 	b2CircleShape shape;
-	shape.m_radius = pw.getSize();
+	shape.m_radius = pw.getSize() * 0.75f;
 
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
