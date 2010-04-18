@@ -4,6 +4,7 @@
 #include <cmath>
 #include <sstream>
 #include <vector>
+#include <stdexcept>
 
 #include <GL/gl.h>
 #include <SDL.h>
@@ -57,6 +58,14 @@ int inline randdir() { return randbool() ? 1 : -1; }
 void inline randdir(int& dx, int &dy) {
 	if (randbool()) { dx = randdir(); dy = randint(-1,1); }
 	else { dx = randint(-1,1); dy = randdir(); }
+}
+
+/** Limit val to range [min, max] **/
+template <typename T> T clamp(T val, T min = 0, T max = 1) {
+	if (min > max) throw std::logic_error("min > max");
+	if (val < min) return min;
+	if (val > max) return max;
+	return val;
 }
 
 

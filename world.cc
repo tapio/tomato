@@ -1,4 +1,5 @@
 #include <cmath>
+#include <GL/glu.h>
 #include <Box2D.h>
 
 #include "world.hh"
@@ -263,6 +264,48 @@ void World::update() {
 
 
 void World::draw() const {
+	// Magick zooming camera
+	static const float margin = 250.0f;
+	float x1 = w, y1 = h, x2 = 0, y2 = 0;
+	float ar = w / float(h);
+	// Get zoom box corners
+	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
+		if (!it->is_dead()) {
+			b2Vec2 itpos = it->getBody()->GetPosition();
+			if (itpos.x < x1) x1 = itpos.x;
+			if (itpos.x > x2) x2 = itpos.x;
+			if (itpos.y < y1) y1 = itpos.y;
+			if (itpos.y > y2) y2 = itpos.y;
+		}
+	}
+	// Add borders and clamp box to screen size
+	x1 = clamp(x1 - margin, 0.0f, float(w));
+	x2 = clamp(x2 + margin, 0.0f, float(w));
+	y1 = clamp(y1 - margin, 0.0f, float(h));
+	y2 = clamp(y2 + margin, 0.0f, float(h));
+	// Correct aspect ratio
+	float boxw = (x2-x1), boxh = (y2-y1);
+	if (boxh > boxw / ar) boxw = boxh * ar;
+	else boxh = boxw / ar;
+	float midx = (x1+x2)*0.5f;
+	float midy = (y1+y2)*0.5f;
+	x1 = midx-boxw*0.5f;
+	x2 = midx+boxw*0.5f;
+	y1 = midy-boxh*0.5f;
+	y2 = midy+boxh*0.5f;
+	// Move back inside screen
+	float xcorr = 0, ycorr = 0;
+	if (x1 < 0) xcorr = -x1;
+	if (x2 > w) xcorr = w-x2;
+	if (y1 < 0) ycorr = -y1;
+	if (y2 > h) ycorr = h-y2;
+	x1 += xcorr; x2 += xcorr;
+	y1 += ycorr; y2 += ycorr;
+	// Do the magic
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluOrtho2D(x1, x2, y2, y1);
+	glMatrixMode(GL_MODELVIEW);
 	// Background
 	int texsize = 256;
 	for (int j = 0; j < h/texsize + 1; j++) {
@@ -290,7 +333,7 @@ void World::draw() const {
 	}
 	// Players
 	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
-		if (!it->invisible && !it->is_dead()) it->draw();
+		if (!it->is_dead() && !it->invisible) it->draw();
 	}
 	// Power-ups
 	for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
