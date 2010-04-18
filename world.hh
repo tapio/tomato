@@ -19,7 +19,7 @@ struct WorldElement: public Entity {
 	  w(w), h(h), tileid(tile), tilesize(tsize), seed(randint(1000))
 	{ }
 	// ARGH, horibble spaghetti below
-	void draw() const {
+	virtual void draw() const {
 		srand(seed);
 		float x = getX(), y = getY();
 		float hw = getW() * 0.5, hh = getH() * 0.5;
@@ -117,6 +117,19 @@ struct Ladder: public WorldElement {
 
 struct Crate: public WorldElement {
 	Crate(GLuint tex, GLuint tile, int tsize):  WorldElement(1, 1, tex, tile, tsize) {}
+	void draw() const {
+		float x = getX(), y = getY();
+		float hw = getW() * 0.5, hh = getH() * 0.5;
+		glPushMatrix();
+		glTranslatef(x, y, 0);
+		glRotatef(getBody()->GetAngle() * 180.0 / PI, 0, 0, 1);
+		float vc[] = { -hw,  hh,
+			           -hw, -hh,
+			            hw, -hh,
+			            hw,  hh };
+		drawVertexArray(&vc[0], &tex_square[0], 4, texture);
+		glPopMatrix();
+	}
 };
 
 
