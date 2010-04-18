@@ -306,18 +306,23 @@ void World::draw() const {
 		glLoadIdentity();
 		gluOrtho2D(x1, x2, y2, y1);
 	glMatrixMode(GL_MODELVIEW);
-	// Background
-	int texsize = 256;
-	for (int j = 0; j < h/texsize + 1; j++) {
-		for (int i = 0; i < w/texsize + 1; i++) {
-			float xx = i * texsize;
-			float yy = j * texsize;
-			float verts[] = { xx, yy + texsize,
-			                  xx, yy,
-			                  xx + texsize, yy,
-			                  xx + texsize, yy + texsize };
-			drawVertexArray(&verts[0], &tex_square[0], 4, texture_background);
+
+	{ // Background
+		static const int texsize = 256;
+		CoordArray v_arr, t_arr;
+		for (int j = 0; j < h/texsize + 1; j++) {
+			for (int i = 0; i < w/texsize + 1; i++) {
+				float xx = i * texsize;
+				float yy = j * texsize;
+				float verts[] = { xx, yy + texsize,
+								  xx, yy,
+								  xx + texsize, yy,
+								  xx + texsize, yy + texsize };
+				v_arr.insert(v_arr.end(), &verts[0], &verts[8]);
+				t_arr.insert(t_arr.end(), &tex_square[0], &tex_square[8]);
+			}
 		}
+		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture_background);
 	}
 	// Ladders
 	for (Ladders::const_iterator it = ladders.begin(); it != ladders.end(); ++it) {
@@ -339,14 +344,18 @@ void World::draw() const {
 	for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
 		it->draw();
 	}
-	// Water
-	for (int i = 0; i < w / water_height + 1; i++) {
-		float xx = i * water_height;
-		float yy = h - water_height;
-		float verts[] = { xx, yy + water_height,
-						  xx, yy,
-						  xx + water_height, yy,
-						  xx + water_height, yy + water_height };
-		drawVertexArray(&verts[0], &tex_square[0], 4, texture_water);
+	{ // Water
+		CoordArray v_arr, t_arr;
+		for (int i = 0; i < w / water_height + 1; i++) {
+			float xx = i * water_height;
+			float yy = h - water_height;
+			float verts[] = { xx, yy + water_height,
+							  xx, yy,
+							  xx + water_height, yy,
+							  xx + water_height, yy + water_height };
+			v_arr.insert(v_arr.end(), &verts[0], &verts[8]);
+			t_arr.insert(t_arr.end(), &tex_square[0], &tex_square[8]);
+		}
+		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture_water);
 	}
 }
