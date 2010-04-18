@@ -170,7 +170,7 @@ void World::generate() {
 		//addLadder(randint(0,w), randint(0,h), randint(2,6));
 	//}
 	// Create crates
-	for (int i = 0; i < 15; i++) {
+	for (int i = 0; i < 8; i++) {
 		addCrate(randint(0,w), randint(0,h));
 	}
 
@@ -193,6 +193,7 @@ void World::update() {
 	// should know about this function.
 	world.ClearForces();
 
+	srand(time(NULL));
 	float offset = 50.0f; // For spawning things away from borders
 
 	// Update actors' airborne etc. status + gravity
@@ -204,7 +205,6 @@ void World::update() {
 		if (it->getBody()->GetWorldCenter().y + it->getSize() >= h - water_height) it->die();
 		// Death
 		if (it->is_dead()) {
-			srand(time(NULL));
 			it->getBody()->SetLinearVelocity(b2Vec2());
 			it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
 			it->dead = false;
@@ -254,8 +254,14 @@ void World::update() {
 		// AI
 		if (it->type == Actor::AI) it->brains();
 	}
-	// Gravity for crates
+	// Crates
 	for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
+		// Respawn if in water
+		if (it->getBody()->GetWorldCenter().y - it->getSize() >= h - water_height) {
+			it->getBody()->SetLinearVelocity(b2Vec2());
+			it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
+		}
+		// Gravity
 		b2Body* b = it->getBody();
 		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
 	}
