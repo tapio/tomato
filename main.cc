@@ -90,7 +90,10 @@ bool main_loop() {
 	parse_keys(players, "../keys.conf");
 
 	// MAIN LOOP
+	FPS fps;
 	while (handle_keys(players)) {
+		fps.update();
+		if ((SDL_GetTicks() % 200) == 0) fps.debugPrint();
 		world.update();
 		world.draw();
 		flip();

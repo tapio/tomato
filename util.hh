@@ -19,6 +19,18 @@ struct Countdown {
 };
 
 
+/// FPS counter
+struct FPS {
+	FPS(): record(SDL_GetTicks()), time(0) { }
+	void update() { time = (SDL_GetTicks() - record) / 1000.0f; record = SDL_GetTicks(); }
+	float getTime() const { return time; }
+	float getFPS() const { return 1.0f / time; }
+	void debugPrint() const { std::cout << "FPS: " << getFPS() << " (" << getTime() << " ms)" << std::endl; }
+	unsigned int record;
+	float time;
+};
+
+
 /// Struct to store color information
 struct Color {
 	float r, ///< red component
