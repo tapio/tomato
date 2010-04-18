@@ -10,13 +10,15 @@
 #include "entity.hh"
 #include "powerups.hh"
 
+#define PLAYER_RESTITUTION 0.25f
+
 class Actor: public Entity {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex),
 	  type(t), points(0), dead(false), dir(-1), anim_frame(0), airborne(true), climbing(NO), jumping(0), powerup(),
-	  invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false)
+	  invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
 	void move(int direction) {
@@ -113,6 +115,7 @@ class Actor: public Entity {
 	bool invisible;
 	DoubleJumpStatus doublejump;
 	bool reversecontrols;
+	bool lograv;
 };
 
 typedef std::vector<Actor> Actors;

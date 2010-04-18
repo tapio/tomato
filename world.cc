@@ -35,7 +35,7 @@ void World::addActor(float x, float y, GLuint tex) {
 	fixtureDef.shape = &circle;
 	fixtureDef.density = 2.0f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.friction = 0.25f; // Friction
-	fixtureDef.restitution = 0.25f; // A little bounciness
+	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
 	actor.getBody()->CreateFixture(&fixtureDef);
 
@@ -244,9 +244,9 @@ void World::update() {
 			if (it->climbing == Actor::YES) it->climbing = Actor::ROOT;
 			if (it->doublejump == DJUMP_JUMPED) it->doublejump = DJUMP_ALLOW;
 		}
-		// Gravity;
+		// Gravity
 		b2Body* b = it->getBody();
-		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
+		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * (it->lograv ? 0.1 : 1.0)), b->GetWorldCenter());
 	}
 	// Gravity for crates
 	for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {

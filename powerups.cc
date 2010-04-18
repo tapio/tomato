@@ -5,7 +5,7 @@
 #include "player.hh"
 
 const Powerup::Type Powerup::PowerupTypes[] =
-	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION };
+	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION, SUPERBALL, LOGRAV };
 
 void Powerup::equip(Actor* owner) {
 	if (type == DEATH) { owner->die(); return; }
@@ -14,18 +14,22 @@ void Powerup::equip(Actor* owner) {
 	ammo = 10000;
 	if (type == INVISIBILITY) { time = 10; owner->invisible = true; }
 	else if (type == CONFUSION) { time = 10; owner->reversecontrols = true; }
-	else if (type == PUNCH) { time = 10; }
+	else if (type == PUNCH) { time = 20; }
 	else if (type == MINE) { ammo = 1; }
 	else if (type == GUN) { ammo = 3; }
 	else if (type == DOUBLEJUMP) { owner->doublejump = DJUMP_ALLOW; }
+	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.5f); }
+	else if (type == LOGRAV) { time = 10; owner->lograv = true; }
 	lifetime = Countdown(time);
 }
 
 
 void Powerup::unequip(Actor* owner) {
-	if (type == INVISIBILITY) { owner->invisible = false; }
-	else if (type == CONFUSION) { owner->reversecontrols = false; }
-	else if (type == DOUBLEJUMP) { owner->doublejump = DJUMP_DISALLOW; }
+	if (type == INVISIBILITY) owner->invisible = false;
+	else if (type == CONFUSION) owner->reversecontrols = false;
+	else if (type == DOUBLEJUMP) owner->doublejump = DJUMP_DISALLOW;
+	else if (type == SUPERBALL) owner->getBody()->GetFixtureList()->SetRestitution(PLAYER_RESTITUTION);
+	else if (type == LOGRAV) owner->lograv = false;
 }
 
 

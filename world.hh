@@ -173,6 +173,7 @@ class World {
 		fixtureDef.isSensor = true; // No collision response
 		waterBody->CreateFixture(&fixtureDef);
 
+		// Get texture IDs
 		texture_background = tm.find("background")->second;
 		texture_water = tm.find("water")->second;
 		texture_ground = tm.find("ground")->second;
@@ -180,6 +181,7 @@ class World {
 		texture_crate = tm.find("crate")->second;
 		texture_powerups = tm.find("powerups")->second;
 
+		// Generate
 		generate();
 	}
 
