@@ -185,11 +185,11 @@ void World::update() {
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
 
+	#ifdef USE_THREADS
 	unsigned int t = SDL_GetTicks();
 	{
-		#ifdef USE_THREADS
 		boost::mutex::scoped_lock l(mutex);
-		#endif
+	#endif
 
 		// Instruct the world to perform a single step of simulation.
 		// It is generally best to keep the time step and iterations fixed.
@@ -277,8 +277,8 @@ void World::update() {
 			addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
 			timer_powerup = Countdown(randf(5.0f, 8.0f));
 		}
-	} // < mutex
 	#ifdef USE_THREADS
+	} // < mutex
 	// TODO: Hackish, usleep not available in Windows
 	t = SDL_GetTicks() - t;
 	t = timeStep * 1000 - t;
