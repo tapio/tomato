@@ -53,7 +53,7 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
-	fixtureDef.density = 2.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.friction = 0.25f; // Friction
 	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
@@ -120,7 +120,7 @@ void World::addCrate(float x, float y) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 3.0f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.restitution = 0.05f;
 	cr.getBody()->CreateFixture(&fixtureDef);
 
@@ -226,7 +226,7 @@ void World::update() {
 			bool climbing = (it->ladder == Actor::LADDER_CLIMBING);
 			it->ladder = Actor::LADDER_NO;
 			// Water
-			if (it->getBody()->GetWorldCenter().y + it->getSize() >= h - water_height) it->die();
+			if (it->getBody()->GetWorldCenter().y >= h - water_height) it->die();
 			// Death
 			if (it->is_dead()) {
 				it->getBody()->SetLinearVelocity(b2Vec2());
@@ -287,14 +287,21 @@ void World::update() {
 		}
 		// Crates
 		for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
-			// Respawn if in water
-			if (it->getBody()->GetWorldCenter().y - it->getSize() >= h - water_height) {
-				it->getBody()->SetLinearVelocity(b2Vec2());
-				it->getBody()->SetAngularVelocity(0);
-				it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
+			b2Body* b = it->getBody();
+			float y = b->GetWorldCenter().y - it->getSize()*0.5f;
+			// Float on water
+			if (y >= h - water_height) {
+				b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * -1.2), b->GetWorldCenter());
+				// Water friction
+				b->SetLinearVelocity(0.97 * b->GetLinearVelocity());
+				b->SetAngularVelocity(0.99 * b->GetAngularVelocity());
+			// Respawn if deep
+			//} else if (y >= h - water_height*0.333) {
+				//b->SetLinearVelocity(b2Vec2());
+				//b->SetAngularVelocity(0);
+				//b->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
 			}
 			// Gravity
-			b2Body* b = it->getBody();
 			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
 		}
 		// Create power-ups
