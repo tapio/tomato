@@ -104,7 +104,6 @@ bool main_loop() {
 	#ifdef USE_THREADS
 	boost::thread thread_input(updateKeys, boost::ref(players));
 	boost::thread thread_physics(updateWorld, boost::ref(world));
-	//boost::thread thread_graphics(updateGfx, boost::ref(world));
 	#endif
 
 	// MAIN LOOP
@@ -126,7 +125,6 @@ bool main_loop() {
 	#ifdef USE_THREADS
 	thread_input.join();
 	thread_physics.join();
-	//thread_graphics.join();
 	#endif
 	return false;
 }

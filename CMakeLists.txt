@@ -5,6 +5,7 @@ cmake_policy(VERSION 2.6)
 set(EXENAME "game")
 
 OPTION(USE_THREADS "Enable multi-threading support." OFF)
+OPTION(USE_NETWORK "Enable networking support." ON)
 
 # Avoid source tree pollution
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
@@ -25,11 +26,16 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+
 if (USE_THREADS)
-	find_package(Boost 1.36 REQUIRED COMPONENTS thread)
-else()
-	find_package(Boost)
+	list(APPEND BOOST_COMPONENTS thread)
 endif()
+
+if (USE_NETWORK)
+	list(APPEND BOOST_COMPONENTS system)
+endif()
+
+find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
 
