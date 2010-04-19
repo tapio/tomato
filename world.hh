@@ -21,25 +21,15 @@
 
 struct WorldElement: public Entity {
 	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): Entity(0, tex),
-	  w(w), h(h), tileid(tile), tilesize(tsize), seed(randint(1000))
-	{ }
+	  w(w), h(h), tileid(tile), tilesize(tsize)
+	{ if (w != h && getBody()) buildVertices(); }
 	// ARGH, horibble spaghetti below
-	virtual void draw() const {
-		srand(seed);
+	void buildVertices() {
 		float x = getX(), y = getY();
 		float hw = getW() * 0.5, hh = getH() * 0.5;
 		//float xmax = w > h ? w / h : 1.0f;
 		//float ymax = h > w ? h / w : 1.0f;
-		CoordArray v_arr, t_arr;
-		if (w == h) { // Square
-			float* tc = getTileTexCoords(0, 1, 1);
-			t_arr.insert(t_arr.end(), tc, tc+8);
-			float vc_beg[] = { x - hw, y + hh,
-							   x - hw, y - hh,
-							   x + hw, y - hh,
-							   x + hw, y + hh };
-			v_arr.insert(v_arr.end(), &vc_beg[0], &vc_beg[8]);
-		} else if (w > h) { // Horizontal
+		if (w > h) { // Horizontal
 			// Left side (beginning)
 			float* tc = getTileTexCoords(0, 8, 1);
 			t_arr.insert(t_arr.end(), tc, tc+8);
@@ -98,17 +88,19 @@ struct WorldElement: public Entity {
 							   x + hw, y + hh };
 			v_arr.insert(v_arr.end(), &vc_end[0], &vc_end[8]);
 		}
-		// Draw
+	}
+
+	virtual void draw() const {
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture);
 	}
 
 	float getW() const { return w * tilesize; };
 	float getH() const { return h * tilesize; };
 
+	CoordArray v_arr, t_arr;
 	float w, h;
 	GLuint tileid;
 	int tilesize;
-	int seed;
 
 };
 
