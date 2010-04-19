@@ -59,7 +59,7 @@ void World::addPlatform(float x, float y, float w) {
 	fixtureDef.shape = &box;
 	fixtureDef.friction = 4.0f; // Higher friction
 	p.body->CreateFixture(&fixtureDef);
-
+	p.buildVertices();
 	platforms.push_back(p);
 }
 
@@ -80,7 +80,7 @@ void World::addLadder(float x, float y, float h) {
 	fixtureDef.shape = &laddershape;
 	fixtureDef.isSensor = true; // No collision response
 	l.body->CreateFixture(&fixtureDef);
-
+	l.buildVertices();
 	ladders.push_back(l);
 }
 
@@ -199,7 +199,6 @@ void World::update() {
 		// should know about this function.
 		world.ClearForces();
 
-		srand(time(NULL));
 		float offset = 50.0f; // For spawning things away from borders
 
 		// Update actors' airborne etc. status + gravity
@@ -265,6 +264,7 @@ void World::update() {
 			// Respawn if in water
 			if (it->getBody()->GetWorldCenter().y - it->getSize() >= h - water_height) {
 				it->getBody()->SetLinearVelocity(b2Vec2());
+				it->getBody()->SetAngularVelocity(0);
 				it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
 			}
 			// Gravity
@@ -273,7 +273,6 @@ void World::update() {
 		}
 		// Create power-ups
 		if (timer_powerup()) {
-			srand(time(NULL));
 			addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
 			timer_powerup = Countdown(randf(5.0f, 8.0f));
 		}
@@ -292,7 +291,8 @@ void World::draw() const {
 	boost::mutex::scoped_lock l(mutex);
 	#endif
 	// Magick zooming camera
-	static const float margin = 250.0f;
+	static const float xmargin = 300.0f;
+	static const float ymargin = 150.0f;
 	float x1 = w, y1 = h, x2 = 0, y2 = 0;
 	float ar = w / float(h);
 	// Get zoom box corners
@@ -306,10 +306,10 @@ void World::draw() const {
 		}
 	}
 	// Add borders and clamp box to screen size
-	x1 = clamp(x1 - margin, 0.0f, float(w));
-	x2 = clamp(x2 + margin, 0.0f, float(w));
-	y1 = clamp(y1 - margin, 0.0f, float(h));
-	y2 = clamp(y2 + margin, 0.0f, float(h));
+	x1 = clamp(x1 - xmargin, 0.0f, float(w));
+	x2 = clamp(x2 + xmargin, 0.0f, float(w));
+	y1 = clamp(y1 - ymargin, 0.0f, float(h));
+	y2 = clamp(y2 + ymargin, 0.0f, float(h));
 	// Correct aspect ratio
 	float boxw = (x2-x1), boxh = (y2-y1);
 	if (boxh > boxw / ar) boxw = boxh * ar;

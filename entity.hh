@@ -6,7 +6,7 @@
 #include "texture.hh"
 
 struct Entity {
-	Entity(float size, GLuint tex): size(size), texture(tex)
+	Entity(float size, GLuint tex): body(NULL), size(size), texture(tex)
 	{ }
 
 	virtual void draw(int frame = 0, int tiles = 4, bool flipped = false) const {

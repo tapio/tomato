@@ -29,9 +29,18 @@ class Actor: public Entity {
 	{ }
 
 	void brains() {
-		srand(time(NULL));
-		if (randbool()) stop();
-		else move(randbool() ? -1 : 1);
+		static Countdown actiontimer(1.0);
+		static bool stopped = false;
+		if (actiontimer()) {
+			stopped = false;
+			if (randbool() && randbool() && randbool()) stopped = true;
+			if (ladder != LADDER_NO && randbool()) jump();
+			else move(randbool() ? -1 : 1);
+			actiontimer = Countdown(randf(0.5f, 1.5f));
+		} else if (!stopped) {
+			if (ladder != LADDER_NO && randbool()) jump();
+			else move(dir);
+		}
 	}
 
 	void move(int direction) {
