@@ -185,96 +185,112 @@ void World::update() {
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
 
-	// Instruct the world to perform a single step of simulation.
-	// It is generally best to keep the time step and iterations fixed.
-	world.Step(timeStep, velocityIterations, positionIterations);
+	unsigned int t = SDL_GetTicks();
+	{
+		#ifdef USE_THREADS
+		boost::mutex::scoped_lock l(mutex);
+		#endif
 
-	// Clear applied body forces. We didn't apply any forces, but you
-	// should know about this function.
-	world.ClearForces();
+		// Instruct the world to perform a single step of simulation.
+		// It is generally best to keep the time step and iterations fixed.
+		world.Step(timeStep, velocityIterations, positionIterations);
 
-	srand(time(NULL));
-	float offset = 50.0f; // For spawning things away from borders
+		// Clear applied body forces. We didn't apply any forces, but you
+		// should know about this function.
+		world.ClearForces();
 
-	// Update actors' airborne etc. status + gravity
-	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
-		it->airborne = true;
-		bool climbing = (it->ladder == Actor::LADDER_CLIMBING);
-		it->ladder = Actor::LADDER_NO;
-		// Water
-		if (it->getBody()->GetWorldCenter().y + it->getSize() >= h - water_height) it->die();
-		// Death
-		if (it->is_dead()) {
-			it->getBody()->SetLinearVelocity(b2Vec2());
-			it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
-			it->dead = false;
-			continue;
-		}
-		if (it->powerup.expired()) it->unequip();
-		// Check for contacts
-		for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
-			// Ladders
-			if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == LADDER)
-				it->ladder = Actor::LADDER_YES;
-			// Power-ups
-			else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == POWERUP) {
-				ce->other->SetUserData(NULL);
-				// Find the powerup
-				for (Powerups::iterator pu = powerups.begin(); pu != powerups.end(); ++pu) {
-					if (!pu->getBody()->GetUserData()) {
-						it->equip(pu->effect);
-						world.DestroyBody(ce->other);
-						powerups.erase(pu);
-						break;
-					}
-				}
-			// Other players
-			} else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == ACTOR) {
-				ce->other->SetUserData(NULL);
-				// Find the actor
-				for (Actors::iterator ac = actors.begin(); ac != actors.end(); ++ac) {
-					if (!ac->getBody()->GetUserData()) {
-						it->powerup.touch(&(*it), &(*ac));
-						break;
-					}
-				}
-				ce->other->SetUserData(&ElementTypes[ACTOR]);
-			// Ground
-			} else it->airborne = false;
-		}
-		if (!it->airborne) {
-			if (it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_ROOT;
-			if (it->doublejump == DJUMP_JUMPED) it->doublejump = DJUMP_ALLOW;
-		}
-		if (climbing && it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_CLIMBING;
-		// Gravity
-		float grav_mult = (it->lograv ? 0.1 : 1.0) * (it->ladder == Actor::LADDER_CLIMBING ? 0.0 : 1.0);
-		b2Body* b = it->getBody();
-		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * grav_mult), b->GetWorldCenter());
-		// AI
-		if (it->type == Actor::AI) it->brains();
-	}
-	// Crates
-	for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
-		// Respawn if in water
-		if (it->getBody()->GetWorldCenter().y - it->getSize() >= h - water_height) {
-			it->getBody()->SetLinearVelocity(b2Vec2());
-			it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
-		}
-		// Gravity
-		b2Body* b = it->getBody();
-		b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
-	}
-	// Create power-ups
-	if (timer_powerup()) {
 		srand(time(NULL));
-		addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
-		timer_powerup = Countdown(randf(5.0f, 8.0f));
-	}
+		float offset = 50.0f; // For spawning things away from borders
+
+		// Update actors' airborne etc. status + gravity
+		for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
+			it->airborne = true;
+			bool climbing = (it->ladder == Actor::LADDER_CLIMBING);
+			it->ladder = Actor::LADDER_NO;
+			// Water
+			if (it->getBody()->GetWorldCenter().y + it->getSize() >= h - water_height) it->die();
+			// Death
+			if (it->is_dead()) {
+				it->getBody()->SetLinearVelocity(b2Vec2());
+				it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
+				it->dead = false;
+				continue;
+			}
+			if (it->powerup.expired()) it->unequip();
+			// Check for contacts
+			for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
+				// Ladders
+				if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == LADDER)
+					it->ladder = Actor::LADDER_YES;
+				// Power-ups
+				else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == POWERUP) {
+					ce->other->SetUserData(NULL);
+					// Find the powerup
+					for (Powerups::iterator pu = powerups.begin(); pu != powerups.end(); ++pu) {
+						if (!pu->getBody()->GetUserData()) {
+							it->equip(pu->effect);
+							world.DestroyBody(ce->other);
+							powerups.erase(pu);
+							break;
+						}
+					}
+				// Other players
+				} else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == ACTOR) {
+					ce->other->SetUserData(NULL);
+					// Find the actor
+					for (Actors::iterator ac = actors.begin(); ac != actors.end(); ++ac) {
+						if (!ac->getBody()->GetUserData()) {
+							it->powerup.touch(&(*it), &(*ac));
+							break;
+						}
+					}
+					ce->other->SetUserData(&ElementTypes[ACTOR]);
+				// Ground
+				} else it->airborne = false;
+			}
+			if (!it->airborne) {
+				if (it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_ROOT;
+				if (it->doublejump == DJUMP_JUMPED) it->doublejump = DJUMP_ALLOW;
+			}
+			if (climbing && it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_CLIMBING;
+			// Gravity
+			float grav_mult = (it->lograv ? 0.1 : 1.0) * (it->ladder == Actor::LADDER_CLIMBING ? 0.0 : 1.0);
+			b2Body* b = it->getBody();
+			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * grav_mult), b->GetWorldCenter());
+			// AI
+			if (it->type == Actor::AI) it->brains();
+		}
+		// Crates
+		for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
+			// Respawn if in water
+			if (it->getBody()->GetWorldCenter().y - it->getSize() >= h - water_height) {
+				it->getBody()->SetLinearVelocity(b2Vec2());
+				it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
+			}
+			// Gravity
+			b2Body* b = it->getBody();
+			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
+		}
+		// Create power-ups
+		if (timer_powerup()) {
+			srand(time(NULL));
+			addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
+			timer_powerup = Countdown(randf(5.0f, 8.0f));
+		}
+	} // < mutex
+	#ifdef USE_THREADS
+	// TODO: Hackish, usleep not available in Windows
+	t = SDL_GetTicks() - t;
+	t = timeStep * 1000 - t;
+	if (t > 0) usleep(t*500);
+	#endif
 }
 
 
 void World::draw() const {
+	#ifdef USE_THREADS
+	boost::mutex::scoped_lock l(mutex);
+	#endif
 	// Magick zooming camera
 	static const float margin = 250.0f;
 	float x1 = w, y1 = h, x2 = 0, y2 = 0;

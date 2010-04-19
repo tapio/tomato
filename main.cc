@@ -1,3 +1,4 @@
+#include "config.hh"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -6,6 +7,12 @@
 #include <cstdio>
 #include <vector>
 
+#include <boost/scoped_ptr.hpp>
+#ifdef USE_THREADS
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/bind.hpp>
+#endif
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL.h>
@@ -20,17 +27,18 @@
 #define scrW 800
 #define scrH 600
 
+static bool QUIT = false;
 
 /// Keyboard input
-bool handle_keys(Players& players) {
+void handle_keys(Players& players) {
 	SDL_Event event;
 	while(SDL_PollEvent(&event)) {
 		switch(event.type) {
 		case SDL_QUIT:
-			return false;
+			QUIT = true; return;
 		case SDL_KEYDOWN: {
 			int k = event.key.keysym.sym;
-			if (k == SDLK_ESCAPE) return false;
+			if (k == SDLK_ESCAPE) { QUIT = true; return; }
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (it->type != Actor::HUMAN) continue;
 				if (k == it->KEY_LEFT) it->move(-1);
@@ -52,7 +60,6 @@ bool handle_keys(Players& players) {
 		}
 		} // end switch
 	}
-	return true;
 }
 
 /// Double buffering
@@ -80,6 +87,10 @@ void setup_gl() {
 	glEnable(GL_BLEND);
 }
 
+void updateKeys(Players& players) { while (!QUIT) { handle_keys(players); } }
+void updateWorld(World& world) { while (!QUIT) { world.update(); } }
+void updateGfx(const World& world) { while (!QUIT) { world.draw(); flip(); } }
+
 /// Game loop
 bool main_loop() {
 	TextureMap tm = load_textures();
@@ -89,16 +100,34 @@ bool main_loop() {
 	Players& players = world.getActors();
 	parse_keys(players, "../keys.conf");
 
+	// Launch threads
+	#ifdef USE_THREADS
+	boost::thread thread_input(updateKeys, boost::ref(players));
+	boost::thread thread_physics(updateWorld, boost::ref(world));
+	//boost::thread thread_graphics(updateGfx, boost::ref(world));
+	#endif
+
 	// MAIN LOOP
 	FPS fps;
-	while (handle_keys(players)) {
+	while (!QUIT) {
 		fps.update();
 		if ((SDL_GetTicks() % 200) == 0) fps.debugPrint();
+
+		#ifndef USE_THREADS
+		handle_keys(players);
 		world.update();
+		#endif
+
+		// Draw
 		world.draw();
 		flip();
 	}
 
+	#ifdef USE_THREADS
+	thread_input.join();
+	thread_physics.join();
+	//thread_graphics.join();
+	#endif
 	return false;
 }
 

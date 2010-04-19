@@ -1,5 +1,10 @@
 #pragma once
 
+#include "config.hh"
+#ifdef USE_THREADS
+#include <boost/thread/mutex.hpp>
+#endif
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -201,7 +206,9 @@ class World {
 	Actors& getActors() { return actors; }
 
   private:
-
+	#ifdef USE_THREADS
+	mutable boost::mutex mutex;
+	#endif
 	b2World world;
 	int w;
 	int h;

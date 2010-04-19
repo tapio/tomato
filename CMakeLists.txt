@@ -4,6 +4,8 @@ cmake_policy(VERSION 2.6)
 # Name of the executable
 set(EXENAME "game")
 
+OPTION(USE_THREADS "Enable multi-threading support." OFF)
+
 # Avoid source tree pollution
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
 	message(FATAL_ERROR "In-source builds are not permitted. Make a separate folder for building:\nmkdir build; cd build; cmake ..\nBefore that, remove the files already created:\nrm -rf CMakeCache.txt CMakeFiles")
@@ -23,8 +25,13 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-find_package(Boost)
-include_directories(${BOOST_INCLUDE_DIRS})
+if (USE_THREADS)
+	find_package(Boost 1.36 REQUIRED COMPONENTS thread)
+else()
+	find_package(Boost)
+endif()
+include_directories(${Boost_INCLUDE_DIRS})
+list(APPEND LIBS ${Boost_LIBRARIES})
 
 find_package(Box2D)
 include_directories(${BOX2D_INCLUDE_DIRS})
@@ -47,6 +54,10 @@ file(GLOB SOURCE_FILES "*.cc")
 file(GLOB HEADER_FILES "*.hh")
 
 set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
+
+# Generate config.hh
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.hh" "${CMAKE_CURRENT_BINARY_DIR}/config.hh" @ONLY)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 add_executable(${EXENAME} ${SOURCES})
 target_link_libraries(${EXENAME} ${LIBS})
