@@ -3,6 +3,8 @@
 #include "config.hh"
 #ifdef USE_THREADS
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/bind.hpp>
 #endif
 
 #include <iostream>
@@ -137,7 +139,8 @@ typedef std::vector<Crate> Crates;
 class World {
   public:
 	World(int width, int height, TextureMap& tm):
-	  world(b2Vec2(0.0f, 0.0f), true), w(width), h(height), tilesize(32), water_height(64), timer_powerup(randf(4.0f, 7.0f))
+	  world(b2Vec2(0.0f, 0.0f), true), w(width), h(height), view_topleft(0,0), view_bottomright(w,h),
+	  tilesize(32), water_height(64), timer_powerup(randf(4.0f, 7.0f))
 	{
 		float hw = w*0.5, hh = h*0.5;
 
@@ -195,7 +198,7 @@ class World {
 	void generate();
 
 	void update();
-
+	void updateViewport();
 	void draw() const;
 
 	b2World& getWorld() { return world; }
@@ -208,6 +211,8 @@ class World {
 	b2World world;
 	int w;
 	int h;
+	b2Vec2 view_topleft;
+	b2Vec2 view_bottomright;
 	int tilesize;
 	int water_height;
 	GLuint texture_background;

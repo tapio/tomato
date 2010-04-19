@@ -89,7 +89,6 @@ void setup_gl() {
 
 void updateKeys(Players& players) { while (!QUIT) { handle_keys(players); } }
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
-void updateGfx(const World& world) { while (!QUIT) { world.draw(); flip(); } }
 
 /// Game loop
 bool main_loop() {
@@ -116,6 +115,8 @@ bool main_loop() {
 		#ifndef USE_THREADS
 		handle_keys(players);
 		world.update();
+		#else
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
 
 		// Draw

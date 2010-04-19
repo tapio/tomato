@@ -72,12 +72,17 @@ void inline randdir(int& dx, int &dy) {
 	else { dx = randint(-1,1); dy = randdir(); }
 }
 
-/** Limit val to range [min, max] **/
+/// Limit val to range [min, max]
 template <typename T> T clamp(T val, T min = 0, T max = 1) {
 	if (min > max) throw std::logic_error("min > max");
 	if (val < min) return min;
 	if (val > max) return max;
 	return val;
+}
+
+/// Linear interpolation
+template <typename T> T lerp(T x1, T x2, T factor = 0.5) {
+	return x1 + (x2 - x1) * factor;
 }
 
 

@@ -261,6 +261,7 @@ void World::update() {
 
 	#ifdef USE_THREADS
 	unsigned int t = SDL_GetTicks();
+	boost::thread thread_viewport(boost::bind(&World::updateViewport, boost::ref(*this)));
 	{
 		boost::mutex::scoped_lock l(mutex);
 	#endif
@@ -293,6 +294,7 @@ void World::update() {
 				it->dead = false;
 				continue;
 			}
+			// Unequip power-up if expired
 			if (it->powerup.expired()) it->unequip();
 			// Check for contacts
 			for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
@@ -369,28 +371,32 @@ void World::update() {
 			timer_powerup = Countdown(randf(5.0f, 8.0f));
 		}
 	#ifdef USE_THREADS
-	} // < mutex
-	// TODO: Hackish, usleep not available in Windows
+	} //< Mutex
+	thread_viewport.join();
+	// TODO: Hackish
 	t = SDL_GetTicks() - t;
-	t = timeStep * 1000 - t;
-	if (t > 0) usleep(t*500);
+	int tt = (timeStep * 1000 - t - 1) * 0.5;
+	if (tt > 0) boost::this_thread::sleep(boost::posix_time::milliseconds(tt));
+	#else
+	updateViewport();
 	#endif
 }
 
 
-void World::draw() const {
-	#ifdef USE_THREADS
-	boost::mutex::scoped_lock l(mutex);
-	#endif
-	// Magick zooming camera
+void World::updateViewport() {
+	// Magick zooming camera variables
 	static const float xmargin = 300.0f;
 	static const float ymargin = 150.0f;
+	static const float lerp_speed = 0.01;
 	float x1 = w, y1 = h, x2 = 0, y2 = 0;
 	float ar = w / float(h);
-	// Get zoom box corners
-	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
-		if (!it->is_dead()) {
-			b2Vec2 itpos = it->getBody()->GetPosition();
+	{
+		#ifdef USE_THREADS
+		boost::mutex::scoped_lock l(mutex);
+		#endif
+		for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
+			// Calculate viewport borders
+			b2Vec2 itpos = it->getBody()->GetWorldCenter();
 			if (itpos.x < x1) x1 = itpos.x;
 			if (itpos.x > x2) x2 = itpos.x;
 			if (itpos.y < y1) y1 = itpos.y;
@@ -420,10 +426,31 @@ void World::draw() const {
 	if (y2 > h) ycorr = h-y2;
 	x1 += xcorr; x2 += xcorr;
 	y1 += ycorr; y2 += ycorr;
-	// Do the magic
+	// Interplate smoothly to the new viewport
+	x1 = lerp(view_topleft.x, x1, lerp_speed);
+	y1 = lerp(view_topleft.y, y1, lerp_speed);
+	x2 = lerp(view_bottomright.x, x2, lerp_speed);
+	y2 = lerp(view_bottomright.y, y2, lerp_speed);
+	{
+		#ifdef USE_THREADS
+		boost::mutex::scoped_lock l(mutex);
+		#endif
+		// Set the coords
+		view_topleft.x     = x1; view_topleft.y     = y1;
+		view_bottomright.x = x2; view_bottomright.y = y2;
+	}
+}
+
+
+void World::draw() const {
+	#ifdef USE_THREADS
+	boost::mutex::scoped_lock l(mutex);
+	#endif
+
+	// Magic zooming viewport
 	glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluOrtho2D(x1, x2, y2, y1);
+		gluOrtho2D(view_topleft.x, view_bottomright.x, view_bottomright.y, view_topleft.y);
 	glMatrixMode(GL_MODELVIEW);
 
 	{ // Background
