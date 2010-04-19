@@ -183,6 +183,7 @@ class World {
 	}
 
 	Actor* shoot(const Actor& shooter);
+	bool safe2spawn(float x, float y) const;
 
 	void addMine(float x, float y);
 	void addActor(float x, float y, Actor::Type type, GLuint tex);

@@ -43,7 +43,7 @@ Actor* World::shoot(const Actor& shooter) {
 	b2Vec2 point2 = shooter.getBody()->GetWorldCenter() + w * unitdir;
 	world.RayCast(&callback, point1, point2);
 
-	if (callback.m_fixture == NULL) return NULL;
+	if (!callback.m_fixture) return NULL;
 	b2Body* b = callback.m_fixture->GetBody();
 	if (!b || !b->GetUserData()) return NULL;
 	Actor* hit = NULL;
@@ -59,6 +59,18 @@ Actor* World::shoot(const Actor& shooter) {
 		b->SetUserData(&ElementTypes[ACTOR]);
 	}
 	return hit;
+}
+
+
+bool World::safe2spawn(float x, float y) const {
+	RayCastCallback callback;
+	b2Vec2 unitdir(0, 1);
+	world.RayCast(&callback, b2Vec2(x, y) + tilesize * unitdir, b2Vec2(x, y) + 5 * tilesize * unitdir);
+	if (!callback.m_fixture) return false;
+	b2Body* b = callback.m_fixture->GetBody();
+	if (!b || !b->GetUserData()) return false;
+	if (*(static_cast<ElementType*>(b->GetUserData())) == PLATFORM) return true;
+	return false;
 }
 
 
@@ -262,7 +274,6 @@ void World::update() {
 		world.ClearForces();
 
 		float offset = 50.0f; // For spawning things away from borders
-
 		// Update actors' airborne etc. status + gravity
 		for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 			it->airborne = true;
@@ -273,7 +284,12 @@ void World::update() {
 			// Death
 			if (it->is_dead()) {
 				it->getBody()->SetLinearVelocity(b2Vec2());
-				it->getBody()->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
+				float x,y;
+				do {
+					x = randf(offset, w-offset);
+					y = randf(offset, h*0.667);
+				} while (!safe2spawn(x,y));
+				it->getBody()->SetTransform(b2Vec2(x, y), 0);
 				it->dead = false;
 				continue;
 			}

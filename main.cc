@@ -96,6 +96,7 @@ bool main_loop() {
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm);
 	world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
+	world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
 	world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
 	Players& players = world.getActors();
 	parse_keys(players, "../keys.conf");
