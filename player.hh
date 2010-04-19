@@ -72,7 +72,6 @@ class Actor: public Entity {
 	}
 
 	void jump(bool forcejump = false) {
-		std::cout << "JUMP, airborne: " << airborne << ", climbing: " << ladder << ", djump: " << doublejump << std::endl;
 		if (ladder != LADDER_NO) {
 			ladder = LADDER_CLIMBING;
 			body->SetLinearVelocity(b2Vec2(0.0f, -speed_climb));
