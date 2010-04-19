@@ -200,9 +200,9 @@ void World::update() {
 	// Prepare for simulation. Typically we use a time step of 1/60 of a
 	// second (60Hz) and 10 iterations. This provides a high quality simulation
 	// in most game scenarios.
-	float32 timeStep = 1.0f / 60.0f;
-	int32 velocityIterations = 6;
-	int32 positionIterations = 4;
+	float32 timeStep = 1.0f / 100.0f;
+	int32 velocityIterations = 10;
+	int32 positionIterations = 10;
 
 	#ifdef USE_THREADS
 	unsigned int t = SDL_GetTicks();

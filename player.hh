@@ -12,10 +12,10 @@
 
 #define PLAYER_RESTITUTION 0.25f
 
-#define speed_move_ground 30.0f
+#define speed_move_ground 55.0f
 #define speed_move_airborne (speed_move_ground / 3.0f * 2.0f)
 #define speed_move_ladder (speed_move_ground / 3.0f)
-#define speed_jump speed_move_ground
+#define speed_jump (speed_move_ground * 0.9f)
 #define speed_climb speed_jump
 
 class World;

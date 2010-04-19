@@ -17,7 +17,7 @@
 #include "util.hh"
 #include "player.hh"
 
-#define GRAVITY 25.0f
+#define GRAVITY 45.0f
 
 struct WorldElement: public Entity {
 	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): Entity(0, tex),
