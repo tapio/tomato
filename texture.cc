@@ -6,13 +6,13 @@
 
 #include "texture.hh"
 
-GLuint load_texture(const char* filename) {
+GLuint load_texture(const char* filename, bool repeat) {
 	GLuint handle = SOIL_load_OGL_texture
 		(
 			filename,
 			SOIL_LOAD_AUTO,
 			SOIL_CREATE_NEW_ID,
-			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | SOIL_FLAG_TEXTURE_REPEATS
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y | (repeat ? SOIL_FLAG_TEXTURE_REPEATS : 0)
 		);
 
 	/* check for an error during the load process */
@@ -23,8 +23,8 @@ GLuint load_texture(const char* filename) {
 
 TextureMap load_textures() {
 	TextureMap tmap;
-	tmap.insert(std::pair<std::string, GLuint>("background", load_texture("../images/bg.png")));
-	tmap.insert(std::pair<std::string, GLuint>("water", load_texture("../images/water.png")));
+	tmap.insert(std::pair<std::string, GLuint>("background", load_texture("../images/bg.png", true)));
+	tmap.insert(std::pair<std::string, GLuint>("water", load_texture("../images/water.png", true)));
 	tmap.insert(std::pair<std::string, GLuint>("ground", load_texture("../images/ground.png")));
 	tmap.insert(std::pair<std::string, GLuint>("ladder", load_texture("../images/ladder.png")));
 	tmap.insert(std::pair<std::string, GLuint>("crate", load_texture("../images/crate.png")));
