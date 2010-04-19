@@ -53,7 +53,8 @@ void Powerup::action(Actor* owner) {
 		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 1.8, pos.y);
 		ammo--;
 	} else if (type == GUN) {
-		std::cout << "SHOOTING MINIGUN" << std::endl;
+		Actor* target = owner->getWorld()->shoot(*owner);
+		if (target) target->die();
 		ammo--;
 	}
 }

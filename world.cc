@@ -17,7 +17,50 @@ namespace {
 		ElementType type;
 		void* ptr;
 	};
+	// This class captures the closest hit shape.
+	struct RayCastCallback : public b2RayCastCallback {
+		RayCastCallback(): m_fixture(NULL) { }
+		float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point,
+							  const b2Vec2& normal, float32 fraction) {
+			m_fixture = fixture;
+			m_point = point;
+			m_normal = normal;
+			m_fraction = fraction;
+			return fraction;
+		}
+		b2Fixture* m_fixture;
+		b2Vec2 m_point;
+		b2Vec2 m_normal;
+		float32 m_fraction;
+	};
 }
+
+
+Actor* World::shoot(const Actor& shooter) {
+	RayCastCallback callback;
+	b2Vec2 unitdir(shooter.dir, 0);
+	b2Vec2 point1 = shooter.getBody()->GetWorldCenter() + 1.5 * shooter.getSize() * unitdir;
+	b2Vec2 point2 = shooter.getBody()->GetWorldCenter() + w * unitdir;
+	world.RayCast(&callback, point1, point2);
+
+	if (callback.m_fixture == NULL) return NULL;
+	b2Body* b = callback.m_fixture->GetBody();
+	if (!b || !b->GetUserData()) return NULL;
+	Actor* hit = NULL;
+	if (*(static_cast<ElementType*>(b->GetUserData())) == ACTOR) {
+		b->SetUserData(NULL);
+		// Find the actor
+		for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
+			if (!it->getBody()->GetUserData()) {
+				hit = &(*it);
+				break;
+			}
+		}
+		b->SetUserData(&ElementTypes[ACTOR]);
+	}
+	return hit;
+}
+
 
 void World::addMine(float x, float y) {
 	float minew = tilesize * 0.4f;

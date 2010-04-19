@@ -10,6 +10,7 @@ Libraries used
 Power-ups
 ---------
 * Mine         - Invisible mine kills when touched
+* Minigun      - Shoots (horizontally) deadly
 * Double-jump  - Jump twice
 * Punch        - Punches enemy with great force
 * Invisibility - Turns you invisible

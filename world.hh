@@ -182,6 +182,8 @@ class World {
 		generate();
 	}
 
+	Actor* shoot(const Actor& shooter);
+
 	void addMine(float x, float y);
 	void addActor(float x, float y, Actor::Type type, GLuint tex);
 	void addPlatform(float x, float y, float w);
