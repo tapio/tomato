@@ -138,52 +138,7 @@ typedef std::vector<Crate> Crates;
 
 class World {
   public:
-	World(int width, int height, TextureMap& tm):
-	  world(b2Vec2(0.0f, 0.0f), true), w(width), h(height), view_topleft(0,0), view_bottomright(w,h),
-	  tilesize(32), water_height(64), timer_powerup(randf(4.0f, 7.0f))
-	{
-		float hw = w*0.5, hh = h*0.5;
-
-		// Define the border bodies
-		b2BodyDef borderBodyDef;
-		borderBodyDef.position.Set(hw, hh);
-		b2Body* borderBody = world.CreateBody(&borderBodyDef);
-
-		// Define the border shapes
-		b2PolygonShape borderBoxLeft, borderBoxRight, borderBoxTop, borderBoxBottom;
-		borderBoxLeft.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(-hw,hh));
-		borderBoxRight.SetAsEdge(b2Vec2(hw,-hh), b2Vec2(hw,hh));
-		borderBoxTop.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(hw,-hh));
-		borderBoxBottom.SetAsEdge(b2Vec2(-hw,hh), b2Vec2(hw,hh));
-
-		// Add the border fixtures to the body
-		borderBody->CreateFixture(&borderBoxLeft, 0.0f);
-		borderBody->CreateFixture(&borderBoxRight, 0.0f);
-		borderBody->CreateFixture(&borderBoxTop, 0.0f);
-		borderBody->CreateFixture(&borderBoxBottom, 0.0f);
-
-		// Create water
-		b2BodyDef waterBodyDef;
-		waterBodyDef.position.Set(hw, h - water_height*0.5f);
-		b2Body* waterBody = world.CreateBody(&waterBodyDef);
-		b2PolygonShape waterBox;
-		waterBox.SetAsBox(w*0.5f, water_height*0.5f);
-		b2FixtureDef fixtureDef;
-		fixtureDef.shape = &waterBox;
-		fixtureDef.isSensor = true; // No collision response
-		waterBody->CreateFixture(&fixtureDef);
-
-		// Get texture IDs
-		texture_background = tm.find("background")->second;
-		texture_water = tm.find("water")->second;
-		texture_ground = tm.find("ground")->second;
-		texture_ladder = tm.find("ladder")->second;
-		texture_crate = tm.find("crate")->second;
-		texture_powerups = tm.find("powerups")->second;
-
-		// Generate
-		generate();
-	}
+	World(int width, int height, TextureMap& tm);
 
 	Actor* shoot(const Actor& shooter);
 	bool safe2spawn(float x, float y) const;
