@@ -1,6 +1,6 @@
 Libraries used
 --------------
-* Boost
+* Boost (headers + thread)
 * Box2D
 * OpenGL
 * SDL
@@ -9,6 +9,7 @@ Libraries used
 
 Power-ups
 ---------
+* Mine         - Invisible mine kills when touched
 * Double-jump  - Jump twice
 * Punch        - Punches enemy with great force
 * Invisibility - Turns you invisible
