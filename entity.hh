@@ -5,6 +5,8 @@
 
 #include "texture.hh"
 
+class World;
+
 struct Entity {
 	Entity(float size, GLuint tex): body(NULL), size(size), texture(tex)
 	{ }
@@ -22,8 +24,10 @@ struct Entity {
 	float32 getX() const { return body->GetPosition().x; }
 	float32 getY() const { return body->GetPosition().y; }
 	float getSize() const { return size; }
+	World* getWorld() const { return world; }
 	b2Body* getBody() const { return body; }
 
+	World* world;
 	b2Body* body;
 	float size;
 	GLuint texture;

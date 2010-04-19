@@ -182,6 +182,7 @@ class World {
 		generate();
 	}
 
+	void addMine(float x, float y);
 	void addActor(float x, float y, Actor::Type type, GLuint tex);
 	void addPlatform(float x, float y, float w);
 	void addLadder(float x, float y, float h);

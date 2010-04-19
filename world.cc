@@ -10,14 +10,33 @@
 
 
 namespace {
-	enum ElementType { NONE, PLATFORM, LADDER, CRATE, POWERUP, ACTOR };
-	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, CRATE, POWERUP, ACTOR };
+	enum ElementType { NONE, PLATFORM, LADDER, CRATE, POWERUP, ACTOR, MINE };
+	static ElementType ElementTypes[] = { NONE, PLATFORM, LADDER, CRATE, POWERUP, ACTOR, MINE };
 	struct WorldElement {
 		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
 		ElementType type;
 		void* ptr;
 	};
 }
+
+void World::addMine(float x, float y) {
+	float minew = tilesize * 0.4f;
+	float mineh = tilesize * 0.2f;
+	// Create body
+	b2BodyDef bodyDef;
+	bodyDef.position.Set(x, y);
+	b2Body* body = world.CreateBody(&bodyDef);
+	body->SetUserData(&ElementTypes[MINE]);
+	// Create shape
+	b2PolygonShape box;
+	box.SetAsBox(minew/2, mineh/2);
+	// Create fixture
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &box;
+	fixtureDef.density = 1.0f;
+	body->CreateFixture(&fixtureDef);
+}
+
 
 void World::addActor(float x, float y, Actor::Type type, GLuint tex) {
 	Actor actor(tex, type);
@@ -39,7 +58,7 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex) {
 	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
 	actor.getBody()->CreateFixture(&fixtureDef);
-
+	actor.world = this;
 	actors.push_back(actor);
 }
 
@@ -218,11 +237,18 @@ void World::update() {
 			if (it->powerup.expired()) it->unequip();
 			// Check for contacts
 			for (b2ContactEdge* ce = it->getBody()->GetContactList(); ce && ce->other; ce = ce->next) {
+				ElementType et = NONE;
+				if (ce->other->GetUserData()) et = *(static_cast<ElementType*>(ce->other->GetUserData()));
+				// Mines
+				if (et == MINE) {
+					it->die();
+					world.DestroyBody(ce->other);
+					ce->other = NULL;
 				// Ladders
-				if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == LADDER)
+				} else if (et == LADDER)
 					it->ladder = Actor::LADDER_YES;
 				// Power-ups
-				else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == POWERUP) {
+				else if (et == POWERUP) {
 					ce->other->SetUserData(NULL);
 					// Find the powerup
 					for (Powerups::iterator pu = powerups.begin(); pu != powerups.end(); ++pu) {
@@ -234,7 +260,7 @@ void World::update() {
 						}
 					}
 				// Other players
-				} else if (ce->other->GetUserData() && *(static_cast<ElementType*>(ce->other->GetUserData())) == ACTOR) {
+				} else if (et == ACTOR) {
 					ce->other->SetUserData(NULL);
 					// Find the actor
 					for (Actors::iterator ac = actors.begin(); ac != actors.end(); ++ac) {

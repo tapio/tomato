@@ -3,6 +3,7 @@
 
 #include "powerups.hh"
 #include "player.hh"
+#include "world.hh"
 
 const Powerup::Type Powerup::PowerupTypes[] =
 	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION, SUPERBALL, LOGRAV };
@@ -48,7 +49,8 @@ void Powerup::action(Actor* owner) {
 	if (lifetime()) return;
 	if (ammo <= 0) return;
 	if (type == MINE) {
-		std::cout << "MINE PLACED" << std::endl;
+		b2Vec2 pos = owner->getBody()->GetWorldCenter();
+		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 1.8, pos.y);
 		ammo--;
 	} else if (type == GUN) {
 		std::cout << "SHOOTING MINIGUN" << std::endl;

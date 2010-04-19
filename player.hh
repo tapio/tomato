@@ -18,6 +18,7 @@
 #define speed_jump speed_move_ground
 #define speed_climb speed_jump
 
+class World;
 
 class Actor: public Entity {
   public:
