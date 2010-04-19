@@ -4,7 +4,7 @@ cmake_policy(VERSION 2.6)
 # Name of the executable
 set(EXENAME "game")
 
-OPTION(USE_THREADS "Enable multi-threading support." OFF)
+OPTION(USE_THREADS "Enable multi-threading support." ON)
 OPTION(USE_NETWORK "Enable networking support." ON)
 
 # Avoid source tree pollution
