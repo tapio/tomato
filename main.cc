@@ -156,25 +156,25 @@ int main(int argc, char** argv) {
 
 	// TODO: Argument handling
 
-	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
-	//SDL_WM_SetCaption(PACKAGE " " VERSION, PACKAGE);
-
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	SDL_Surface* screen = NULL;
-	screen = SDL_SetVideoMode(800, 600, 32, SDL_OPENGL);
-	if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
-	SDL_EnableKeyRepeat(50, 50);
 	srand(time(NULL)); // Randomize RNG
 
 	// TODO: Main menu
 
 	if (!dedicated_server) {
+		// SDL initialization stuff
+		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
+		//SDL_WM_SetCaption(PACKAGE " " VERSION, PACKAGE);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		SDL_Surface* screen = NULL;
+		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL);
+		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
+		SDL_EnableKeyRepeat(50, 50);
+
 		setup_gl();
 		main_loop();
-		// TODO: SDL_Quit creates a crash if Texture_2D is enabled in player.draw()
-		//SDL_Quit();
+
+		SDL_Quit();
 	} else server_loop();
 
 	return 0;
