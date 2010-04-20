@@ -1,10 +1,13 @@
 Libraries used
 --------------
-* Boost (headers + thread)
-* Box2D
-* OpenGL
-* SDL
-* SOIL
+* Boost
+	- Headers:   General aids
+	- Thread:    Multi-threading
+	- ASIO:      Networking
+* Box2D:         Physics
+* OpenGL:        Graphics
+* SDL:           Input and OpenGL context
+* SOIL:          Texture loading
 
 
 Power-ups
