@@ -9,6 +9,7 @@
 #include "texture.hh"
 #include "entity.hh"
 #include "powerups.hh"
+#include "network.hh"
 
 #define PLAYER_RESTITUTION 0.25f
 
@@ -19,6 +20,14 @@
 #define speed_climb speed_jump
 
 class World;
+
+struct PlayerSerialize {
+	float x, y, vx, vy;
+	PlayerSerialize(float x, float y, float vx, float vy): x(x), y(y), vx(vx), vy(vy) {}
+	operator char*() { return reinterpret_cast<char*>(this); } /// overload char cast
+	operator char const*() const { return reinterpret_cast<char const*>(this); } /// overload char const cast
+};
+
 
 class Actor: public Entity {
   public:
@@ -44,7 +53,7 @@ class Actor: public Entity {
 		}
 	}
 
-	void move(int direction) {
+	virtual void move(int direction) {
 		if (reversecontrols) direction = -direction;
 		if (direction != dir) { dir = direction; return; }
 		if (direction == dir || can_jump()) {
@@ -65,13 +74,13 @@ class Actor: public Entity {
 		dir = direction;
 	}
 
-	void stop() {
+	virtual void stop() {
 		if (!airborne || ladder == LADDER_CLIMBING) {
 			body->SetLinearVelocity(b2Vec2(0.0f, body->GetLinearVelocity().y));
 		}
 	}
 
-	void jump(bool forcejump = false) {
+	virtual void jump(bool forcejump = false) {
 		if (ladder != LADDER_NO) {
 			ladder = LADDER_CLIMBING;
 			body->SetLinearVelocity(b2Vec2(0.0f, -speed_climb));
@@ -85,7 +94,7 @@ class Actor: public Entity {
 		jumping++;
 	}
 
-	void duck() {
+	virtual void duck() {
 		if (ladder == LADDER_YES || ladder == LADDER_CLIMBING) {
 			ladder = LADDER_CLIMBING;
 			body->SetLinearVelocity(b2Vec2(0.0f, speed_climb));
@@ -93,14 +102,14 @@ class Actor: public Entity {
 		}
 	}
 
-	void end_jumping() {
+	virtual void end_jumping() {
 		jumping = 0;
 		if (ladder == Actor::LADDER_CLIMBING) {
 			body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, 0.0f));
 		}
 	}
 
-	void action() {
+	virtual void action() {
 		powerup.action(this);
 	}
 
@@ -117,6 +126,12 @@ class Actor: public Entity {
 		dead = true;
 		points--;
 		std::cout << "DEATH! Points: " << points << std::endl;
+	}
+
+	PlayerSerialize serialize() const {
+		b2Vec2 pos = getBody()->GetPosition();
+		b2Vec2 vel = getBody()->GetLinearVelocity();
+		return PlayerSerialize(pos.x, pos.y, vel.x, vel.y);
 	}
 
 	virtual void draw() const { Entity::draw(anim_frame, 4, dir < 0); }
@@ -151,3 +166,51 @@ class Actor: public Entity {
 
 typedef std::vector<Actor> Actors;
 typedef std::vector<Actor> Players;
+
+
+class OnlinePlayer: public Actor {
+  public:
+
+	// These are sent to the server indicating player's action
+	enum Action {
+		MOVE_LEFT = 1,
+		MOVE_RIGHT,
+		JUMP,
+		DUCK,
+		STOP_MOVING,
+		STOP_JUMPING,
+		ACTION
+	};
+
+	OnlinePlayer(Client& client, GLuint tex = 0, Type t = HUMAN): Actor(tex, t), client(client) { }
+
+	virtual void move(int direction) {
+		if (direction < 0) client.send(MOVE_LEFT);
+		else if (direction > 0) client.send(MOVE_RIGHT);
+	}
+
+	virtual void stop() {
+		client.send(STOP_MOVING);
+	}
+
+	virtual void jump(bool forcejump = false) {
+		client.send(JUMP);
+	}
+
+	virtual void duck() {
+		client.send(DUCK);
+	}
+
+	virtual void end_jumping() {
+		client.send(STOP_JUMPING);
+	}
+
+	virtual void action() {
+		client.send(ACTION);
+	}
+
+  private:
+
+	Client& client;
+
+};

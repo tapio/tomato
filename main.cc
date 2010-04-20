@@ -139,12 +139,16 @@ void server_loop() {
 	world.addActor(100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
 	Players& players = world.getActors();
 
+	//Server server;
+
 	// MAIN LOOP
 	while (true) {
 		world.update();
 		// Compose game-state to send to clients
+		std::string state = "";
 		for (Players::const_iterator it = players.begin(); it != players.end(); ++it) {
-			// TODO: compose game state message
+			std::string p((char*)it->serialize(), sizeof(PlayerSerialize));
+			state += p;
 		}
 		// TODO: Send game state to clients
 	}
