@@ -7,7 +7,7 @@ REM Boost http://www.boost.org/
 wget http://downloads.sourceforge.net/project/boost/boost/1.42.0/boost_1_42_0.7z?use_mirror=switch
 
 REM Box2D http://www.box2d.org/
-wget http://box2d.googlecode.com/files/Box2D_v2.1.0.zip
+wget http://box2d.googlecode.com/files/Box2D_v2.1.2.zip
 
 REM SDL http://www.libsdl.org
 wget http://www.libsdl.org/release/SDL-devel-1.2.14-mingw32.tar.gz
