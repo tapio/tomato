@@ -4,6 +4,7 @@ cmake_policy(VERSION 2.6)
 # Name of the executable
 set(EXENAME "game")
 
+# Options
 OPTION(USE_THREADS "Enable multi-threading support." ON)
 OPTION(USE_NETWORK "Enable networking support." ON)
 
@@ -14,8 +15,8 @@ endif()
 
 # Add a sensible build type default and warning because empty means no optimization and no debug info.
 if(NOT CMAKE_BUILD_TYPE)
-	message("WARNING: CMAKE_BUILD_TYPE is not defined!\n         Defaulting to CMAKE_BUILD_TYPE=Release.\n         Use ccmake to set a proper value.")
-	SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+	message("WARNING: CMAKE_BUILD_TYPE is not defined!\n         Defaulting to CMAKE_BUILD_TYPE=RelWithDebInfo.\n         Use ccmake to set a proper value.")
+	SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
 # Set default compile flags for GCC
@@ -26,11 +27,20 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+# Find all the libs that don't require extra parameters
+foreach(lib Box2D OpenGL SDL SOIL)
+	find_package(${lib} REQUIRED)
+	include_directories(${${lib}_INCLUDE_DIRS})
+	list(APPEND LIBS ${${lib}_LIBRARIES})
+	add_definitions(${${lib}_DEFINITIONS})
+endforeach()
 
+# Libraries required by multi-threading
 if (USE_THREADS)
 	list(APPEND BOOST_COMPONENTS thread)
 endif()
 
+# Libraries required by networking
 if (USE_NETWORK)
 	list(APPEND BOOST_COMPONENTS system)
 endif()
@@ -39,23 +49,10 @@ find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
 
-find_package(Box2D)
-include_directories(${BOX2D_INCLUDE_DIRS})
-list(APPEND LIBS ${BOX2D_LIBRARIES})
+# Quirks
+mark_as_advanced(SDL_LIBRARY SDLMAIN_LIBRARY SDL_INCLUDE_DIR)
 
-find_package(OpenGL)
-include_directories(${OPENGL_INCLUDE_DIR})
-list(APPEND LIBS ${OPENGL_LIBRARIES})
-
-find_package(SDL)
-include_directories(${SDL_INCLUDE_DIR})
-list(APPEND LIBS ${SDL_LIBRARY})
-
-find_package(SOIL)
-include_directories(${SOIL_INCLUDE_DIRS})
-list(APPEND LIBS ${SOIL_LIBRARIES})
-
-
+# Gather sources
 file(GLOB SOURCE_FILES "*.cc")
 file(GLOB HEADER_FILES "*.hh")
 
@@ -65,7 +62,7 @@ set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.hh" "${CMAKE_CURRENT_BINARY_DIR}/config.hh" @ONLY)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+# Executable
 add_executable(${EXENAME} ${SOURCES})
 target_link_libraries(${EXENAME} ${LIBS})
-
 
