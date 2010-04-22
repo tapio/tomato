@@ -92,7 +92,7 @@ class Client: public boost::noncopyable {
 	void listen();
 
 	/// Send a string
-	void send(std::string msg, int flag = 0) {
+	void send(std::string msg, int flag = ENET_PACKET_FLAG_RELIABLE) {
 		//std::cout << "Sending: " << msg << std::endl;
 		ENetPacket* packet = enet_packet_create (msg.c_str(), msg.length(), flag);
 		enet_peer_send (m_peer, 0, packet); // Send through channel 0
@@ -100,7 +100,7 @@ class Client: public boost::noncopyable {
 	}
 
 	/// Send a char
-	void send(char ch, int flag = 0) {
+	void send(char ch, int flag = ENET_PACKET_FLAG_RELIABLE) {
 		send(std::string(&ch, 1), flag);
 	}
 
