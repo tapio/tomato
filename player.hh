@@ -22,14 +22,6 @@
 
 class World;
 
-struct PlayerSerialize {
-	float x, y, vx, vy;
-	PlayerSerialize(float x, float y, float vx, float vy): x(x), y(y), vx(vx), vy(vy) {}
-	operator char*() { return reinterpret_cast<char*>(this); } /// overload char cast
-	operator char const*() const { return reinterpret_cast<char const*>(this); } /// overload char const cast
-};
-
-
 class Actor: public Entity {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
@@ -127,19 +119,6 @@ class Actor: public Entity {
 		dead = true;
 		points--;
 		std::cout << "DEATH! Points: " << points << std::endl;
-	}
-
-	PlayerSerialize serialize() const {
-		b2Vec2 pos = getBody()->GetPosition();
-		b2Vec2 vel = getBody()->GetLinearVelocity();
-		return PlayerSerialize(pos.x, pos.y, vel.x, vel.y);
-	}
-
-	void unserialize(std::string data) {
-		PlayerSerialize* ps;
-		ps = reinterpret_cast<PlayerSerialize*>(&data[0]);
-		getBody()->SetTransform(b2Vec2(ps->x, ps->y), 0);
-		getBody()->SetLinearVelocity(b2Vec2(ps->vx, ps->vy));
 	}
 
 	virtual void draw() const { Entity::draw(anim_frame, 4, dir < 0); }

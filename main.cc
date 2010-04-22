@@ -158,7 +158,7 @@ void server_loop(int port) {
 		// Compose game-state to send to clients
 		std::string state = "";
 		for (Players::const_iterator it = players.begin(); it != players.end(); ++it) {
-			std::string p((char*)it->serialize(), sizeof(PlayerSerialize));
+			std::string p((char*)it->serialize(), sizeof(SerializedEntity));
 			state += p;
 		}
 		// Send game state to clients

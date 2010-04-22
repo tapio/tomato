@@ -454,8 +454,8 @@ void World::update(std::string data) {
 	boost::mutex::scoped_lock l(mutex);
 	#endif
 	int pos = 0;
-	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it, pos += sizeof(PlayerSerialize)) {
-		std::string pdata(&data[pos], sizeof(PlayerSerialize));
+	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it, pos += sizeof(SerializedEntity)) {
+		std::string pdata(&data[pos], sizeof(SerializedEntity));
 		it->unserialize(pdata);
 	}
 }
