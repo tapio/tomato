@@ -88,3 +88,6 @@ template <typename T> T lerp(T x1, T x2, T factor = 0.5) {
 
 template<typename T>
 std::string num2str(T i) { std::ostringstream oss; oss << i; return oss.str(); }
+
+template<typename T>
+T str2num(std::string str) { std::istringstream iss(str); T num; iss >> num; return num; }

@@ -38,8 +38,8 @@ if (USE_NETWORK)
 		message(FATAL_ERROR "Networking requires multi-threading (USE_THREADS) to be enabled.")
 	endif()
 	find_package(ENet)
-	include_directories(${ENET_INCLUDE_DIRS})
-	list(APPEND LIBS ${ENET_LIBRARIES})
+	include_directories(${ENet_INCLUDE_DIRS})
+	list(APPEND LIBS ${ENet_LIBRARIES})
 endif()
 
 # Libraries

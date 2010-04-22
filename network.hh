@@ -90,7 +90,13 @@ class Server: public boost::noncopyable {
 class Client: public boost::noncopyable {
   public:
 	/// Construct new
-	Client(std::string host = "localhost", int port = DEFAULT_PORT): m_quit(false) {
+	Client(): m_quit(false) { }
+
+	~Client() {
+		enet_host_destroy(m_client);
+	}
+
+	void connect(std::string host = "localhost", int port = DEFAULT_PORT) {
 		m_client = enet_host_create(NULL, 2, 0, 0);
 		if (m_client == NULL)
 			throw std::runtime_error("An error occurred while trying to create an ENet server host.");
@@ -111,10 +117,6 @@ class Client: public boost::noncopyable {
 			enet_peer_reset(m_peer);
 			throw std::runtime_error(std::string("Connection to ") + host + " failed!");
 		}
-	}
-
-	~Client() {
-		enet_host_destroy(m_client);
 	}
 
 	void listen() {

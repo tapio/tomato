@@ -91,12 +91,19 @@ void updateKeys(Players& players) { while (!QUIT) { handle_keys(players); } }
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 
 /// Game loop
-bool main_loop() {
+bool main_loop(bool is_client, std::string host, int port) {
+	Client client;
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm);
-	world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-	world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-	world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
+
+	if (!is_client) {
+		world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
+	} else {
+		client.connect(host, port);
+	}
+
 	Players& players = world.getActors();
 	parse_keys(players, "../keys.conf");
 
@@ -132,14 +139,14 @@ bool main_loop() {
 }
 
 /// Server runs here
-void server_loop() {
+void server_loop(int port) {
 	TextureMap tm;
 	World world(scrW, scrH, tm);
 	world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
 	world.addActor(100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
 	Players& players = world.getActors();
 
-	//Server server;
+	Server server(&world, port);
 
 	// MAIN LOOP
 	while (true) {
@@ -150,15 +157,36 @@ void server_loop() {
 			std::string p((char*)it->serialize(), sizeof(PlayerSerialize));
 			state += p;
 		}
-		// TODO: Send game state to clients
+		// Send game state to clients
+		server.send_to_all(state);
 	}
 }
 
 /// Program entry-point
 int main(int argc, char** argv) {
-	bool dedicated_server = false;
+	bool dedicated_server = false, client = false;
+	std::string host("localhost");
+	int port = 1234;
 
-	// TODO: Argument handling
+	for (int i = 1; i < argc; i++) {
+		std::string arg(argv[i]);
+		if (arg == "--help" || std::string(argv[i]) == "-h") {
+			std::cout << "Usage: " << argv[0] << " "
+			  << "[--help | -h] [ [--server [port]] | [--client [host] [port]] ]"
+			  << std::endl;
+			return 0;
+		}
+		else if (arg == "--server") {
+			dedicated_server = true;
+			if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
+		} else if (arg == "--client") {
+			client = true;
+			if (i < argc-1 && argv[i+1][0] != '-') {
+				host = argv[i+1]; ++i;
+				if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
+			}
+		} else ;
+	}
 
 	srand(time(NULL)); // Randomize RNG
 
@@ -176,10 +204,10 @@ int main(int argc, char** argv) {
 		SDL_EnableKeyRepeat(50, 50);
 
 		setup_gl();
-		main_loop();
+		main_loop(client, host, port);
 
 		SDL_Quit();
-	} else server_loop();
+	} else server_loop(port);
 
 	return 0;
 }
