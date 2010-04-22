@@ -6,7 +6,7 @@
 #include "world.hh"
 
 const Powerup::Type Powerup::PowerupTypes[] =
-	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION, SUPERBALL, LOGRAV };
+	{ DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION, SUPERBALL, LOGRAV, TELEPORT };
 
 void Powerup::equip(Actor* owner) {
 	if (type == DEATH) { owner->die(); return; }
@@ -17,6 +17,7 @@ void Powerup::equip(Actor* owner) {
 	else if (type == CONFUSION) { time = 10; owner->reversecontrols = true; }
 	else if (type == PUNCH) { time = 20; }
 	else if (type == MINE) { ammo = 1; }
+	else if (type == TELEPORT) { ammo = 2; }
 	else if (type == GUN) { ammo = 3; }
 	else if (type == DOUBLEJUMP) { owner->doublejump = DJUMP_ALLOW; }
 	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.5f); }
@@ -55,6 +56,10 @@ void Powerup::action(Actor* owner) {
 	} else if (type == GUN) {
 		Actor* target = owner->getWorld()->shoot(*owner);
 		if (target) target->die();
+		ammo--;
+	} else if (type == TELEPORT) {
+		owner->getBody()->SetLinearVelocity(b2Vec2());
+		owner->getBody()->SetTransform(owner->getWorld()->randomSpawn(), 0);
 		ammo--;
 	}
 }

@@ -8,6 +8,7 @@ Power-ups
 * Invisibility - Turns you invisible
 * Superball    - Bounces
 * Low gravity  - Gravity affects very little
+* Teleport     - Teleports to random (safe) location
 
 Power-downs
 -----------

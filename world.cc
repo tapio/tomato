@@ -10,6 +10,9 @@
 
 
 namespace {
+
+	static const float offset = 50.0; // For spawning things away from borders
+
 	enum ElementType { NONE, WATER, PLATFORM, LADDER, CRATE, POWERUP, ACTOR, MINE };
 	static ElementType ElementTypes[] = { NONE, WATER, PLATFORM, LADDER, CRATE, POWERUP, ACTOR, MINE };
 	struct WorldElement {
@@ -121,6 +124,16 @@ bool World::safe2spawn(float x, float y) const {
 	if (!b || !b->GetUserData()) return false;
 	if (*(static_cast<ElementType*>(b->GetUserData())) == PLATFORM) return true;
 	return false;
+}
+
+
+b2Vec2 World::randomSpawn() const {
+	float x,y;
+	do {
+		x = randf(offset, w-offset);
+		y = randf(offset, h*0.667);
+	} while (!safe2spawn(x,y));
+	return b2Vec2(x,y);
 }
 
 
@@ -330,7 +343,6 @@ void World::update() {
 		// should know about this function.
 		world.ClearForces();
 
-		float offset = 50.0f; // For spawning things away from borders
 		// Update actors' airborne etc. status + gravity
 		for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 			it->airborne = true;
@@ -341,12 +353,7 @@ void World::update() {
 			// Death
 			if (it->is_dead()) {
 				it->getBody()->SetLinearVelocity(b2Vec2());
-				float x,y;
-				do {
-					x = randf(offset, w-offset);
-					y = randf(offset, h*0.667);
-				} while (!safe2spawn(x,y));
-				it->getBody()->SetTransform(b2Vec2(x, y), 0);
+				it->getBody()->SetTransform(randomSpawn(), 0);
 				it->dead = false;
 				continue;
 			}

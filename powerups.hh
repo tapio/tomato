@@ -12,7 +12,8 @@ class Actor;
 enum DoubleJumpStatus { DJUMP_DISALLOW, DJUMP_ALLOW, DJUMP_JUMPED };
 
 struct Powerup {
-	enum Type { DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION, SUPERBALL, LOGRAV, POWERUPS, NONE } type;
+	enum Type { DEATH, INVISIBILITY, MINE, DOUBLEJUMP, PUNCH, GUN, CONFUSION,
+	  SUPERBALL, LOGRAV, TELEPORT, POWERUPS, NONE } type;
 	const static Type PowerupTypes[];
 	static Type Random() { return PowerupTypes[randint(POWERUPS)]; }
 
