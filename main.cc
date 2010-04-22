@@ -92,9 +92,9 @@ void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
-	Client client;
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm);
+	Client client(&world);
 
 	if (!is_client) {
 		world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
@@ -142,14 +142,12 @@ bool main_loop(bool is_client, std::string host, int port) {
 void server_loop(int port) {
 	TextureMap tm;
 	World world(scrW, scrH, tm);
-	world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-	world.addActor(100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
 	Players& players = world.getActors();
-
 	Server server(&world, port);
 
 	// MAIN LOOP
 	while (true) {
+		// Update world
 		world.update();
 		// Compose game-state to send to clients
 		std::string state = "";
@@ -158,7 +156,7 @@ void server_loop(int port) {
 			state += p;
 		}
 		// Send game state to clients
-		server.send_to_all(state);
+		if (state != "") server.send_to_all(state);
 	}
 }
 

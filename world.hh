@@ -144,7 +144,7 @@ class World {
 	bool safe2spawn(float x, float y) const;
 
 	void addMine(float x, float y);
-	void addActor(float x, float y, Actor::Type type, GLuint tex);
+	void addActor(float x, float y, Actor::Type type, GLuint tex = 0);
 	void addPlatform(float x, float y, float w);
 	void addLadder(float x, float y, float h);
 	void addCrate(float x, float y);
@@ -153,6 +153,7 @@ class World {
 	void generate();
 
 	void update();
+	void update(std::string data);
 	void updateViewport();
 	void draw() const;
 
@@ -170,6 +171,7 @@ class World {
 	b2Vec2 view_bottomright;
 	int tilesize;
 	int water_height;
+	GLuint texture_player;
 	GLuint texture_background;
 	GLuint texture_water;
 	GLuint texture_ground;

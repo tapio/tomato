@@ -73,6 +73,7 @@ World::World(int width, int height, TextureMap& tm):
 	waterBody->SetUserData(&ElementTypes[WATER]);
 
 	// Get texture IDs
+	texture_player = tm.find("tomato")->second;
 	texture_background = tm.find("background")->second;
 	texture_water = tm.find("water")->second;
 	texture_ground = tm.find("ground")->second;
@@ -143,6 +144,7 @@ void World::addMine(float x, float y) {
 
 
 void World::addActor(float x, float y, Actor::Type type, GLuint tex) {
+	if (tex == 0) tex = texture_player;
 	Actor actor(tex, type);
 	// Define the dynamic body. We set its position and call the body factory.
 	b2BodyDef bodyDef;
@@ -430,6 +432,15 @@ void World::update() {
 	#else
 	updateViewport();
 	#endif
+}
+
+
+void World::update(std::string data) {
+	int pos = 0;
+	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it, pos += sizeof(PlayerSerialize)) {
+		std::string pdata(&data[pos], sizeof(PlayerSerialize));
+		it->unserialize(pdata);
+	}
 }
 
 

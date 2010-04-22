@@ -134,6 +134,13 @@ class Actor: public Entity {
 		return PlayerSerialize(pos.x, pos.y, vel.x, vel.y);
 	}
 
+	void unserialize(std::string data) {
+		PlayerSerialize* ps;
+		ps = reinterpret_cast<PlayerSerialize*>(&data[0]);
+		getBody()->SetTransform(b2Vec2(ps->x, ps->y), 0);
+		getBody()->SetLinearVelocity(b2Vec2(ps->vx, ps->vy));
+	}
+
 	virtual void draw() const { Entity::draw(anim_frame, 4, dir < 0); }
 
 	bool is_dead() const { return dead; }
