@@ -42,27 +42,18 @@ if (USE_NETWORK)
 	list(APPEND LIBS ${ENet_LIBRARIES})
 endif()
 
-# Libraries
-
+# Boost libraries
 find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
 
-find_package(Box2D)
-include_directories(${BOX2D_INCLUDE_DIRS})
-list(APPEND LIBS ${BOX2D_LIBRARIES})
-
-find_package(OpenGL)
-include_directories(${OPENGL_INCLUDE_DIR})
-list(APPEND LIBS ${OPENGL_LIBRARIES})
-
-find_package(SDL)
-include_directories(${SDL_INCLUDE_DIR})
-list(APPEND LIBS ${SDL_LIBRARY})
-
-find_package(SOIL)
-include_directories(${SOIL_INCLUDE_DIRS})
-list(APPEND LIBS ${SOIL_LIBRARIES})
+# Find all the libs that don't require extra parameters
+foreach(lib Box2D OpenGL SDL SOIL)
+	find_package(${lib} REQUIRED)
+	include_directories(${${lib}_INCLUDE_DIRS})
+	list(APPEND LIBS ${${lib}_LIBRARIES})
+	add_definitions(${${lib}_DEFINITIONS})
+endforeach(lib)
 
 # Gather sources
 file(GLOB SOURCE_FILES "*.cc")
