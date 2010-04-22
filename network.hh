@@ -39,7 +39,7 @@ class Server: public boost::noncopyable {
 	void send_to_all(std::string msg, int flag = 0) {
 		ENetPacket* packet = enet_packet_create (msg.c_str(), msg.length(), flag);
 		enet_host_broadcast(m_server, 0, packet); // Send through channel 0 to all peers
-		enet_host_flush (m_server); // Don't dispatch events
+		enet_host_flush(m_server); // Don't dispatch events
 	}
 
 	/// Send a char
@@ -61,7 +61,7 @@ class Server: public boost::noncopyable {
 class Client: public boost::noncopyable {
   public:
 	/// Construct new
-	Client(World* world): m_quit(false), m_world(world) { }
+	Client(World* world): m_quit(false), m_id(0), m_world(world) { }
 
 	~Client() {
 		terminate();
@@ -96,9 +96,9 @@ class Client: public boost::noncopyable {
 	/// Send a string
 	void send(std::string msg, int flag = ENET_PACKET_FLAG_RELIABLE) {
 		//std::cout << "Sending: " << msg << std::endl;
-		ENetPacket* packet = enet_packet_create (msg.c_str(), msg.length(), flag);
-		enet_peer_send (m_peer, 0, packet); // Send through channel 0
-		enet_host_flush (m_client); // Don't dispatch events
+		ENetPacket* packet = enet_packet_create(msg.c_str(), msg.length(), flag);
+		enet_peer_send(m_peer, 0, packet); // Send through channel 0
+		enet_host_flush(m_client); // Don't dispatch events
 	}
 
 	/// Send a char
@@ -110,6 +110,7 @@ class Client: public boost::noncopyable {
 
   private:
 	bool m_quit;
+	char m_id;
 	World* m_world;
 	ENetAddress m_address;
 	ENetHost* m_client;

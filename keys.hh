@@ -43,15 +43,21 @@ int parse_key(std::string k) {
 void parse_keys(Players& players, std::string filename = "keys.conf") {
 	std::ifstream file(filename.c_str(), std::ios::binary);
 	if (!file.is_open()) throw std::runtime_error("Couldn't open key config file "+filename);
+	bool firstheader = true;
 	Players::iterator pl = players.begin();
 	while (!file.eof() && pl != players.end()) {
+		if (pl->type != Actor::HUMAN) { ++pl; continue; }
 		std::string row;
 		// Read a line
 		getline(file, row); boost::trim(row);
 		// Ignore comments and empty lines
 		if (row[0] == '#' || row.length() == 0) continue;
 		// Next player
-		if (row.substr(0,7) == "[Player") { pl = players.begin() + (row[7] - 49); continue; }
+		if (row.substr(0,7) == "[Player") {
+			if (firstheader) firstheader = false;
+			else ++pl;
+			continue;
+		}
 		// Parse variable / value
 		std::string var = getWord(row, 1, '='); boost::trim(var); boost::to_lower(var);
 		std::string val = getWord(row, 2, '='); boost::trim(val); boost::to_lower(val);

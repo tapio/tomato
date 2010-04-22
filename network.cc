@@ -2,18 +2,27 @@
 #include "world.hh"
 #include "player.hh"
 
+#define MYID 80
+
 void Server::listen() {
 	ENetEvent e;
 	while (!m_quit) {
 		enet_host_service(m_server, &e, 1000);
 		switch (e.type) {
-		case ENET_EVENT_TYPE_CONNECT:
+		case ENET_EVENT_TYPE_CONNECT: {
 			std::cout << "Client connected from " << e.peer->address.host << ":" << e.peer->address.port << std::endl;
 			// TODO: Proper generation
 			m_world->addActor(300, 100, Actor::REMOTE);
 			e.peer->data = &m_world->getActors().back();
+			// Send starting info
+			std::string msg = "  ";
+			msg[0] = MYID;
+			msg[1] = m_world->getActors().size();
+			ENetPacket* packet = enet_packet_create(msg.c_str(), msg.length(), ENET_PACKET_FLAG_RELIABLE);
+			enet_peer_send(e.peer, 0, packet); // Send through channel 0
+			enet_host_flush(m_server); // Don't dispatch events
 			break;
-		case ENET_EVENT_TYPE_RECEIVE: {
+		} case ENET_EVENT_TYPE_RECEIVE: {
 			// TODO: Handle receive
 			//printf ("A packet of length %u containing %s was received on channel %u.\n",
 					//e.packet -> dataLength,
@@ -56,16 +65,22 @@ void Client::listen() {
 					//e.packet -> dataLength,
 					//e.packet -> data,
 					//e.channelID);
-
-			int curpcount = m_world->getActors().size();
-			int newpcount = e.packet->data[1];
-			// New players?
-			if (curpcount != newpcount) {
-				m_world->addActor(10, 10, curpcount == 0 ? Actor::HUMAN : Actor::REMOTE, 0,
-				  curpcount == 0 ? this : NULL);
+			// Get id
+			if (e.packet->data[0] == MYID) {
+				m_id = e.packet->data[1];
+			} else {
+				// New players?
+				int oldplayers = m_world->getActors().size();
+				int addplayers = e.packet->data[1] - oldplayers;
+				if (addplayers > 0) {
+					for (int i = oldplayers+1; i <= oldplayers + addplayers; ++i) {
+						m_world->addActor(10, 10, i == m_id ? Actor::HUMAN : Actor::REMOTE, 0,
+						  i == m_id ? this : NULL);
+					}
+				} else if (addplayers < 0) throw std::runtime_error("Too few players from server.");
+				// Update state
+				m_world->update(std::string((char*)e.packet->data, e.packet->dataLength));
 			}
-			// Update state
-			m_world->update(std::string((char*)e.packet->data, e.packet->dataLength));
  			// Clean-up
 			enet_packet_destroy(e.packet);
 			break;
