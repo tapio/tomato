@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
 				host = argv[i+1]; ++i;
 				if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
 			}
-		} else ;
+		}
 	}
 
 	srand(time(NULL)); // Randomize RNG

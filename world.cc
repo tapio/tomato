@@ -480,6 +480,10 @@ std::string World::serialize(bool skip_static) const {
 			data += temp;
 		}
 	}
+	// Static objects
+	if (!skip_static) {
+		// TODO
+	}
 	return data;
 }
 
