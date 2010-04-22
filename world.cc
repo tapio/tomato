@@ -492,6 +492,12 @@ void World::update(std::string data) {
 	if (data[pos] == CRATE) {
 		int items = data[pos+1];
 		int cnt = 0; pos += 2;
+		// Check if we need to create new ones
+		int createnew = items - crates.size();
+		if (createnew > 0) {
+			for (int i = 0; i < createnew; ++i) addCrate(randint(0,w), randint(0,h));
+		}
+		// Update position etc.
 		for (Crates::iterator it = crates.begin(); it != crates.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
 			std::string itemdata(&data[pos], sizeof(SerializedEntity));
 			it->unserialize(itemdata);
@@ -500,6 +506,13 @@ void World::update(std::string data) {
 	if (data[pos] == POWERUP) {
 		int items = data[pos+1];
 		int cnt = 0; pos += 2;
+		// Check if we need to create new ones
+		int createnew = items - powerups.size();
+		if (createnew > 0) {
+			for (int i = 0; i < createnew; ++i) addPowerup(randint(0,w), randint(0,h),
+			  Powerup::PowerupTypes[(int)data[sizeof(SerializedEntity)-2]]);
+		}
+		// Update position etc.
 		for (Powerups::iterator it = powerups.begin(); it != powerups.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
 			std::string itemdata(&data[pos], sizeof(SerializedEntity));
 			it->unserialize(itemdata);

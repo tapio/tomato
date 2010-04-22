@@ -92,6 +92,7 @@ void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
+	if (is_client) srand(100);
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm, !is_client);
 	Client client(&world);
@@ -103,8 +104,8 @@ bool main_loop(bool is_client, std::string host, int port) {
 	} else {
 		client.connect(host, port);
 		std::cout << "Connected to " << host << ":" << port << std::endl;
-		boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
 		std::cout << "Receiving initial data..." << std::endl;
+		boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
 	}
 
 	Players& players = world.getActors();

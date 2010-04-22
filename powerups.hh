@@ -35,6 +35,20 @@ struct PowerupEntity: public Entity {
 
 	virtual void draw() const { Entity::draw(effect.type); }
 
+	virtual SerializedEntity serialize() const {
+		SerializedEntity se = Entity::serialize();
+		se.type = effect.type;
+		return se;
+	}
+
+	virtual void unserialize(std::string data) {
+		SerializedEntity* se;
+		se = reinterpret_cast<SerializedEntity*>(&data[0]);
+		effect.type = Powerup::PowerupTypes[(int)se->type];
+		Entity::unserialize(data);
+	}
+
+
 	Powerup effect;
 };
 
