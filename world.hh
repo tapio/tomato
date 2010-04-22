@@ -140,7 +140,7 @@ class Client;
 
 class World {
   public:
-	World(int width, int height, TextureMap& tm);
+	World(int width, int height, TextureMap& tm, bool master = true);
 
 	Actor* shoot(const Actor& shooter);
 	bool safe2spawn(float x, float y) const;
@@ -167,6 +167,7 @@ class World {
 	#ifdef USE_THREADS
 	mutable boost::mutex mutex;
 	#endif
+	bool is_master;
 	b2World world;
 	int w;
 	int h;

@@ -93,7 +93,7 @@ void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
-	World world(scrW, scrH, tm);
+	World world(scrW, scrH, tm, !is_client);
 	Client client(&world);
 
 	if (!is_client) {

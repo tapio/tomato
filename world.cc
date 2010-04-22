@@ -39,8 +39,9 @@ namespace {
 }
 
 
-World::World(int width, int height, TextureMap& tm):
-  world(b2Vec2(0.0f, 0.0f), true), w(width), h(height), view_topleft(0,0), view_bottomright(w,h),
+World::World(int width, int height, TextureMap& tm, bool master):
+  is_master(master), world(b2Vec2(0.0f, 0.0f), true), w(width), h(height),
+  view_topleft(0,0), view_bottomright(w,h),
   tilesize(32), water_height(64), timer_powerup(randf(4.0f, 7.0f))
 {
 	float hw = w*0.5, hh = h*0.5;
@@ -312,11 +313,12 @@ void World::generate() {
 	//for (int i = 0; i < 4; i++) {
 		//addLadder(randint(0,w), randint(0,h), randint(2,6));
 	//}
-	// Create crates
-	for (int i = 0; i < 8; i++) {
-		addCrate(randint(0,w), randint(0,h));
+	if (is_master) {
+		// Create crates
+		for (int i = 0; i < 8; i++) {
+			addCrate(randint(0,w), randint(0,h));
+		}
 	}
-
 }
 
 
@@ -421,7 +423,7 @@ void World::update() {
 				b->SetLinearVelocity(0.97 * b->GetLinearVelocity());
 				b->SetAngularVelocity(0.99 * b->GetAngularVelocity());
 			// Respawn if deep
-			//} else if (y >= h - water_height*0.333) {
+			//} else if (y >= h - water_height*0.333 && is_master) {
 				//b->SetLinearVelocity(b2Vec2());
 				//b->SetAngularVelocity(0);
 				//b->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
@@ -430,7 +432,7 @@ void World::update() {
 			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
 		}
 		// Create power-ups
-		if (timer_powerup()) {
+		if (timer_powerup() && is_master) {
 			addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
 			timer_powerup = Countdown(randf(5.0f, 8.0f));
 		}
