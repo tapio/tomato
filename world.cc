@@ -449,14 +449,61 @@ void World::update() {
 }
 
 
+std::string World::serialize(bool skip_static) const {
+	std::string data = "";
+	// Players
+	data += std::string(1, ACTOR);
+	data += std::string(1, (char)actors.size());
+	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
+		std::string temp(it->serialize(), sizeof(SerializedEntity));
+		data += temp;
+	}
+	// Crates
+	data += std::string(1, CRATE);
+	data += std::string(1, (char)crates.size());
+	for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
+		std::string temp(it->serialize(), sizeof(SerializedEntity));
+		data += temp;
+	}
+	// Power-ups
+	data += std::string(1, POWERUP);
+	data += std::string(1, (char)powerups.size());
+	for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
+		std::string temp(it->serialize(), sizeof(SerializedEntity));
+		data += temp;
+	}
+	return data;
+}
+
+
 void World::update(std::string data) {
 	#ifdef USE_THREADS
 	boost::mutex::scoped_lock l(mutex);
 	#endif
 	int pos = 0;
-	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it, pos += sizeof(SerializedEntity)) {
-		std::string pdata(&data[pos], sizeof(SerializedEntity));
-		it->unserialize(pdata);
+	if (data[pos] == ACTOR) {
+		int items = data[pos+1];
+		int cnt = 0; pos += 2;
+		for (Actors::iterator it = actors.begin(); it != actors.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
+			std::string itemdata(&data[pos], sizeof(SerializedEntity));
+			it->unserialize(itemdata);
+		}
+	}
+	if (data[pos] == CRATE) {
+		int items = data[pos+1];
+		int cnt = 0; pos += 2;
+		for (Crates::iterator it = crates.begin(); it != crates.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
+			std::string itemdata(&data[pos], sizeof(SerializedEntity));
+			it->unserialize(itemdata);
+		}
+	}
+	if (data[pos] == POWERUP) {
+		int items = data[pos+1];
+		int cnt = 0; pos += 2;
+		for (Powerups::iterator it = powerups.begin(); it != powerups.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
+			std::string itemdata(&data[pos], sizeof(SerializedEntity));
+			it->unserialize(itemdata);
+		}
 	}
 }
 

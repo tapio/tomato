@@ -117,6 +117,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#endif
 
 	// MAIN LOOP
+	std::cout << "Game started." << std::endl;
 	FPS fps;
 	while (!QUIT) {
 		fps.update();
@@ -146,7 +147,7 @@ void server_loop(int port) {
 	srand(100);
 	TextureMap tm;
 	World world(scrW, scrH, tm);
-	Players& players = world.getActors();
+	//Players& players = world.getActors();
 	Server server(&world, port);
 
 	std::cout << "Server listening on port " << port << std::endl;
@@ -156,11 +157,7 @@ void server_loop(int port) {
 		// Update world
 		world.update();
 		// Compose game-state to send to clients
-		std::string state = "";
-		for (Players::const_iterator it = players.begin(); it != players.end(); ++it) {
-			std::string p((char*)it->serialize(), sizeof(SerializedEntity));
-			state += p;
-		}
+		std::string state = world.serialize();
 		// Send game state to clients
 		if (state != "") server.send_to_all(state);
 	}

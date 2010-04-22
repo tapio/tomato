@@ -155,6 +155,7 @@ class World {
 
 	void generate();
 
+	std::string serialize(bool skip_static = true) const;
 	void update();
 	void update(std::string data);
 	void updateViewport();

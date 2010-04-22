@@ -58,7 +58,7 @@ void Client::listen() {
 					//e.channelID);
 
 			int curpcount = m_world->getActors().size();
-			int newpcount = e.packet->dataLength / sizeof(SerializedEntity);
+			int newpcount = e.packet->data[1];
 			// New players?
 			if (curpcount != newpcount) {
 				m_world->addActor(10, 10, curpcount == 0 ? Actor::HUMAN : Actor::REMOTE, 0,
