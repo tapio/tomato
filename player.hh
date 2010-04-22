@@ -195,26 +195,32 @@ class OnlinePlayer: public Actor {
 	virtual void move(int direction) {
 		if (direction < 0) client->send(MOVE_LEFT);
 		else if (direction > 0) client->send(MOVE_RIGHT);
+		Actor::move(direction);
 	}
 
 	virtual void stop() {
 		client->send(STOP_MOVING);
+		Actor::stop();
 	}
 
 	virtual void jump(bool forcejump = false) {
 		client->send(JUMP);
+		Actor::jump(forcejump);
 	}
 
 	virtual void duck() {
 		client->send(DUCK);
+		Actor::duck();
 	}
 
 	virtual void end_jumping() {
 		client->send(STOP_JUMPING);
+		Actor::end_jumping();
 	}
 
 	virtual void action() {
 		client->send(ACTION);
+		// Don't do the action locally, it probably just breaks things
 	}
 
   private:
