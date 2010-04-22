@@ -11,6 +11,7 @@
 
 namespace {
 
+	static const unsigned MAX_POWERUPS = 4; // Maximum number of simultaneous power-ups
 	static const float offset = 50.0; // For spawning things away from borders
 
 	enum ElementType { NONE, WATER, PLATFORM, LADDER, CRATE, POWERUP, ACTOR, MINE };
@@ -254,6 +255,7 @@ void World::addCrate(float x, float y) {
 
 
 void World::addPowerup(float x, float y, Powerup::Type type) {
+	if (powerups.size() >= MAX_POWERUPS) return;
 	PowerupEntity pw(type, texture_powerups);
 	// Define the dynamic body. We set its position and call the body factory.
 	b2BodyDef bodyDef;
