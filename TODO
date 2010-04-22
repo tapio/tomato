@@ -8,14 +8,14 @@ To Be Fixed
 
 Main Goals
 ----------
-* Playable with 1-4 players
-* Network multiplayer (p2p?)
-* Hot-seat multiplayer
 * Any combination of local human, remote human and AI players
-* Threaded?
-	- Main thread (input)
-	- Physics thread
-	- Graphics thread?
++ Playable with 1-4 players
++ Network multiplayer
++ Hot-seat multiplayer
++ Threaded
+	+ Main thread (graphics)
+	+ Input thread
+	+ Physics thread
 
 
 Power-ups
