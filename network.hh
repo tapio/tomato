@@ -11,7 +11,6 @@
 #include <boost/noncopyable.hpp>
 #include <enet/enet.h>
 
-//#include "world.hh"
 class World;
 
 #define DEFAULT_PORT 1234

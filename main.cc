@@ -103,9 +103,10 @@ bool main_loop(bool is_client, std::string host, int port) {
 	} else {
 		client.connect(host, port);
 		std::cout << "Connected to " << host << ":" << port << std::endl;
+		boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+		std::cout << "Receiving initial data..." << std::endl;
 	}
 
-	boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
 	Players& players = world.getActors();
 	parse_keys(players, "../keys.conf");
 
@@ -169,7 +170,7 @@ void server_loop(int port) {
 int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
 	std::string host("localhost");
-	int port = 1234;
+	int port = DEFAULT_PORT;
 
 	for (int i = 1; i < argc; i++) {
 		std::string arg(argv[i]);
