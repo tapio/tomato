@@ -452,25 +452,31 @@ void World::update() {
 std::string World::serialize(bool skip_static) const {
 	std::string data = "";
 	// Players
-	data += std::string(1, ACTOR);
-	data += std::string(1, (char)actors.size());
-	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
-		std::string temp(it->serialize(), sizeof(SerializedEntity));
-		data += temp;
+	if (actors.size() > 0) {
+		data += std::string(1, ACTOR);
+		data += std::string(1, (char)actors.size());
+		for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
+			std::string temp(it->serialize(), sizeof(SerializedEntity));
+			data += temp;
+		}
 	}
 	// Crates
-	data += std::string(1, CRATE);
-	data += std::string(1, (char)crates.size());
-	for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
-		std::string temp(it->serialize(), sizeof(SerializedEntity));
-		data += temp;
+	if (crates.size() > 0) {
+		data += std::string(1, CRATE);
+		data += std::string(1, (char)crates.size());
+		for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
+			std::string temp(it->serialize(), sizeof(SerializedEntity));
+			data += temp;
+		}
 	}
 	// Power-ups
-	data += std::string(1, POWERUP);
-	data += std::string(1, (char)powerups.size());
-	for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
-		std::string temp(it->serialize(), sizeof(SerializedEntity));
-		data += temp;
+	if (powerups.size() > 0) {
+		data += std::string(1, POWERUP);
+		data += std::string(1, (char)powerups.size());
+		for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
+			std::string temp(it->serialize(), sizeof(SerializedEntity));
+			data += temp;
+		}
 	}
 	return data;
 }
@@ -506,11 +512,17 @@ void World::update(std::string data) {
 	if (data[pos] == POWERUP) {
 		int items = data[pos+1];
 		int cnt = 0; pos += 2;
-		// Check if we need to create new ones
+		// Check if we need to crete a delete power-ups
 		int createnew = items - powerups.size();
-		if (createnew > 0) {
+		if (createnew > 0) { // Create new ones
 			for (int i = 0; i < createnew; ++i) addPowerup(randint(0,w), randint(0,h),
 			  Powerup::PowerupTypes[(int)data[sizeof(SerializedEntity)-2]]);
+		} else if (createnew < 0) { // Delete old ones
+			for (int i = 0; i < -createnew; ++i) {
+				Powerups::iterator it = powerups.end()-1;
+				world.DestroyBody(it->getBody());
+				powerups.erase(it);
+			}
 		}
 		// Update position etc.
 		for (Powerups::iterator it = powerups.begin(); it != powerups.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
