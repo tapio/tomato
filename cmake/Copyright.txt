@@ -1,4 +1,4 @@
-This license applies for the CMake modules in this directory.
+This license applies for the CMake modules in this directory unless otherwise specified.
 
 CMake - Cross Platform Makefile Generator
 Copyright 2000-2009 Kitware, Inc., Insight Software Consortium

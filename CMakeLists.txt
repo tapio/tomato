@@ -34,7 +34,12 @@ endif()
 
 # Libraries required by networking
 if (USE_NETWORK)
-	list(APPEND BOOST_COMPONENTS system)
+	if (NOT USE_THREADS)
+		message(FATAL_ERROR "Networking requires multi-threading (USE_THREADS) to be enabled.")
+	endif()
+	find_package(ENet)
+	include_directories(${ENET_INCLUDE_DIRS})
+	list(APPEND LIBS ${ENET_LIBRARIES})
 endif()
 
 # Libraries
