@@ -136,6 +136,8 @@ typedef std::vector<Platform> Platforms;
 typedef std::vector<Ladder> Ladders;
 typedef std::vector<Crate> Crates;
 
+class Client;
+
 class World {
   public:
 	World(int width, int height, TextureMap& tm);
@@ -144,7 +146,7 @@ class World {
 	bool safe2spawn(float x, float y) const;
 
 	void addMine(float x, float y);
-	void addActor(float x, float y, Actor::Type type, GLuint tex = 0);
+	void addActor(float x, float y, Actor::Type type, GLuint tex = 0, Client* client = NULL);
 	void addPlatform(float x, float y, float w);
 	void addLadder(float x, float y, float h);
 	void addCrate(float x, float y);

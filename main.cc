@@ -102,8 +102,10 @@ bool main_loop(bool is_client, std::string host, int port) {
 		world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
 	} else {
 		client.connect(host, port);
+		std::cout << "Connected to " << host << ":" << port << std::endl;
 	}
 
+	boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
 	Players& players = world.getActors();
 	parse_keys(players, "../keys.conf");
 
@@ -140,10 +142,13 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 /// Server runs here
 void server_loop(int port) {
+	srand(100);
 	TextureMap tm;
 	World world(scrW, scrH, tm);
 	Players& players = world.getActors();
 	Server server(&world, port);
+
+	std::cout << "Server listening on port " << port << std::endl;
 
 	// MAIN LOOP
 	while (true) {

@@ -94,6 +94,7 @@ class Client: public boost::noncopyable {
 
 	/// Send a string
 	void send(std::string msg, int flag = 0) {
+		//std::cout << "Sending: " << msg << std::endl;
 		ENetPacket* packet = enet_packet_create (msg.c_str(), msg.length(), flag);
 		enet_peer_send (m_peer, 0, packet); // Send through channel 0
 		enet_host_flush (m_client); // Don't dispatch events
@@ -101,7 +102,7 @@ class Client: public boost::noncopyable {
 
 	/// Send a char
 	void send(char ch, int flag = 0) {
-		send(std::string(ch, 1), flag);
+		send(std::string(&ch, 1), flag);
 	}
 
 	void terminate() { m_quit = true; }

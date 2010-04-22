@@ -143,19 +143,24 @@ void World::addMine(float x, float y) {
 }
 
 
-void World::addActor(float x, float y, Actor::Type type, GLuint tex) {
+void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* client) {
+	#ifdef USE_THREADS
+	boost::mutex::scoped_lock l(mutex);
+	#endif
 	if (tex == 0) tex = texture_player;
-	Actor actor(tex, type);
+	Actor* actor;
+	if (client) actor = new OnlinePlayer(client, tex, type);
+	else actor = new Actor(tex, type);
 	// Define the dynamic body. We set its position and call the body factory.
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.position.Set(x, y);
 	bodyDef.fixedRotation = true;
-	actor.body = world.CreateBody(&bodyDef);
-	actor.body->SetUserData(&ElementTypes[ACTOR]);
+	actor->body = world.CreateBody(&bodyDef);
+	actor->body->SetUserData(&ElementTypes[ACTOR]);
 	// Define a circle shape for our dynamic body.
 	b2CircleShape circle;
-	circle.m_radius = actor.getSize();
+	circle.m_radius = actor->getSize();
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
@@ -163,8 +168,8 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex) {
 	fixtureDef.friction = 0.25f; // Friction
 	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
-	actor.getBody()->CreateFixture(&fixtureDef);
-	actor.world = this;
+	actor->getBody()->CreateFixture(&fixtureDef);
+	actor->world = this;
 	actors.push_back(actor);
 }
 
@@ -436,6 +441,9 @@ void World::update() {
 
 
 void World::update(std::string data) {
+	#ifdef USE_THREADS
+	boost::mutex::scoped_lock l(mutex);
+	#endif
 	int pos = 0;
 	for (Actors::iterator it = actors.begin(); it != actors.end(); ++it, pos += sizeof(PlayerSerialize)) {
 		std::string pdata(&data[pos], sizeof(PlayerSerialize));

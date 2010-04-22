@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <GL/gl.h>
 #include <Box2D.h>
+#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "util.hh"
 #include "texture.hh"
@@ -171,8 +172,8 @@ class Actor: public Entity {
 	bool lograv;
 };
 
-typedef std::vector<Actor> Actors;
-typedef std::vector<Actor> Players;
+typedef boost::ptr_vector<Actor> Actors;
+typedef boost::ptr_vector<Actor> Players;
 
 
 class OnlinePlayer: public Actor {
@@ -189,35 +190,35 @@ class OnlinePlayer: public Actor {
 		ACTION
 	};
 
-	OnlinePlayer(Client& client, GLuint tex = 0, Type t = HUMAN): Actor(tex, t), client(client) { }
+	OnlinePlayer(Client* client, GLuint tex = 0, Type t = HUMAN): Actor(tex, t), client(client) { }
 
 	virtual void move(int direction) {
-		if (direction < 0) client.send(MOVE_LEFT);
-		else if (direction > 0) client.send(MOVE_RIGHT);
+		if (direction < 0) client->send(MOVE_LEFT);
+		else if (direction > 0) client->send(MOVE_RIGHT);
 	}
 
 	virtual void stop() {
-		client.send(STOP_MOVING);
+		client->send(STOP_MOVING);
 	}
 
 	virtual void jump(bool forcejump = false) {
-		client.send(JUMP);
+		client->send(JUMP);
 	}
 
 	virtual void duck() {
-		client.send(DUCK);
+		client->send(DUCK);
 	}
 
 	virtual void end_jumping() {
-		client.send(STOP_JUMPING);
+		client->send(STOP_JUMPING);
 	}
 
 	virtual void action() {
-		client.send(ACTION);
+		client->send(ACTION);
 	}
 
   private:
 
-	Client& client;
+	Client* client;
 
 };
