@@ -135,6 +135,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 		flip();
 	}
 
+	if (is_client) client.terminate();
 	#ifdef USE_THREADS
 	thread_input.join();
 	thread_physics.join();
@@ -161,6 +162,7 @@ void server_loop(int port) {
 		// Send game state to clients
 		if (state != "") server.send_to_all(state);
 	}
+	server.terminate();
 }
 
 /// Program entry-point
@@ -190,6 +192,7 @@ int main(int argc, char** argv) {
 	}
 
 	srand(time(NULL)); // Randomize RNG
+	enet_initialize();
 
 	// TODO: Main menu
 
@@ -209,6 +212,8 @@ int main(int argc, char** argv) {
 
 		SDL_Quit();
 	} else server_loop(port);
+
+	enet_deinitialize();
 
 	return 0;
 }

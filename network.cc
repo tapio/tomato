@@ -71,8 +71,9 @@ void Client::listen() {
 			break;
 		} case ENET_EVENT_TYPE_DISCONNECT:
 			std::cout << "Server disconnected." << std::endl;
-			// TODO: Handle
+			// TODO: Handle properly
 			e.peer->data = NULL;
+			throw std::runtime_error("Server disconnected.");
 			break;
 		default:
 			break;

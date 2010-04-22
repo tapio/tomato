@@ -29,6 +29,7 @@ class Server: public boost::noncopyable {
 	}
 
 	~Server() {
+		terminate();
 		enet_host_destroy(m_server);
 	}
 
@@ -46,7 +47,7 @@ class Server: public boost::noncopyable {
 		send_to_all(std::string(ch, 1), flag);
 	}
 
-	void terminate() { m_quit = true; }
+	void terminate() { m_quit = true; m_thread.join(); }
 
   private:
 	bool m_quit;
@@ -63,6 +64,7 @@ class Client: public boost::noncopyable {
 	Client(World* world): m_quit(false), m_world(world) { }
 
 	~Client() {
+		terminate();
 		enet_host_destroy(m_client);
 	}
 
@@ -104,7 +106,7 @@ class Client: public boost::noncopyable {
 		send(std::string(&ch, 1), flag);
 	}
 
-	void terminate() { m_quit = true; }
+	void terminate() { m_quit = true; m_thread.join(); }
 
   private:
 	bool m_quit;
