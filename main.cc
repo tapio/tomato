@@ -135,7 +135,11 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 		// Draw
 		world.draw();
-		drawText(tm.find("font")->second, Color(0.5, 1, 0.4, 0.2), 10, 400, "Ääkköset toimii");	
+		
+		drawText(tm.find("font")->second, Color(0.5, 1, 0.4, 0.2), 400, 400, "Ääkköset toimii", ALIGN_LEFT);	
+		drawText(tm.find("font")->second, Color(0.5, 0.1, 0.8, 0.2), 400, 420, "Ääkköset toimii", ALIGN_CENTER);	
+		drawText(tm.find("font")->second, Color(0.4, 1, 0.4, 0.2), 400, 440, "Ääkköset toimii", ALIGN_RIGHT);	
+
 		flip();
 	}
 
