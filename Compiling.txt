@@ -29,7 +29,7 @@ Compiling
 =========
 
 * Run CMake
- - Create a new empty build directory to the project root 
+ - Create a new empty build directory to the project root
      mkdir build
  - Go there
      cd build
