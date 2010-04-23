@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
 	if (!dedicated_server) {
 		// SDL initialization stuff
 		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
-		//SDL_WM_SetCaption(PACKAGE " " VERSION, PACKAGE);
+		SDL_WM_SetCaption(PACKAGE, PACKAGE);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_Surface* screen = NULL;
