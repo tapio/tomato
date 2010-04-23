@@ -48,7 +48,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
 
 # Find all the libs that don't require extra parameters
-foreach(lib Box2D OpenGL SDL SOIL)
+foreach(lib Box2D OpenGL SDL SDL_ttf SOIL)
 	find_package(${lib} REQUIRED)
 	include_directories(${${lib}_INCLUDE_DIRS})
 	list(APPEND LIBS ${${lib}_LIBRARIES})
