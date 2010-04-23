@@ -30,6 +30,7 @@ TextureMap load_textures() {
 	tmap.insert(std::pair<std::string, GLuint>("crate", load_texture("../images/crate.png")));
 	tmap.insert(std::pair<std::string, GLuint>("powerups", load_texture("../images/powerups.png")));
 	tmap.insert(std::pair<std::string, GLuint>("tomato", load_texture("../images/player_1.png")));
+	tmap.insert(std::pair<std::string, GLuint>("font", load_texture("../images/font.bmp")));
 
 	return tmap;
 }

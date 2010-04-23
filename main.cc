@@ -23,6 +23,7 @@
 #include "network.hh"
 #include "keys.hh"
 #include "texture.hh"
+#include "font.hh"
 
 #define scrW 800
 #define scrH 600
@@ -94,6 +95,7 @@ void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 bool main_loop(bool is_client, std::string host, int port) {
 	if (is_client) srand(100);
 	TextureMap tm = load_textures();
+	buildFonts();
 	World world(scrW, scrH, tm, !is_client);
 	Client client(&world);
 
@@ -133,6 +135,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 		// Draw
 		world.draw();
+		drawText(tm.find("font")->second, 200, 200, "Ääkköset toimii!");	
 		flip();
 	}
 
