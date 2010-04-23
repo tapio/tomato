@@ -159,11 +159,11 @@ void World::addMine(float x, float y) {
 
 
 void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* client) {
+	if (tex == 0) tex = texture_player;
+	Actor* actor;
 	#ifdef USE_THREADS
 	boost::mutex::scoped_lock l(mutex);
 	#endif
-	if (tex == 0) tex = texture_player;
-	Actor* actor;
 	if (client) actor = new OnlinePlayer(client, tex, type);
 	else actor = new Actor(tex, type);
 	// Define the dynamic body. We set its position and call the body factory.
@@ -448,6 +448,9 @@ void World::update() {
 
 
 std::string World::serialize(bool skip_static) const {
+	#ifdef USE_THREADS
+	boost::mutex::scoped_lock l(mutex);
+	#endif
 	std::string data = "";
 	// Players
 	if (actors.size() > 0) {
@@ -484,19 +487,32 @@ std::string World::serialize(bool skip_static) const {
 }
 
 
-void World::update(std::string data) {
-	#ifdef USE_THREADS
-	boost::mutex::scoped_lock l(mutex);
-	#endif
+void World::update(std::string data, Client* client) {
 	int pos = 0;
 	if (data[pos] == ACTOR) {
 		int items = data[pos+1];
 		int cnt = 0; pos += 2;
+		// New players?
+		int oldplayers = actors.size();
+		int createnew = items - oldplayers;
+		if (createnew > 0) {
+			for (int i = 0; i < createnew; ++i) {
+				bool me = client && oldplayers + i + 1 == client->getID();
+				addActor(10, 10, me ? Actor::HUMAN : Actor::REMOTE, 0, me ? client : NULL);
+			}
+		}
+		#ifdef USE_THREADS
+		boost::mutex::scoped_lock l(mutex);
+		#endif
+		// Update
 		for (Actors::iterator it = actors.begin(); it != actors.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
 			std::string itemdata(&data[pos], sizeof(SerializedEntity));
 			it->unserialize(itemdata);
 		}
 	}
+	#ifdef USE_THREADS
+	boost::mutex::scoped_lock l(mutex);
+	#endif
 	if (data[pos] == CRATE) {
 		int items = data[pos+1];
 		int cnt = 0; pos += 2;

@@ -108,6 +108,8 @@ class Client: public boost::noncopyable {
 
 	void terminate() { m_quit = true; m_thread.join(); }
 
+	char getID() const { return m_id; }
+
   private:
 	bool m_quit;
 	char m_id;

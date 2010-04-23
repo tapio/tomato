@@ -69,19 +69,10 @@ void Client::listen() {
 			if (e.packet->data[0] == MYID) {
 				m_id = e.packet->data[1];
 			} else {
-				// New players?
-				int oldplayers = m_world->getActors().size();
-				int addplayers = e.packet->data[1] - oldplayers;
-				if (addplayers > 0) {
-					for (int i = oldplayers+1; i <= oldplayers + addplayers; ++i) {
-						m_world->addActor(10, 10, i == m_id ? Actor::HUMAN : Actor::REMOTE, 0,
-						  i == m_id ? this : NULL);
-					}
-				} else if (addplayers < 0) throw std::runtime_error("Too few players from server.");
 				// Update state
-				m_world->update(std::string((char*)e.packet->data, e.packet->dataLength));
+				m_world->update(std::string((char*)e.packet->data, e.packet->dataLength), this);
 			}
- 			// Clean-up
+			// Clean-up
 			enet_packet_destroy(e.packet);
 			break;
 		} case ENET_EVENT_TYPE_DISCONNECT:

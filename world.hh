@@ -157,7 +157,7 @@ class World {
 
 	std::string serialize(bool skip_static = true) const;
 	void update();
-	void update(std::string data);
+	void update(std::string data, Client* client = NULL);
 	void updateViewport();
 	void draw() const;
 
