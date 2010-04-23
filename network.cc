@@ -1,3 +1,5 @@
+#include "config.hh"
+
 #ifdef USE_NETWORK
 #include "network.hh"
 #include "world.hh"

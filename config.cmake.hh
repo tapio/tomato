@@ -4,9 +4,9 @@
 #ifndef CONFIG_HH
 #define CONFIG_HH
 
-#cmakedefine USE_THREADS
 #define PACKAGE "@CMAKE_PROJECT_NAME@"
-
+#cmakedefine USE_THREADS
+#cmakedefine USE_NETWORK
 
 #endif
 
