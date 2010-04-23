@@ -334,7 +334,6 @@ void World::update() {
 
 	#ifdef USE_THREADS
 	unsigned int t = SDL_GetTicks();
-	boost::thread thread_viewport(boost::bind(&World::updateViewport, boost::ref(*this)));
 	{
 		boost::mutex::scoped_lock l(mutex);
 	#endif
@@ -440,13 +439,10 @@ void World::update() {
 		}
 	#ifdef USE_THREADS
 	} //< Mutex
-	thread_viewport.join();
 	// TODO: Hackish
 	t = SDL_GetTicks() - t;
 	int tt = (timeStep * 1000 - t - 1) * 0.5;
 	if (tt > 0) boost::this_thread::sleep(boost::posix_time::milliseconds(tt));
-	#else
-	updateViewport();
 	#endif
 }
 

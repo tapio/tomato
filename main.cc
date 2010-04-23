@@ -89,6 +89,14 @@ void setup_gl() {
 
 void updateKeys(Players& players) { while (!QUIT) { handle_keys(players); } }
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
+void updateViewport(World& world) {
+	while (!QUIT) {
+		world.updateViewport();
+		#ifdef USE_THREADS
+		boost::this_thread::sleep(boost::posix_time::milliseconds(15));
+		#endif
+	}
+}
 
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
@@ -115,6 +123,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#ifdef USE_THREADS
 	boost::thread thread_input(updateKeys, boost::ref(players));
 	boost::thread thread_physics(updateWorld, boost::ref(world));
+	boost::thread thread_viewport(updateViewport, boost::ref(world));
 	#endif
 
 	// MAIN LOOP
@@ -122,11 +131,12 @@ bool main_loop(bool is_client, std::string host, int port) {
 	FPS fps;
 	while (!QUIT) {
 		fps.update();
-		if ((SDL_GetTicks() % 200) == 0) fps.debugPrint();
+		if ((SDL_GetTicks() % 500) == 0) fps.debugPrint();
 
 		#ifndef USE_THREADS
 		handle_keys(players);
 		world.update();
+		world.updateViewport();
 		#else
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
