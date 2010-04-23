@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <stdexcept>
+#include <iostream>
 
 #include <GL/gl.h>
 #include <SDL.h>

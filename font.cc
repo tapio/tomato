@@ -30,15 +30,20 @@ void buildFonts()
 		}
 }
 
-void drawText(GLuint texture, const float x, const float y, const std::string& text)
+void drawText(GLuint texture, Color color, const float x, const float y, const std::string& text)
 {
-	glBlendFunc(GL_ONE_MINUS_SRC_COLOR,GL_SRC_COLOR);
+	glEnable(GL_TEXTURE_2D);
+	glColor4f(color.r, color.g, color.b, color.a);
+	glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	
 	glPushMatrix();
 	glTranslatef(x, y, 0);
  	glListBase(font_base);
-	glCallLists(strlen(text.c_str()), GL_UNSIGNED_BYTE, text.c_str());
+	glCallLists(text.length(), GL_UNSIGNED_BYTE, text.c_str());
 	glPopMatrix();
+	// Restore blend settings
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 }
 
