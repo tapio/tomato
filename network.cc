@@ -1,3 +1,4 @@
+#ifdef USE_NETWORK
 #include "network.hh"
 #include "world.hh"
 #include "player.hh"
@@ -85,5 +86,6 @@ void Client::listen() {
 			break;
 		}
 	}
-
 }
+
+#endif // USE_NETWORK

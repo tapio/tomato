@@ -103,17 +103,21 @@ bool main_loop(bool is_client, std::string host, int port) {
 	if (is_client) srand(100);
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm, !is_client);
+	#ifdef USE_NETWORK
 	Client client(&world);
 
-	if (!is_client) {
-		world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
-	} else {
+	if (is_client) {
 		client.connect(host, port);
 		std::cout << "Connected to " << host << ":" << port << std::endl;
 		std::cout << "Receiving initial data..." << std::endl;
 		boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+	} else {
+	#else
+	if (true) {
+	#endif
+		world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
 	}
 
 	Players& players = world.getActors();
@@ -145,8 +149,9 @@ bool main_loop(bool is_client, std::string host, int port) {
 		world.draw();
 		flip();
 	}
-
+	#ifdef USE_NETWORK
 	if (is_client) client.terminate();
+	#endif
 	#ifdef USE_THREADS
 	thread_input.join();
 	thread_physics.join();
@@ -156,6 +161,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 /// Server runs here
 void server_loop(int port) {
+#ifdef USE_NETWORK
 	srand(100);
 	TextureMap tm;
 	World world(scrW, scrH, tm);
@@ -174,6 +180,7 @@ void server_loop(int port) {
 		if (state != "") server.send_to_all(state);
 	}
 	server.terminate();
+#endif
 }
 
 /// Program entry-point
@@ -203,10 +210,15 @@ int main(int argc, char** argv) {
 	}
 
 	srand(time(NULL)); // Randomize RNG
+	#ifdef USE_NETWORK
 	enet_initialize();
+	#endif
 
 	// TODO: Main menu
 
+	#ifndef USE_NETWORK
+	if (!dedicated_server && !client) {
+	#endif
 	if (!dedicated_server) {
 		// SDL initialization stuff
 		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
@@ -223,8 +235,14 @@ int main(int argc, char** argv) {
 
 		SDL_Quit();
 	} else server_loop(port);
+	#ifndef USE_NETWORK
+	} else {
+		std::cout << "Networking support is disabled in this build." << std::endl;
+	}
+	#endif
 
+	#ifdef USE_NETWORK
 	enet_deinitialize();
-
+	#endif
 	return 0;
 }

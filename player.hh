@@ -171,6 +171,8 @@ class OnlinePlayer: public Actor {
 
 	OnlinePlayer(Client* client, GLuint tex = 0, Type t = HUMAN): Actor(tex, t), client(client) { }
 
+#ifdef USE_NETWORK
+
 	virtual void move(int direction) {
 		if (direction < 0) client->send(MOVE_LEFT);
 		else if (direction > 0) client->send(MOVE_RIGHT);
@@ -201,6 +203,8 @@ class OnlinePlayer: public Actor {
 		client->send(ACTION);
 		// Don't do the action locally, it probably just breaks things
 	}
+
+#endif
 
   private:
 

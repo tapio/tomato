@@ -1,5 +1,9 @@
 #pragma once
 
+#define DEFAULT_PORT 1234
+
+#ifdef USE_NETWORK
+
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -12,8 +16,6 @@
 #include <enet/enet.h>
 
 class World;
-
-#define DEFAULT_PORT 1234
 
 class Server: public boost::noncopyable {
   public:
@@ -120,3 +122,12 @@ class Client: public boost::noncopyable {
 	boost::thread m_thread;
 };
 
+#else
+
+struct Client {
+
+	char getID() { return 0; }
+
+};
+
+#endif // USE_NETWORK
