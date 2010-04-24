@@ -19,7 +19,7 @@ class World;
 
 class Server: public boost::noncopyable {
   public:
-	Server(World* world, int port = DEFAULT_PORT): m_quit(false), m_world(world) {
+	Server(World* world, int port = DEFAULT_PORT): m_quit(false), m_world(world), m_server(NULL) {
 		m_address.host = ENET_HOST_ANY;
 		m_address.port = port;
 		// Create host at address, max_conns, unlimited up/down bandwith
@@ -32,7 +32,7 @@ class Server: public boost::noncopyable {
 
 	~Server() {
 		terminate();
-		enet_host_destroy(m_server);
+		if (m_server) enet_host_destroy(m_server);
 	}
 
 	void listen();
@@ -63,11 +63,11 @@ class Server: public boost::noncopyable {
 class Client: public boost::noncopyable {
   public:
 	/// Construct new
-	Client(World* world): m_quit(false), m_id(0), m_world(world) { }
+	Client(World* world): m_quit(false), m_id(0), m_world(world), m_client(NULL), m_peer(NULL) { }
 
 	~Client() {
 		terminate();
-		enet_host_destroy(m_client);
+		if (m_client) enet_host_destroy(m_client);
 	}
 
 	void connect(std::string host = "localhost", int port = DEFAULT_PORT) {

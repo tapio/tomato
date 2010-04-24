@@ -164,6 +164,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#ifdef USE_THREADS
 	thread_input.join();
 	thread_physics.join();
+	thread_viewport.join();
 	#endif
 	return false;
 }
