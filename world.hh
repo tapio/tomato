@@ -139,6 +139,8 @@ struct Crate: public WorldElement {
 		drawVertexArray(&vc[0], &tex_square[0], 4, texture);
 		glPopMatrix();
 	}
+	virtual SerializedEntity serialize() const { return Entity::serialize(); }
+	virtual void unserialize(std::string data) { Entity::unserialize(data); }
 };
 
 
