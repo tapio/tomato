@@ -123,6 +123,18 @@ class Actor: public Entity {
 
 	virtual void draw() const { Entity::draw(anim_frame, 4, dir < 0); }
 
+	virtual SerializedEntity serialize() const {
+		SerializedEntity se = Entity::serialize();
+		se.type = dir;
+		return se;
+	}
+
+	virtual void unserialize(std::string data) {
+		Entity::unserialize(data);
+		SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[0]);
+		dir = se->type;
+	}
+
 	bool is_dead() const { return dead; }
 	bool can_jump() const { return !airborne || (jumping > 0 && jumping < 5)
 		|| (jumping == 0 && doublejump == DJUMP_ALLOW); }
