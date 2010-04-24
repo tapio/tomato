@@ -96,6 +96,16 @@ struct WorldElement: public Entity {
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture);
 	}
 
+	virtual SerializedEntity serialize() const {
+		return SerializedEntity(getX(), getY(), w, h);
+	}
+
+	virtual void unserialize(std::string data) {
+		SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[0]);
+		getBody()->SetTransform(b2Vec2(se->x, se->y), 0);
+		w = se->vx; h = se->vy;
+	}
+
 	float getW() const { return w * tilesize; };
 	float getH() const { return h * tilesize; };
 

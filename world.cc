@@ -87,7 +87,7 @@ World::World(int width, int height, TextureMap& tm, bool master):
 	texture_powerups = tm.find("powerups")->second;
 
 	// Generate
-	generate();
+	if (master) generate();
 }
 
 
@@ -194,6 +194,7 @@ void World::addPlatform(float x, float y, float w) {
 	// Create body
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x + w/2 * tilesize, y + tilesize*0.5f);
+	//bodyDef.position.Set(x, y);
 	p.body = world.CreateBody(&bodyDef);
 	p.body->SetUserData(&ElementTypes[PLATFORM]);
 	// Create shape
@@ -481,7 +482,24 @@ std::string World::serialize(bool skip_static) const {
 	}
 	// Static objects
 	if (!skip_static) {
-		// TODO
+		// Platforms
+		if (platforms.size() > 0) {
+			data += std::string(1, PLATFORM);
+			data += std::string(1, (char)platforms.size());
+			for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
+				std::string temp(it->serialize(), sizeof(SerializedEntity));
+				data += temp;
+			}
+		}
+		// Ladders
+		if (ladders.size() > 0) {
+			data += std::string(1, LADDER);
+			data += std::string(1, (char)ladders.size());
+			for (Ladders::const_iterator it = ladders.begin(); it != ladders.end(); ++it) {
+				std::string temp(it->serialize(), sizeof(SerializedEntity));
+				data += temp;
+			}
+		}
 	}
 	return data;
 }
@@ -546,6 +564,26 @@ void World::update(std::string data, Client* client) {
 		for (Powerups::iterator it = powerups.begin(); it != powerups.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
 			std::string itemdata(&data[pos], sizeof(SerializedEntity));
 			it->unserialize(itemdata);
+		}
+	}
+	// Static objects (platforms, ladders...)
+	// For now, these are always interpreted as new ones
+	if (data[pos] == PLATFORM) {
+		int items = data[pos+1];
+		pos += 2;
+		// Create new
+		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
+			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
+			addPlatform(se->x - se->vx / 2 * tilesize, se->y - tilesize*0.5f, se->vx);
+		}
+	}
+	if (data[pos] == LADDER) {
+		int items = data[pos+1];
+		pos += 2;
+		// Create new
+		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
+			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
+			addLadder(se->x - tilesize*0.5f, se->y - se->vy / 2 * tilesize, se->vy);
 		}
 	}
 }

@@ -10,7 +10,7 @@ class World;
 struct SerializedEntity {
 	float x, y, vx, vy, a, va;
 	char id, type;
-	SerializedEntity(float x, float y, float vx, float vy, float a, float va):
+	SerializedEntity(float x, float y, float vx, float vy, float a = 0, float va = 0):
 		x(x), y(y), vx(vx), vy(vy), a(a), va(va), id(0), type(0) {}
 	operator char*() { return reinterpret_cast<char*>(this); } /// overload char cast
 	operator char const*() const { return reinterpret_cast<char const*>(this); } /// overload char const cast
@@ -39,8 +39,7 @@ struct Entity {
 	}
 
 	virtual void unserialize(std::string data) {
-		SerializedEntity* se;
-		se = reinterpret_cast<SerializedEntity*>(&data[0]);
+		SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[0]);
 		b2Body* b = getBody();
 		b->SetTransform(b2Vec2(se->x, se->y), se->a);
 		b->SetLinearVelocity(b2Vec2(se->vx, se->vy));

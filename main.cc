@@ -106,7 +106,6 @@ void updateViewport(World& world) {
 
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
-	if (is_client) srand(100);
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm, !is_client);
 	#ifdef USE_NETWORK
@@ -172,7 +171,6 @@ bool main_loop(bool is_client, std::string host, int port) {
 /// Server runs here
 void server_loop(int port) {
 #ifdef USE_NETWORK
-	srand(100);
 	TextureMap tm;
 	World world(scrW, scrH, tm);
 	//Players& players = world.getActors();
