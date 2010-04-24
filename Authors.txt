@@ -1,0 +1,14 @@
+Authors of Tomaatti
+===================
+
+* Tapio Vierros
+	- Most of the code
+	- Some graphics
+
+* Sampsa Vierros
+	- Some font code
+	- Testing
+
+* Antti Virta
+	- Most of the graphics
+	- Testing
