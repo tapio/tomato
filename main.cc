@@ -243,7 +243,8 @@ int main(int argc, char** argv) {
 		setup_gl();
 		main_loop(client, host, port);
 
-		SDL_Quit();
+		// TODO: SLD_Quit() hangs :(
+		//SDL_Quit();
 	} else server_loop(port);
 	#ifndef USE_NETWORK
 	} else {
