@@ -1,7 +1,7 @@
 
 To Be Fixed
 ----------
-* Hangs / crashes at exit
+* Hangs / crashes at exit (SDL_Quit, anything on Windows)
 * Movement shouldn't stop after landing from jump (releasing key shouldn't be required)
 * Level generator
 	- No overlapping platforms, not too close (y-dir)

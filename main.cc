@@ -243,7 +243,7 @@ int main(int argc, char** argv) {
 		setup_gl();
 		main_loop(client, host, port);
 
-		// TODO: SLD_Quit() hangs :(
+		// FIXME: SLD_Quit() hangs :(
 		//SDL_Quit();
 	} else server_loop(port);
 	#ifndef USE_NETWORK
@@ -251,9 +251,12 @@ int main(int argc, char** argv) {
 		std::cout << "Networking support is disabled in this build." << std::endl;
 	}
 	#endif
-
 	#ifdef USE_NETWORK
 	enet_deinitialize();
+	#endif
+	#ifdef WIN32
+	// FIXME: Quirk to not hang on exit on Windows
+	_exit(0);
 	#endif
 	return 0;
 }
