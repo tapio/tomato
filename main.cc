@@ -18,6 +18,7 @@
 #include <SDL.h>
 
 #include "util.hh"
+#include "filesystem.hh"
 #include "player.hh"
 #include "world.hh"
 #include "network.hh"
@@ -126,7 +127,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 	}
 
 	Players& players = world.getActors();
-	parse_keys(players, "../keys.conf");
+	parse_keys(players, "keys.conf");
 
 	// Launch threads
 	#ifdef USE_THREADS

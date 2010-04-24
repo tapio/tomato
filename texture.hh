@@ -15,7 +15,7 @@ const static float tex_square[] = { 0.0f, 0.0f,
 
 
 /// Load a single texture
-GLuint load_texture(const char* filename, bool repeat = false);
+GLuint load_texture(const std::string filename, bool repeat = false);
 
 /// Load all textures used by the program
 TextureMap load_textures();

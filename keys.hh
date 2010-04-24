@@ -6,6 +6,7 @@
 #include <SDL.h>
 
 #include "player.hh"
+#include "filesystem.hh"
 
 namespace {
 	/// Returns a word (delimited by delim) in a string st at position pos (1-based)
@@ -41,7 +42,7 @@ int parse_key(std::string k) {
 }
 
 void parse_keys(Players& players, std::string filename = "keys.conf") {
-	std::ifstream file(filename.c_str(), std::ios::binary);
+	std::ifstream file(getFilePath(filename).c_str(), std::ios::binary);
 	if (!file.is_open()) throw std::runtime_error("Couldn't open key config file "+filename);
 	bool firstheader = true;
 	Players::iterator pl = players.begin();
