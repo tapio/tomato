@@ -433,6 +433,15 @@ void World::update() {
 			// Gravity
 			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
 		}
+		// Remove expired power-ups
+		for (Powerups::iterator pu = powerups.begin(); pu != powerups.end(); ) {
+			if (pu->expired()) {
+				world.DestroyBody(pu->getBody());
+				pu = powerups.erase(pu);
+				continue;
+			}
+			++pu;
+		}
 		// Create power-ups
 		if (timer_powerup() && is_master) {
 			addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());

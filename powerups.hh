@@ -30,10 +30,11 @@ struct Powerup {
 
 struct PowerupEntity: public Entity {
 
-	PowerupEntity(Powerup::Type type, GLuint tex): Entity(16, tex), effect(type)
+	PowerupEntity(Powerup::Type type, GLuint tex): Entity(16, tex), effect(type), lifetime(15)
 	{ }
 
 	virtual void draw() const { Entity::draw(effect.type); }
+	bool expired() const { return lifetime(); }
 
 	virtual SerializedEntity serialize() const {
 		SerializedEntity se = Entity::serialize();
@@ -48,8 +49,8 @@ struct PowerupEntity: public Entity {
 		Entity::unserialize(data);
 	}
 
-
 	Powerup effect;
+	Countdown lifetime;
 };
 
 
