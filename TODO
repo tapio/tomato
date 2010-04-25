@@ -5,8 +5,9 @@ To Be Fixed
 * Movement shouldn't stop after landing from jump (releasing key shouldn't be required)
 * Level generator
 	- No overlapping platforms, not too close (y-dir)
-	- Ladders
-
+	- Ladder generation
+	- Ladders out from water
+* Airborne check should take collision angle into consideration
 
 Main Goals
 ----------
@@ -19,6 +20,12 @@ Main Goals
 	+ Input thread
 	+ Physics thread
 
+Physics fun
+-----------
+* Bridges (soft)
+* Ropes
+* Soft-body tomatoes?
+* Particle-based water?
 
 Power-ups
 ---------
