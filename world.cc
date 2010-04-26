@@ -297,6 +297,7 @@ void World::generate() {
 	addPlatform(x + tilesize, y1, randint(2,4)); // Top left
 	addPlatform(x, y2, randint(2,4)); // Bottom left
 	addLadder(x, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
+	addLadder(0, y2 - tilesize*0.333f, h - y2); // Left side ladder from water
 
 	float w1 = randint(2,4);
 	float w2 = randint(2,4);
@@ -307,6 +308,7 @@ void World::generate() {
 	addPlatform(x - w1*tilesize - tilesize, y1, w1); // Top right
 	addPlatform(x - w2*tilesize, y2, w2); // Bottom right
 	addLadder(x - tilesize, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
+	addLadder(w - tilesize, y2 - tilesize*0.333f, h - y2); // Right side ladder from water
 	// Create rest of platforms
 	for (int j = yoff; j < h - water_height - yoff; j += 4*tilesize) {
 		for (int i = xoff + 6*tilesize; i < w - xoff - 6*tilesize; i += 7*tilesize) {
