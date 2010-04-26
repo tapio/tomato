@@ -397,13 +397,14 @@ void World::update() {
 					for (Actors::iterator ac = actors.begin(); ac != actors.end(); ++ac) {
 						if (!ac->getBody()->GetUserData()) {
 							it->powerup.touch(&(*it), &(*ac));
-							it->airborne = false;
+							if (it->getY() < ac->getY()) it->airborne = false;
 							break;
 						}
 					}
 					ce->other->SetUserData(&ElementTypes[ACTOR]);
 				// Ground
-				} else if (et == PLATFORM || et == CRATE) it->airborne = false;
+				} else if ((et == PLATFORM || et == CRATE)
+				  && it->getY() < ce->other->GetPosition().y) it->airborne = false;
 			}
 			if (!it->airborne) {
 				if (it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_ROOT;
