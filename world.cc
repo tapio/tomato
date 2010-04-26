@@ -371,10 +371,16 @@ void World::generate() {
 	addLadder(w - tilesize, y2 - tilesize*0.333f, h - y2); // Right side ladder from water
 	// Create rest of platforms
 	for (int j = yoff; j < h - water_height - yoff; j += 4*tilesize) {
+		int count = 0;
 		for (int i = xoff + 6*tilesize; i < w - xoff - 6*tilesize; i += 7*tilesize) {
-			while (!addPlatform(i + randf(-3*tilesize,3*tilesize), j + randf(-tilesize,tilesize), randint(2,6)));
+			int tries = 10;
+			while (--tries > 0 && !addPlatform(i + randf(-3*tilesize,3*tilesize), j + randf(-tilesize,tilesize), randint(2,6)));
+			if (tries > 0) count++;
 		}
-		addBridge(*(platforms.end()-2), platforms.back());
+		if (count > 1) {
+			count = randint(count-1);
+			addBridge(*(platforms.end()-count-2), *(platforms.end()-count-1));
+		}
 	}
 	//for (int i = 0; i < 4; i++) {
 		//addLadder(randint(0,w), randint(0,h), randint(2,6));
