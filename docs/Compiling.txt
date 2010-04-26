@@ -2,7 +2,7 @@ Dependencies
 ============
 * Boost
 	- Headers    General aids
-	- Thread     Multi-threading
+	- Thread     Multithreading
 	- Filesystem Path stuff
 	- System     Required by Filesystem
 * Box2D          Physics

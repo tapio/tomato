@@ -1,10 +1,12 @@
 
 To Be Fixed
 ----------
+* Network game is b0rked
+* Networking hangs on exit
+* Bridges are not serialized / handled in networking
 * Hangs / crashes at exit (SDL_Quit, anything on Windows)
-* Level generator
-	- Ladder generation
 * Fix speed / input delays constant for all platforms
+* Some ladders needed to the middle of the level
 
 Main Goals
 ----------
@@ -13,9 +15,6 @@ Main Goals
 + Network multiplayer
 + Hot-seat multiplayer
 + Threaded
-	+ Main thread (graphics)
-	+ Input thread
-	+ Physics thread
 
 Physics fun
 -----------
