@@ -151,7 +151,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 	FPS fps;
 	while (!QUIT) {
 		fps.update();
-		if ((SDL_GetTicks() % 500) == 0) fps.debugPrint();
+		if ((int(GetSecs()*1000) % 500) == 0) fps.debugPrint();
 
 		#if defined(WIN32) || !defined(USE_THREADS) // SDL needs the keys to be in the main thread on Windows platform
 		handle_keys(players);

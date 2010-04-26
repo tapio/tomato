@@ -337,7 +337,7 @@ void World::update() {
 	int32 positionIterations = 10;
 
 	#ifdef USE_THREADS
-	unsigned int t = SDL_GetTicks();
+	double t = GetSecs();
 	{
 		boost::mutex::scoped_lock l(mutex);
 	#endif
@@ -454,8 +454,8 @@ void World::update() {
 	#ifdef USE_THREADS
 	} //< Mutex
 	// TODO: Hackish
-	t = SDL_GetTicks() - t;
-	int tt = (timeStep * 1000 - t - 1) * 0.5;
+	t = GetSecs() - t;
+	int tt = (timeStep - t - 0.001) * 0.5 * 1000;
 	if (tt > 0) boost::this_thread::sleep(boost::posix_time::milliseconds(tt));
 	#endif
 }

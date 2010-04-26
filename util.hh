@@ -11,22 +11,24 @@
 
 #define PI 3.1415926535
 
+double inline GetSecs() { return 0.001 * SDL_GetTicks(); }
+
 /// Timer
 struct Countdown {
-	Countdown(float seconds = 0): endtime(SDL_GetTicks() + seconds*1000) { }
-	bool operator()() const { return SDL_GetTicks() >= endtime; }
-	unsigned int endtime;
+	Countdown(double seconds = 0): endtime(GetSecs() + seconds) { }
+	bool operator()() const { return GetSecs() >= endtime; }
+	double endtime;
 };
 
 
 /// FPS counter
 struct FPS {
-	FPS(): record(SDL_GetTicks()), time(0) { }
-	void update() { time = (SDL_GetTicks() - record) / 1000.0; record = SDL_GetTicks(); }
+	FPS(): record(GetSecs()), time(0) { }
+	void update() { time = GetSecs() - record; record = GetSecs(); }
 	float getTime() const { return time; }
 	float getFPS() const { return 1.0 / time; }
 	void debugPrint() const { std::cout << "FPS: " << getFPS() << " (" << getTime() << " s)" << std::endl; }
-	unsigned int record;
+	double record;
 	double time;
 };
 
