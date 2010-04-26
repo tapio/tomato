@@ -55,6 +55,7 @@ if (USE_NETWORK)
 endif()
 
 # Boost libraries
+list(APPEND BOOST_COMPONENTS filesystem system)
 find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})

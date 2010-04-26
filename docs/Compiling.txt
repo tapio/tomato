@@ -3,6 +3,8 @@ Dependencies
 * Boost
 	- Headers    General aids
 	- Thread     Multi-threading
+	- Filesystem Path stuff
+	- System     Required by Filesystem
 * Box2D          Physics
 * ENet           Networking
 * OpenGL         Graphics
@@ -18,7 +20,7 @@ This terminal command should get you far with the dependencies (Box2D must be co
 Windows:
 
 You can use the win32/dependencies.bat batch script to download (most of) them.
-Box2D and ENet requires manual compiling, Boost::thread binary can be found from the internet.
+Box2D and ENet requires manual compiling, Boost binaries can be found from the internet.
 
 **NOTE:** You may wish to disable the Box2D examples compilation for easier building.
 
