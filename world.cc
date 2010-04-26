@@ -100,7 +100,7 @@ World::World(int width, int height, TextureMap& tm, bool master):
 	texture_powerups = tm.find("powerups")->second;
 
 	// Generate
-	if (master) generate();
+	if (is_master) generate();
 }
 
 
@@ -402,11 +402,9 @@ void World::generate() {
 	//for (int i = 0; i < 4; i++) {
 		//addLadder(randint(0,w), randint(0,h), randint(2,6));
 	//}
-	if (is_master) {
-		// Create crates
-		for (int i = 0; i < 8; i++) {
-			addCrate(randint(0,w), randint(0,h));
-		}
+	// Create crates
+	for (int i = 0; i < 8; i++) {
+		addCrate(randint(0,w), randint(0,h));
 	}
 }
 
@@ -601,6 +599,16 @@ std::string World::serialize(bool skip_static) const {
 				data += temp;
 			}
 		}
+		// Bridges
+		if (bridges.size() > 0) {
+			data += std::string(1, BRIDGE);
+			data += std::string(1, (char)bridges.size());
+			for (Bridges::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
+				// TODO: Implement
+				//std::string temp(it->serialize(), sizeof(SerializedEntity));
+				//data += temp;
+			}
+		}
 	}
 	return data;
 }
@@ -683,6 +691,16 @@ void World::update(std::string data, Client* client) {
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
 			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
 			addLadder(se->x - tilesize*0.5f, se->y - se->vy / 2 * tilesize, se->vy);
+		}
+	}
+	if (data[pos] == BRIDGE) {
+		int items = data[pos+1];
+		pos += 2;
+		// Create new
+		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
+			//SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
+			// TODO: Implement
+			//addBridge();
 		}
 	}
 }
