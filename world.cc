@@ -670,7 +670,6 @@ void World::update(std::string data, Client* client) {
 	if (data[pos] == PLATFORM) {
 		int items = data[pos+1];
 		pos += 2;
-		LOCKMUTEX;
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
 			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
@@ -680,7 +679,6 @@ void World::update(std::string data, Client* client) {
 	if (data[pos] == LADDER) {
 		int items = data[pos+1];
 		pos += 2;
-		LOCKMUTEX;
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
 			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
