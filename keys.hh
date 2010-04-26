@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 #include <boost/algorithm/string.hpp>
-#include <SDL.h>
+#include <SFML/Window.hpp>
 
 #include "player.hh"
 #include "filesystem.hh"
@@ -21,21 +21,21 @@ namespace {
 
 // TODO
 int parse_key(std::string k) {
-	if (k == "return") return SDLK_RETURN;
-	else if (k == "left") return SDLK_LEFT;
-	else if (k == "right") return SDLK_RIGHT;
-	else if (k == "up") return SDLK_UP;
-	else if (k == "down") return SDLK_DOWN;
-	else if (k == "space") return SDLK_SPACE;
-	else if (k == "backspace") return SDLK_BACKSPACE;
-	else if (k == "tab") return SDLK_TAB;
-	else if (k == "lalt") return SDLK_LALT;
-	else if (k == "ralt") return SDLK_RALT;
-	else if (k == "lshift") return SDLK_LSHIFT;
-	else if (k == "rshift") return SDLK_RSHIFT;
-	else if (k == "lctrl") return SDLK_LCTRL;
-	else if (k == "rctrl") return SDLK_RCTRL;
-	//else if (k == "") reurn SDLK_;
+	if (k == "return") return sf::Key::Return;
+	else if (k == "left") return sf::Key::Left;
+	else if (k == "right") return sf::Key::Right;
+	else if (k == "up") return sf::Key::Up;
+	else if (k == "down") return sf::Key::Down;
+	else if (k == "space") return sf::Key::Space;
+	else if (k == "backspace") return sf::Key::Back;
+	else if (k == "tab") return sf::Key::Tab;
+	else if (k == "lalt") return sf::Key::LAlt;
+	else if (k == "ralt") return sf::Key::RAlt;
+	else if (k == "lshift") return sf::Key::LShift;
+	else if (k == "rshift") return sf::Key::RShift;
+	else if (k == "lctrl") return sf::Key::LControl;
+	else if (k == "rctrl") return sf::Key::RControl;
+	//else if (k == "") reurn sf::Key::;
 	// ASCII keys
 	else if (k.length() == 1) return k[0];
 	return 0;

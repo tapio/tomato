@@ -59,6 +59,11 @@ find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
 
+# SFML
+find_package(SFML REQUIRED COMPONENTS Window)
+include_directories(${SFML_INCLUDE_DIR})
+list(APPEND LIBS ${SFML_LIBRARY})
+
 # Find all the libs that don't require extra parameters
 foreach(lib Box2D SDL SOIL OpenGL)
 	find_package(${lib} REQUIRED)

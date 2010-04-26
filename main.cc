@@ -15,7 +15,7 @@
 #endif
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <SDL.h>
+#include <SFML/Window.hpp>
 
 #include "util.hh"
 #include "filesystem.hh"
@@ -31,15 +31,17 @@
 static bool QUIT = false;
 
 /// Keyboard input
-void handle_keys(Players& players) {
-	SDL_Event event;
-	while(SDL_PollEvent(&event)) {
-		switch(event.type) {
-		case SDL_QUIT:
+void handle_keys(sf::Window& app, Players& players) {
+	sf::Event event;
+	int counter = 0; // Hack to prevent bogus joystick events stealing the show
+	while(counter < 10 && app.GetEvent(event)) {
+		counter++;
+		switch(event.Type) {
+		case sf::Event::Closed:
 			QUIT = true; return;
-		case SDL_KEYDOWN: {
-			int k = event.key.keysym.sym;
-			if (k == SDLK_ESCAPE) { QUIT = true; return; }
+		case sf::Event::KeyPressed: {
+			int k = event.Key.Code;
+			if (k == sf::Key::Escape) { QUIT = true; return; }
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (it->type != Actor::HUMAN) continue;
 				if (k == it->KEY_LEFT) it->key_left = true;
@@ -51,8 +53,8 @@ void handle_keys(Players& players) {
 			}
 			break;
 			}
-		case SDL_KEYUP: {
-			int k = event.key.keysym.sym;
+		case sf::Event::KeyReleased: {
+			int k = event.Key.Code;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (it->type != Actor::HUMAN) continue;
 				if (k == it->KEY_UP) { if (it->key_up) it->end_jumping(); it->key_up = false; }
@@ -62,8 +64,10 @@ void handle_keys(Players& players) {
 			}
 			break;
 		}
+		default: break;
 		} // end switch
 	}
+	// Do effects
 	for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 		if (it->type != Actor::HUMAN) continue;
 		if (it->key_left) it->move(-1);
@@ -73,12 +77,6 @@ void handle_keys(Players& players) {
 	}
 }
 
-/// Double buffering
-void flip() {
-	SDL_GL_SwapBuffers();
-	glClear(GL_COLOR_BUFFER_BIT);
-	glLoadIdentity();
-}
 
 /// OpenGL initialization
 void setup_gl() {
@@ -100,11 +98,15 @@ void setup_gl() {
 
 /// Thread functions
 
+struct InputWrapper {
+	InputWrapper(sf::Window& a, Players& p): app(a), players(p) { }
+	sf::Window& app;
+	Players& players;
+};
+
 #ifdef USE_THREADS
-void updateKeys(Players& players) {
-	#ifndef WIN32 // SDL needs the keys to be in the main thread on Windows platform
-	while (!QUIT) { handle_keys(players); }
-	#endif
+void updateKeys(InputWrapper& iw) {
+	while (!QUIT) { handle_keys(iw.app, iw.players); }
 }
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 void updateViewport(World& world) {
@@ -117,6 +119,10 @@ void updateViewport(World& world) {
 
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
+	// Window initialization stuff
+	sf::Window App(sf::VideoMode(scrW, scrH, 32), PACKAGE);
+	setup_gl();
+
 	TextureMap tm = load_textures();
 	World world(scrW, scrH, tm, !is_client);
 	#ifdef USE_NETWORK
@@ -141,7 +147,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 	// Launch threads
 	#ifdef USE_THREADS
-	boost::thread thread_input(updateKeys, boost::ref(players));
+	//boost::thread thread_input(updateKeys, InputWrapper(App, players));
 	boost::thread thread_physics(updateWorld, boost::ref(world));
 	boost::thread thread_viewport(updateViewport, boost::ref(world));
 	#endif
@@ -149,13 +155,12 @@ bool main_loop(bool is_client, std::string host, int port) {
 	// MAIN LOOP
 	std::cout << "Game started." << std::endl;
 	FPS fps;
-	while (!QUIT) {
+	while (!QUIT && App.IsOpened()) {
 		fps.update();
 		if ((int(GetSecs()*1000) % 500) == 0) fps.debugPrint();
 
-		#if defined(WIN32) || !defined(USE_THREADS) // SDL needs the keys to be in the main thread on Windows platform
-		handle_keys(players);
-		#endif
+		handle_keys(App, players);
+
 		#ifndef USE_THREADS
 		world.update();
 		world.updateViewport();
@@ -166,13 +171,15 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 		// Draw
 		world.draw();
-		flip();
+		App.Display();
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
+	QUIT = true;
 	#ifdef USE_NETWORK
 	if (is_client) client.terminate();
 	#endif
 	#ifdef USE_THREADS
-	thread_input.join();
+	//thread_input.join();
 	thread_physics.join();
 	thread_viewport.join();
 	#endif
@@ -239,21 +246,7 @@ int main(int argc, char** argv) {
 	if (!dedicated_server && !client) {
 	#endif
 	if (!dedicated_server) {
-		// SDL initialization stuff
-		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
-		SDL_WM_SetCaption(PACKAGE, PACKAGE);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_Surface* screen = NULL;
-		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL);
-		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
-		SDL_EnableKeyRepeat(50, 50);
-
-		setup_gl();
 		main_loop(client, host, port);
-
-		// FIXME: SLD_Quit() hangs :(
-		//SDL_Quit();
 	} else server_loop(port);
 	#ifndef USE_NETWORK
 	} else {
