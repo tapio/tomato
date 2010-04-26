@@ -389,8 +389,7 @@ void World::generate() {
 	if (is_master) {
 		// Create crates
 		for (int i = 0; i < 8; i++) {
-			b2Vec2 pos = randomSpawn();
-			addCrate(pos.x, pos.y);
+			addCrate(randint(0,w), randint(0,h));
 		}
 	}
 }
