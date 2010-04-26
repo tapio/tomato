@@ -134,17 +134,23 @@ struct Bridge: public WorldElement {
 
 	void draw() const {
 		glColor4f(0.6f, 0.3f, 0.1f, 1.0f);
+		glLineWidth(3.0f);
+		glBegin(GL_LINE_STRIP);
+		//b2RevoluteJoint* j = dynamic_cast<b2RevoluteJoint*>(bodies.front()->GetJointList()->joint);
 		for (std::vector<b2Body*>::const_iterator it = bodies.begin(); it != bodies.end(); ++it) {
-			b2Fixture* f = (*it)->GetFixtureList();
-			b2PolygonShape* s = dynamic_cast<b2PolygonShape*>(f->GetShape());
-			glBegin(GL_QUADS);
-				for (int i = 0; i < 4; ++i) {
-					b2Vec2 v = s->GetVertex(i);
-					v += (*it)->GetPosition();
-					glVertex2f(v.x, v.y);
-				}
-			glEnd();
+			//b2Fixture* f = (*it)->GetFixtureList();
+			//b2PolygonShape* s = dynamic_cast<b2PolygonShape*>(f->GetShape());
+			//glBegin(GL_QUADS);
+				//for (int i = 0; i < 4; ++i) {
+					//b2Vec2 v = s->GetVertex(i);
+					//v += (*it)->GetPosition();
+					//glVertex2f(v.x, v.y);
+				//}
+			//glEnd();
+			b2Vec2 v = (*it)->GetWorldCenter();
+			glVertex2f(v.x, v.y);
 		}
+		glEnd();
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 	std::vector<b2Body*> bodies;

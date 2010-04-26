@@ -272,12 +272,13 @@ void World::addCrate(float x, float y) {
 
 
 void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
-	static const int segments = 20;
-	float x1 = leftAnchor.getX() + leftAnchor.getW() * 0.5f;
+	float segmentW = 10.0f;
+	float x1 = leftAnchor.getX() + leftAnchor.getW() * 0.5f - segmentW * 0.5f;
 	float y1 = leftAnchor.getY() - leftAnchor.getH() * 0.5f + tilesize * 0.1f;
-	float x2 = rightAnchor.getX() - rightAnchor.getW() * 0.5f;
+	float x2 = rightAnchor.getX() - rightAnchor.getW() * 0.5f + segmentW * 0.5f;
 	float y2 = rightAnchor.getY() - rightAnchor.getH() * 0.5f + tilesize * 0.1f;
-	float segmentW = distance(x1,y1,x2,y2) / segments;
+	int segments = distance(x1,y1,x2,y2) / segmentW + 1;
+	segmentW = distance(x1,y1,x2,y2) / segments;
 	float xstep = (x2-x1) / segments;
 	float ystep = (y2-y1) / segments;
 	Bridge bridge(0, 0, tilesize);
