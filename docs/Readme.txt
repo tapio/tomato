@@ -1,3 +1,10 @@
+Tomaatti
+========
+
+For instructions on compiling the game from sources, refer to the Compiling.txt guide.
+
+For list of authors, see Authors.txt.
+
 
 Power-ups
 ---------

@@ -10,19 +10,17 @@ Dependencies
 * SOIL           Texture loading
 
 Ubuntu / Debian:
-This terminal command should get you far with the dependencies:
+
+This terminal command should get you far with the dependencies (Box2D must be compiled manually):
+
     $ sudo aptitude install libboost-all-dev libenet-dev libsdl1.2-dev libsoil-dev
 
 Windows:
+
 You can use the win32/dependencies.bat batch script to download (most of) them.
 Box2D and ENet requires manual compiling, Boost::thread binary can be found from the internet.
 
-Box2D
------
-* http://box2d.org/
-* Box2D doesn't come with a pre-build library
-* Use CMake to build it (the instructions for CMake below applies here also)
-* NOTE: You may wish to disable the examples for easier building
+**NOTE:** You may wish to disable the Box2D examples compilation for easier building.
 
 
 Compiling
@@ -38,5 +36,10 @@ Compiling
  - Resolve errors / add missing paths using CMake GUI
 
 * Compile
- - Compile the project using the generated makefiles / project files
- - NOTE: You can change how you wish to compile the project (Visual Studio project, MinGW makefile, etc.) from CMake
+ - Compile the project using the generated Makefiles / project files
+     make                 # if using Makefiles
+ - **NOTE:** You can change how you wish to compile the project (Visual Studio project, MinGW makefile, etc.) from CMake
+ - Install
+     make install         # if using Makefiles
+ - **NOTE:** You can change the installation prefix with CMake variable CMAKE_INSTALL_PREFIX
+
