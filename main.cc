@@ -248,7 +248,6 @@ int main(int argc, char** argv) {
 		SDL_Surface* screen = NULL;
 		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL);
 		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
-		SDL_EnableKeyRepeat(50, 50);
 
 		setup_gl();
 		main_loop(client, host, port);

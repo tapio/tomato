@@ -14,8 +14,8 @@ namespace {
 	static const unsigned MAX_POWERUPS = 4; // Maximum number of simultaneous power-ups
 	static const float offset = 50.0; // For spawning things away from borders
 
-	enum ElementType { NONE, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
-	static ElementType ElementTypes[] = { NONE, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
+	enum ElementType { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
+	static ElementType ElementTypes[] = { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
 	struct WorldElement {
 		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
 		ElementType type;
@@ -71,6 +71,7 @@ World::World(int width, int height, TextureMap& tm, bool master):
 	borderBody->CreateFixture(&borderBoxRight, 0.0f);
 	borderBody->CreateFixture(&borderBoxTop, 0.0f);
 	borderBody->CreateFixture(&borderBoxBottom, 0.0f);
+	borderBody->SetUserData(&ElementTypes[BORDER]);
 
 	// Create water
 	b2BodyDef waterBodyDef;
@@ -420,6 +421,7 @@ void World::update() {
 		// Update actors' airborne etc. status + gravity
 		for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 			it->airborne = true;
+			bool hitwall = false;
 			bool climbing = (it->ladder == Actor::LADDER_CLIMBING);
 			it->ladder = Actor::LADDER_NO;
 			// Water
@@ -470,14 +472,21 @@ void World::update() {
 					}
 					ce->other->SetUserData(&ElementTypes[ACTOR]);
 				// Ground
-				} else if ((et == PLATFORM || et == CRATE || et == BRIDGE)
-				  && it->getY() < ce->other->GetPosition().y) it->airborne = false;
+				} else if (et == PLATFORM || et == CRATE || et == BRIDGE) {
+					if (it->getY() < ce->other->GetPosition().y) it->airborne = false;
+					if (et == PLATFORM && it->getY() > ce->other->GetPosition().y - tilesize*0.666f)
+						hitwall = true;
+				// Border
+				} else if (et == BORDER) hitwall = true;
 			}
+			// Flag tuning
 			if (!it->airborne) {
 				if (it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_ROOT;
 				if (it->doublejump == DJUMP_JUMPED) it->doublejump = DJUMP_ALLOW;
 			}
 			if (climbing && it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_CLIMBING;
+			// Handle wall hit
+			if (hitwall && it->ladder != Actor::LADDER_CLIMBING) it->keypenalty = Countdown(0.5);
 			// Gravity
 			float grav_mult = (it->lograv ? 0.1 : 1.0) * (it->ladder == Actor::LADDER_CLIMBING ? 0.0 : 1.0);
 			b2Body* b = it->getBody();

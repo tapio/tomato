@@ -29,7 +29,7 @@ class Actor: public Entity {
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex), type(t),
 	  key_up(), key_down(), key_left(), key_right(), key_action(),
 	  points(0), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), jump_dir(0),
-	  powerup(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
+	  keypenalty(0), powerup(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
 	void brains() {
@@ -50,6 +50,7 @@ class Actor: public Entity {
 	virtual void move(int direction) {
 		if (reversecontrols) direction = -direction;
 		if (direction != dir) { dir = direction; return; }
+		if (!keypenalty()) return;
 		if (direction == dir || can_jump()) {
 			// Calc base speed depending on state
 			float speed = airborne ? speed_move_airborne : speed_move_ground;
@@ -170,7 +171,7 @@ class Actor: public Entity {
 	enum Ladder { LADDER_NO, LADDER_ROOT, LADDER_YES, LADDER_CLIMBING } ladder;
 	int jumping;
 	int jump_dir;
-
+	Countdown keypenalty;
 	Powerup powerup;
 
 	// Power-up attributes
