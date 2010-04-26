@@ -74,6 +74,9 @@ void inline randdir(int& dx, int &dy) {
 	else { dx = randint(-1,1); dy = randdir(); }
 }
 
+template <typename T>
+T distance(T x1, T y1, T x2, T y2) { return std::sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)); }
+
 /// Limit val to range [min, max]
 template <typename T> T clamp(T val, T min = 0, T max = 1) {
 	if (min > max) throw std::logic_error("min > max");

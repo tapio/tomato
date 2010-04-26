@@ -6,7 +6,7 @@
 struct WorldElement: public Entity {
 	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): Entity(0, tex),
 	  w(w), h(h), tileid(tile), tilesize(tsize)
-	{ if (w != h && getBody()) buildVertices(); }
+	{ if (w != h && w != 0 && h != 0 && getBody()) buildVertices(); }
 	// ARGH, horibble spaghetti below
 	void buildVertices() {
 		float x = getX(), y = getY();
@@ -125,7 +125,33 @@ struct Crate: public WorldElement {
 	virtual void unserialize(std::string data) { Entity::unserialize(data); }
 };
 
+struct Bridge: public WorldElement {
+	Bridge(GLuint tex, GLuint tile, int tsize):
+	  WorldElement(0, 0, tex, tile, tsize)
+	{
+
+	}
+
+	void draw() const {
+		glColor4f(0.6f, 0.3f, 0.1f, 1.0f);
+		for (std::vector<b2Body*>::const_iterator it = bodies.begin(); it != bodies.end(); ++it) {
+			b2Fixture* f = (*it)->GetFixtureList();
+			b2PolygonShape* s = dynamic_cast<b2PolygonShape*>(f->GetShape());
+			glBegin(GL_QUADS);
+				for (int i = 0; i < 4; ++i) {
+					b2Vec2 v = s->GetVertex(i);
+					v += (*it)->GetPosition();
+					glVertex2f(v.x, v.y);
+				}
+			glEnd();
+		}
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	std::vector<b2Body*> bodies;
+};
+
 
 typedef std::vector<Platform> Platforms;
 typedef std::vector<Ladder> Ladders;
 typedef std::vector<Crate> Crates;
+typedef std::vector<Bridge> Bridges;

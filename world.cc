@@ -14,8 +14,8 @@ namespace {
 	static const unsigned MAX_POWERUPS = 4; // Maximum number of simultaneous power-ups
 	static const float offset = 50.0; // For spawning things away from borders
 
-	enum ElementType { NONE, WATER, PLATFORM, LADDER, CRATE, POWERUP, ACTOR, MINE };
-	static ElementType ElementTypes[] = { NONE, WATER, PLATFORM, LADDER, CRATE, POWERUP, ACTOR, MINE };
+	enum ElementType { NONE, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
+	static ElementType ElementTypes[] = { NONE, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
 	struct WorldElement {
 		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
 		ElementType type;
@@ -255,6 +255,50 @@ void World::addCrate(float x, float y) {
 }
 
 
+void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
+	static const int segments = 20;
+	float x1 = leftAnchor.getX() + leftAnchor.getW() * 0.5f;
+	float y1 = leftAnchor.getY() - leftAnchor.getH() * 0.5f + tilesize * 0.1f;
+	float x2 = rightAnchor.getX() - rightAnchor.getW() * 0.5f;
+	float y2 = rightAnchor.getY() - rightAnchor.getH() * 0.5f + tilesize * 0.1f;
+	float segmentW = distance(x1,y1,x2,y2) / segments;
+	float xstep = (x2-x1) / segments;
+	float ystep = (y2-y1) / segments;
+	Bridge bridge(0, 0, tilesize);
+
+	b2PolygonShape shape;
+	shape.SetAsBox(segmentW * 0.5f, 0.05f * tilesize);
+
+	b2FixtureDef fd;
+	fd.shape = &shape;
+	fd.density = 1.0f;
+	fd.friction = 3.0f;
+
+	b2RevoluteJointDef jd;
+
+	b2Body* prevBody = leftAnchor.getBody();
+	for (int32 i = 0; i < segments; ++i) {
+		b2BodyDef bd;
+		bd.type = b2_dynamicBody;
+		bd.position.Set(x1 + xstep * i + segmentW * 0.5f, y1 + ystep * i);
+		b2Body* body = world.CreateBody(&bd);
+		body->SetUserData(&ElementTypes[BRIDGE]);
+		body->CreateFixture(&fd);
+
+		b2Vec2 anchor(x1 + xstep * i, y1 + ystep * i);
+		jd.Initialize(prevBody, body, anchor);
+		world.CreateJoint(&jd);
+
+		bridge.bodies.push_back(body);
+		prevBody = body;
+	}
+
+	jd.Initialize(prevBody, rightAnchor.getBody(), b2Vec2(x2, y2));
+	world.CreateJoint(&jd);
+	bridges.push_back(bridge);
+}
+
+
 void World::addPowerup(float x, float y, Powerup::Type type) {
 	if (powerups.size() >= MAX_POWERUPS) return;
 	PowerupEntity pw(type, texture_powerups);
@@ -314,6 +358,7 @@ void World::generate() {
 		for (int i = xoff + 6*tilesize; i < w - xoff - 6*tilesize; i += 7*tilesize) {
 			addPlatform(i + randf(-2*tilesize,2*tilesize), j + randf(tilesize,tilesize), randint(2,6));
 		}
+		addBridge(*(platforms.end()-2), platforms.back());
 	}
 	//for (int i = 0; i < 4; i++) {
 		//addLadder(randint(0,w), randint(0,h), randint(2,6));
@@ -403,7 +448,7 @@ void World::update() {
 					}
 					ce->other->SetUserData(&ElementTypes[ACTOR]);
 				// Ground
-				} else if ((et == PLATFORM || et == CRATE)
+				} else if ((et == PLATFORM || et == CRATE || et == BRIDGE)
 				  && it->getY() < ce->other->GetPosition().y) it->airborne = false;
 			}
 			if (!it->airborne) {
@@ -417,7 +462,8 @@ void World::update() {
 			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * grav_mult), b->GetWorldCenter());
 			// AI
 			if (it->type == Actor::AI) it->brains();
-		}
+		} //< End of Actors loop
+
 		// Crates
 		for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
 			b2Body* b = it->getBody();
@@ -695,6 +741,10 @@ void World::draw() const {
 	}
 	// Platforms
 	for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
+		it->draw();
+	}
+	// Bridges
+	for (Bridges::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
 		it->draw();
 	}
 	// Crates

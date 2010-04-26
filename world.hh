@@ -37,6 +37,7 @@ class World {
 	void addPlatform(float x, float y, float w);
 	void addLadder(float x, float y, float h);
 	void addCrate(float x, float y);
+	void addBridge(Platform& leftAnchor, Platform& rightAnchor);
 	void addPowerup(float x, float y, Powerup::Type type);
 
 	void generate();
@@ -73,6 +74,7 @@ class World {
 	Platforms platforms;
 	Ladders ladders;
 	Crates crates;
+	Bridges bridges;
 	Powerups powerups;
 	Countdown timer_powerup;
 };
