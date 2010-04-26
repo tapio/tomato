@@ -22,7 +22,7 @@ namespace {
 		void* ptr;
 	};
 	// This class captures the closest hit shape.
-	struct RayCastCallback : public b2RayCastCallback {
+	struct RayCastCallback: public b2RayCastCallback {
 		RayCastCallback(): m_fixture(NULL) { }
 		float32 ReportFixture(b2Fixture* fixture, const b2Vec2& point,
 							  const b2Vec2& normal, float32 fraction) {
@@ -36,6 +36,13 @@ namespace {
 		b2Vec2 m_point;
 		b2Vec2 m_normal;
 		float32 m_fraction;
+	};
+	// Checks for AABB collisions
+	struct AABBQueryCallback: public b2QueryCallback {
+		AABBQueryCallback(): m_fixture(NULL) { }
+		bool ReportFixture(b2Fixture* fixture) { m_fixture = fixture; return false; }
+		bool operator()() {return (m_fixture); }
+		b2Fixture* m_fixture;
 	};
 }
 
@@ -189,11 +196,19 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* cli
 }
 
 
-void World::addPlatform(float x, float y, float w) {
+bool World::addPlatform(float x, float y, float w) {
+	// Test for overlap
+	b2AABB aabb;
+	aabb.lowerBound = b2Vec2(x - tilesize, y - tilesize);
+	aabb.upperBound = b2Vec2(x + w * tilesize + tilesize, y + tilesize + tilesize);
+	AABBQueryCallback qc;
+	world.QueryAABB(&qc, aabb);
+	if (qc()) return false;
+
 	Platform p(w, texture_ground, 0, tilesize);
 	// Create body
 	b2BodyDef bodyDef;
-	bodyDef.position.Set(x + w/2 * tilesize, y + tilesize*0.5f);
+	bodyDef.position = aabb.GetCenter();
 	//bodyDef.position.Set(x, y);
 	p.body = world.CreateBody(&bodyDef);
 	p.body->SetUserData(&ElementTypes[PLATFORM]);
@@ -207,6 +222,7 @@ void World::addPlatform(float x, float y, float w) {
 	p.body->CreateFixture(&fixtureDef);
 	p.buildVertices();
 	platforms.push_back(p);
+	return true;
 }
 
 
@@ -356,7 +372,7 @@ void World::generate() {
 	// Create rest of platforms
 	for (int j = yoff; j < h - water_height - yoff; j += 4*tilesize) {
 		for (int i = xoff + 6*tilesize; i < w - xoff - 6*tilesize; i += 7*tilesize) {
-			addPlatform(i + randf(-2*tilesize,2*tilesize), j + randf(tilesize,tilesize), randint(2,6));
+			while (!addPlatform(i + randf(-3*tilesize,3*tilesize), j + randf(-tilesize,tilesize), randint(2,6)));
 		}
 		addBridge(*(platforms.end()-2), platforms.back());
 	}
