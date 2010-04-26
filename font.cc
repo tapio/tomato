@@ -16,13 +16,13 @@ void buildFonts()
 
 			glNewList(font_base + (y*16+x), GL_COMPILE);
 				glBegin(GL_QUADS);
-					glTexCoord2f(cx, 1 - cy - 0.0625);
-					glVertex2i(0, 16);
-					glTexCoord2f(cx + 0.0625, 1 - cy - 0.0625);
-					glVertex2i(16, 16);
-					glTexCoord2f(cx + 0.0625, 1 - cy);
+					glTexCoord2f(cx, 1 - cy - 0.0625 + 2*0.0039);
+					glVertex2i(0, 16-2);
+					glTexCoord2f(cx + 0.0625, 1 - cy - 0.0625 + 2*0.0039);
+					glVertex2i(16, 16-2);
+					glTexCoord2f(cx + 0.0625, 1 - cy - 0.0039);
 					glVertex2i(16, 0);
-					glTexCoord2f(cx, 1 - cy);
+					glTexCoord2f(cx, 1 - cy - 0.0039);
 					glVertex2i(0, 0);
 				glEnd();
 				glTranslated(10, 0, 0);	// 10 really advance, fix when converting to arrays
@@ -46,10 +46,16 @@ void drawText(GLuint texture, Color color, const float x, const float y, const s
 		xx = x - textlen; yy = y;
 	}
 	
+	// UTF-8 skandinavian character hack
+
+
 	glEnable(GL_TEXTURE_2D);
 	glColor4f(color.r, color.g, color.b, color.a);
 	glBlendFunc(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
 	glPushMatrix();
 	glTranslatef(xx, yy, 0);
