@@ -3,11 +3,8 @@ To Be Fixed
 ----------
 * Hangs / crashes at exit (SDL_Quit, anything on Windows)
 * Level generator
-	- No overlapping platforms, not too close (y-dir)
 	- Ladder generation
-	- Ladders out from water
 * Fix speed / input delays constant for all platforms
-* Jumping is b0rked (can change direction mid air)
 
 Main Goals
 ----------
@@ -22,8 +19,7 @@ Main Goals
 
 Physics fun
 -----------
-* Bridges (soft)
-* Ropes
+* Ropes?
 * Soft-body tomatoes?
 * Particle-based water?
 
