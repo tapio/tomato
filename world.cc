@@ -8,6 +8,11 @@
 #include "texture.hh"
 #include "powerups.hh"
 
+#ifdef USE_THREADS
+	#define LOCKMUTEX boost::mutex::scoped_lock lock(mutex)
+#else
+	#define LOCKMUTEX
+#endif
 
 namespace {
 
@@ -104,6 +109,7 @@ Actor* World::shoot(const Actor& shooter) {
 	b2Vec2 unitdir(shooter.dir, 0);
 	b2Vec2 point1 = shooter.getBody()->GetWorldCenter() + 1.5 * shooter.getSize() * unitdir;
 	b2Vec2 point2 = shooter.getBody()->GetWorldCenter() + w * unitdir;
+	LOCKMUTEX;
 	world.RayCast(&callback, point1, point2);
 
 	if (!callback.m_fixture) return NULL;
@@ -147,12 +153,19 @@ b2Vec2 World::randomSpawn() const {
 }
 
 
+b2Vec2 World::randomSpawnLocked() const {
+	LOCKMUTEX;
+	return randomSpawn();
+}
+
+
 void World::addMine(float x, float y) {
 	float minew = tilesize * 0.4f;
 	float mineh = tilesize * 0.2f;
 	// Create body
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x, y);
+	LOCKMUTEX;
 	b2Body* body = world.CreateBody(&bodyDef);
 	body->SetUserData(&ElementTypes[MINE]);
 	// Create shape
@@ -169,9 +182,7 @@ void World::addMine(float x, float y) {
 void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* client) {
 	if (tex == 0) tex = texture_player;
 	Actor* actor;
-	#ifdef USE_THREADS
-	boost::mutex::scoped_lock l(mutex);
-	#endif
+	LOCKMUTEX;
 	if (client) actor = new OnlinePlayer(client, tex, type);
 	else actor = new Actor(tex, type);
 	// Define the dynamic body. We set its position and call the body factory.
@@ -203,6 +214,7 @@ bool World::addPlatform(float x, float y, float w) {
 	aabb.lowerBound = b2Vec2(x - tilesize, y - tilesize);
 	aabb.upperBound = b2Vec2(x + w * tilesize + tilesize, y + tilesize + tilesize);
 	AABBQueryCallback qc;
+	LOCKMUTEX;
 	world.QueryAABB(&qc, aabb);
 	if (qc()) return false;
 
@@ -232,6 +244,7 @@ void World::addLadder(float x, float y, float h) {
 	// Create body
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x + tilesize*0.5f, y + h/2 * tilesize);
+	LOCKMUTEX;
 	l.body = world.CreateBody(&bodyDef);
 	l.body->SetUserData(&ElementTypes[LADDER]);
 	// Create shape
@@ -254,6 +267,7 @@ void World::addCrate(float x, float y) {
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.position.Set(x, y);
+	LOCKMUTEX;
 	cr.body = world.CreateBody(&bodyDef);
 	cr.body->SetUserData(&ElementTypes[CRATE]);
 
@@ -293,8 +307,8 @@ void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
 	fd.friction = 3.0f;
 
 	b2RevoluteJointDef jd;
-
 	b2Body* prevBody = leftAnchor.getBody();
+	LOCKMUTEX;
 	for (int32 i = 0; i < segments; ++i) {
 		b2BodyDef bd;
 		bd.type = b2_dynamicBody;
@@ -325,6 +339,7 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.position.Set(x, y);
 	bodyDef.fixedRotation = true;
+	LOCKMUTEX;
 	pw.body = world.CreateBody(&bodyDef);
 	pw.body->SetUserData(&ElementTypes[POWERUP]);
 
@@ -404,11 +419,9 @@ void World::update() {
 	int32 velocityIterations = 10;
 	int32 positionIterations = 10;
 
-	#ifdef USE_THREADS
 	double t = GetSecs();
 	{
-		boost::mutex::scoped_lock l(mutex);
-	#endif
+		LOCKMUTEX;
 
 		// Instruct the world to perform a single step of simulation.
 		// It is generally best to keep the time step and iterations fixed.
@@ -523,13 +536,13 @@ void World::update() {
 			}
 			++pu;
 		}
-		// Create power-ups
-		if (timer_powerup() && is_master) {
-			addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
-			timer_powerup = Countdown(randf(5.0f, 8.0f));
-		}
-	#ifdef USE_THREADS
 	} //< Mutex
+	// Create power-ups
+	if (timer_powerup() && is_master) {
+		addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
+		timer_powerup = Countdown(randf(5.0f, 8.0f));
+	}
+	#ifdef USE_THREADS
 	// TODO: Hackish
 	t = GetSecs() - t;
 	int tt = (timeStep - t - 0.001) * 0.5 * 1000;
@@ -539,9 +552,7 @@ void World::update() {
 
 
 std::string World::serialize(bool skip_static) const {
-	#ifdef USE_THREADS
-	boost::mutex::scoped_lock l(mutex);
-	#endif
+	LOCKMUTEX;
 	std::string data = "";
 	// Players
 	if (actors.size() > 0) {
@@ -609,18 +620,13 @@ void World::update(std::string data, Client* client) {
 				addActor(10, 10, me ? Actor::HUMAN : Actor::REMOTE, 0, me ? client : NULL);
 			}
 		}
-		#ifdef USE_THREADS
-		boost::mutex::scoped_lock l(mutex);
-		#endif
+		LOCKMUTEX;
 		// Update
 		for (Actors::iterator it = actors.begin(); it != actors.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
 			std::string itemdata(&data[pos], sizeof(SerializedEntity));
 			it->unserialize(itemdata);
 		}
 	}
-	#ifdef USE_THREADS
-	boost::mutex::scoped_lock l(mutex);
-	#endif
 	if (data[pos] == CRATE) {
 		int items = data[pos+1];
 		int cnt = 0; pos += 2;
@@ -629,6 +635,7 @@ void World::update(std::string data, Client* client) {
 		if (createnew > 0) {
 			for (int i = 0; i < createnew; ++i) addCrate(randint(0,w), randint(0,h));
 		}
+		LOCKMUTEX;
 		// Update position etc.
 		for (Crates::iterator it = crates.begin(); it != crates.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
 			std::string itemdata(&data[pos], sizeof(SerializedEntity));
@@ -644,12 +651,14 @@ void World::update(std::string data, Client* client) {
 			for (int i = 0; i < createnew; ++i) addPowerup(randint(0,w), randint(0,h),
 			  Powerup::PowerupTypes[(int)data[sizeof(SerializedEntity)-2]]);
 		} else if (createnew < 0) { // Delete old ones
+			LOCKMUTEX;
 			for (int i = 0; i < -createnew; ++i) {
 				Powerups::iterator it = powerups.end()-1;
 				world.DestroyBody(it->getBody());
 				powerups.erase(it);
 			}
 		}
+		LOCKMUTEX;
 		// Update position etc.
 		for (Powerups::iterator it = powerups.begin(); it != powerups.end() && cnt < items; ++it, ++cnt, pos += sizeof(SerializedEntity)) {
 			std::string itemdata(&data[pos], sizeof(SerializedEntity));
@@ -661,6 +670,7 @@ void World::update(std::string data, Client* client) {
 	if (data[pos] == PLATFORM) {
 		int items = data[pos+1];
 		pos += 2;
+		LOCKMUTEX;
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
 			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
@@ -670,6 +680,7 @@ void World::update(std::string data, Client* client) {
 	if (data[pos] == LADDER) {
 		int items = data[pos+1];
 		pos += 2;
+		LOCKMUTEX;
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
 			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
@@ -687,9 +698,7 @@ void World::updateViewport() {
 	float x1 = w, y1 = h, x2 = 0, y2 = 0;
 	float ar = w / float(h);
 	{
-		#ifdef USE_THREADS
-		boost::mutex::scoped_lock l(mutex);
-		#endif
+		LOCKMUTEX;
 		for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
 			// Calculate viewport borders
 			b2Vec2 itpos = it->getBody()->GetWorldCenter();
@@ -728,9 +737,7 @@ void World::updateViewport() {
 	x2 = lerp(view_bottomright.x, x2, lerp_speed);
 	y2 = lerp(view_bottomright.y, y2, lerp_speed);
 	{
-		#ifdef USE_THREADS
-		boost::mutex::scoped_lock l(mutex);
-		#endif
+		LOCKMUTEX;
 		// Set the coords
 		view_topleft.x     = x1; view_topleft.y     = y1;
 		view_bottomright.x = x2; view_bottomright.y = y2;
@@ -739,16 +746,13 @@ void World::updateViewport() {
 
 
 void World::draw() const {
-	#ifdef USE_THREADS
-	boost::mutex::scoped_lock l(mutex);
-	#endif
-
-	// Magic zooming viewport
-	glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluOrtho2D(view_topleft.x, view_bottomright.x, view_bottomright.y, view_topleft.y);
-	glMatrixMode(GL_MODELVIEW);
-
+	{ // Magic zooming viewport
+		LOCKMUTEX;
+		glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			gluOrtho2D(view_topleft.x, view_bottomright.x, view_bottomright.y, view_topleft.y);
+		glMatrixMode(GL_MODELVIEW);
+	}
 	{ // Background
 		static const int texsize = 256;
 		CoordArray v_arr, t_arr;
@@ -764,31 +768,35 @@ void World::draw() const {
 				t_arr.insert(t_arr.end(), &tex_square[0], &tex_square[8]);
 			}
 		}
+		LOCKMUTEX;
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture_background);
 	}
-	// Ladders
-	for (Ladders::const_iterator it = ladders.begin(); it != ladders.end(); ++it) {
-		it->draw();
-	}
-	// Platforms
-	for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
-		it->draw();
-	}
-	// Bridges
-	for (Bridges::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
-		it->draw();
-	}
-	// Crates
-	for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
-		it->draw();
-	}
-	// Players
-	for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
-		if (!it->is_dead() && !it->invisible) it->draw();
-	}
-	// Power-ups
-	for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
-		it->draw();
+	{
+		LOCKMUTEX;
+		// Ladders
+		for (Ladders::const_iterator it = ladders.begin(); it != ladders.end(); ++it) {
+			it->draw();
+		}
+		// Platforms
+		for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
+			it->draw();
+		}
+		// Bridges
+		for (Bridges::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
+			it->draw();
+		}
+		// Crates
+		for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
+			it->draw();
+		}
+		// Players
+		for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
+			if (!it->is_dead() && !it->invisible) it->draw();
+		}
+		// Power-ups
+		for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
+			it->draw();
+		}
 	}
 	{ // Water
 		CoordArray v_arr, t_arr;
@@ -802,6 +810,7 @@ void World::draw() const {
 			v_arr.insert(v_arr.end(), &verts[0], &verts[8]);
 			t_arr.insert(t_arr.end(), &tex_square[0], &tex_square[8]);
 		}
+		LOCKMUTEX;
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture_water);
 	}
 }

@@ -59,7 +59,7 @@ void Powerup::action(Actor* owner) {
 		ammo--;
 	} else if (type == TELEPORT) {
 		owner->getBody()->SetLinearVelocity(b2Vec2());
-		owner->getBody()->SetTransform(owner->getWorld()->randomSpawn(), 0);
+		owner->getBody()->SetTransform(owner->getWorld()->randomSpawnLocked(), 0);
 		ammo--;
 	}
 }
