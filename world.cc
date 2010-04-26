@@ -602,7 +602,7 @@ void World::updateViewport() {
 	// Magick zooming camera variables
 	static const float xmargin = 300.0f;
 	static const float ymargin = 150.0f;
-	static const float lerp_speed = 0.01;
+	static const float lerp_speed = 0.03;
 	float x1 = w, y1 = h, x2 = 0, y2 = 0;
 	float ar = w / float(h);
 	{
