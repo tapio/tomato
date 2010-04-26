@@ -42,10 +42,11 @@ void handle_keys(Players& players) {
 			if (k == SDLK_ESCAPE) { QUIT = true; return; }
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (it->type != Actor::HUMAN) continue;
-				if (k == it->KEY_LEFT) it->move(-1);
-				else if (k == it->KEY_RIGHT) it->move(1);
-				if (k == it->KEY_UP) it->jump();
-				else if (k == it->KEY_DOWN) it->duck();
+				if (k == it->KEY_LEFT) it->key_left = true;
+				else if (k == it->KEY_RIGHT) it->key_right = true;
+				if (k == it->KEY_UP) it->key_up = true;
+				else if (k == it->KEY_DOWN) it->key_down = true;
+				// Action button doesn't require state tracking
 				if (k == it->KEY_ACTION) it->action();
 			}
 			break;
@@ -54,12 +55,21 @@ void handle_keys(Players& players) {
 			int k = event.key.keysym.sym;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
 				if (it->type != Actor::HUMAN) continue;
-				if (k == it->KEY_UP || k == it->KEY_DOWN) it->end_jumping();
-				if (k == it->KEY_LEFT || k == it->KEY_RIGHT) it->stop();
+				if (k == it->KEY_UP) { if (it->key_up) it->end_jumping(); it->key_up = false; }
+				if (k == it->KEY_DOWN) { if (it->key_down) it->end_jumping(); it->key_down = false; }
+				if (k == it->KEY_LEFT) { if (it->key_left) it->stop(); it->key_left = false; }
+				if (k == it->KEY_RIGHT) { if (it->key_right) it->stop(); it->key_right = false; }
 			}
 			break;
 		}
 		} // end switch
+	}
+	for (Players::iterator it = players.begin(); it != players.end(); ++it) {
+		if (it->type != Actor::HUMAN) continue;
+		if (it->key_left) it->move(-1);
+		else if (it->key_right) it->move(1);
+		if (it->key_up) it->jump();
+		else if (it->key_down) it->duck();
 	}
 }
 

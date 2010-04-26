@@ -26,8 +26,9 @@ class Actor: public Entity {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex),
-	  type(t), points(0), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), powerup(),
+	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex), type(t),
+	  key_up(), key_down(), key_left(), key_right(), key_action(),
+	  points(0), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), powerup(),
 	  invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
@@ -144,6 +145,12 @@ class Actor: public Entity {
 	int KEY_LEFT;
 	int KEY_RIGHT;
 	int KEY_ACTION;
+
+	bool key_up;
+	bool key_down;
+	bool key_left;
+	bool key_right;
+	bool key_action;
 
 	// Flags / states
 	int points;
