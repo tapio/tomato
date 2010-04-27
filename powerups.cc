@@ -20,7 +20,7 @@ void Powerup::equip(Actor* owner) {
 	else if (type == TELEPORT) { ammo = 2; }
 	else if (type == GUN) { ammo = 3; }
 	else if (type == DOUBLEJUMP) { owner->doublejump = DJUMP_ALLOW; }
-	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.5f); }
+	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.1f); }
 	else if (type == LOGRAV) { time = 10; owner->lograv = true; }
 	lifetime = Countdown(time);
 }

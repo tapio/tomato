@@ -104,7 +104,10 @@ void setup_gl() {
 #ifdef USE_THREADS
 void updateKeys(Players& players) {
 	#ifndef WIN32 // SDL needs the keys to be in the main thread on Windows platform
-	while (!QUIT) { handle_keys(players); }
+	while (!QUIT) {
+		handle_keys(players);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+	}
 	#endif
 }
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
@@ -157,10 +160,10 @@ bool main_loop(bool is_client, std::string host, int port) {
 		#if defined(WIN32) || !defined(USE_THREADS) // SDL needs the keys to be in the main thread on Windows platform
 		handle_keys(players);
 		#endif
-		#ifndef USE_THREADS
+		#if !defined(USE_THREADS)
 		world.update();
 		world.updateViewport();
-		#else
+		#elif !defined(WIN32)
 		// Max ~ 100 fps is enough for graphics
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif

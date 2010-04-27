@@ -13,6 +13,7 @@
 #include "network.hh"
 
 #define PLAYER_RESTITUTION 0.25f
+#define PLAYER_FRICTION 0.05f
 
 #define speed_move_ground 2.5f
 #define speed_move_airborne (speed_move_ground / 3.0f * 2.0f)
@@ -29,7 +30,7 @@ class Actor: public Entity {
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(tex), type(t),
 	  key_up(), key_down(), key_left(), key_right(), key_action(),
 	  points(0), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), jump_dir(0),
-	  keypenalty(0), powerup(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
+	  wallpenalty(0), powerup(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
 	void brains() {
@@ -50,7 +51,6 @@ class Actor: public Entity {
 	virtual void move(int direction) {
 		if (reversecontrols) direction = -direction;
 		if (direction != dir) { dir = direction; return; }
-		if (!keypenalty()) return;
 		if (direction == dir || can_jump()) {
 			// Calc base speed depending on state
 			float speed = airborne ? speed_move_airborne : speed_move_ground;
@@ -66,12 +66,13 @@ class Actor: public Entity {
 			else if (!airborne || ladder != LADDER_NO) jump_dir = 0;
 			// If airborne, only slow down the existing speed if trying to turn
 			if (airborne && jump_dir != 0 && direction != jump_dir) {
-				body->ApplyForce(b2Vec2(direction * 0.005, 0), body->GetWorldCenter());
+				body->ApplyForce(b2Vec2(direction * 3, 0), body->GetWorldCenter());
 			} else {
 				// Don't kill existing higher velocity
 				if (direction == dir && std::abs(v.x) > std::abs(speed)) speed = v.x;
 				// Set the speed
-				body->SetLinearVelocity(b2Vec2(speed, v.y));
+				//body->SetLinearVelocity(b2Vec2(speed, v.y));
+				if (std::abs(v.x) < std::abs(speed)) body->ApplyForce(b2Vec2(speed * 5, 0), body->GetWorldCenter());
 			}
 		}
 		anim_frame = int(GetSecs()*15) % 4;
@@ -172,7 +173,7 @@ class Actor: public Entity {
 	enum Ladder { LADDER_NO, LADDER_ROOT, LADDER_YES, LADDER_CLIMBING } ladder;
 	int jumping;
 	int jump_dir;
-	Countdown keypenalty;
+	Countdown wallpenalty;
 	Powerup powerup;
 
 	// Power-up attributes

@@ -199,7 +199,7 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* cli
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
 	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
-	fixtureDef.friction = 0.25f; // Friction
+	fixtureDef.friction = PLAYER_FRICTION; // Friction
 	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
 	actor->getBody()->CreateFixture(&fixtureDef);
@@ -278,7 +278,7 @@ void World::addCrate(float x, float y) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 2.0f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.restitution = 0.05f;
 	cr.getBody()->CreateFixture(&fixtureDef);
 
@@ -351,7 +351,8 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &shape;
 	fixtureDef.density = 0.1f; // Set the density to be non-zero, so it will be dynamic.
-	fixtureDef.restitution = 1.0f; // Full bounciness
+	fixtureDef.restitution = 1.0001f; // Over-full bounciness
+	fixtureDef.friction = 0.0f; // No friction
 	pw.getBody()->CreateFixture(&fixtureDef);
 
 	// Set a random velocity
@@ -485,7 +486,7 @@ void World::update() {
 				// Ground
 				} else if (et == PLATFORM || et == CRATE || et == BRIDGE) {
 					if (it->getY() < ce->other->GetPosition().y) it->airborne = false;
-					if (et == PLATFORM && it->getY() > ce->other->GetPosition().y - tilesize*0.666f)
+					if (et == PLATFORM && it->getY() > ce->other->GetPosition().y - tilesize*0.4f - it->getSize())
 						hitwall = true;
 				// Border
 				} else if (et == BORDER) hitwall = true;
@@ -496,11 +497,16 @@ void World::update() {
 				if (it->doublejump == DJUMP_JUMPED) it->doublejump = DJUMP_ALLOW;
 			}
 			if (climbing && it->ladder == Actor::LADDER_YES) it->ladder = Actor::LADDER_CLIMBING;
+			b2Body* b = it->getBody();
 			// Handle wall hit
-			if (hitwall && it->ladder != Actor::LADDER_CLIMBING) it->keypenalty = Countdown(0.5);
+			if (hitwall && it->ladder != Actor::LADDER_CLIMBING) {
+				it->wallpenalty = Countdown(0.25);
+				b->GetFixtureList()->SetFriction(0.0);
+			} else if (it->wallpenalty() && b->GetFixtureList()->GetFriction() != PLAYER_FRICTION) {
+				b->GetFixtureList()->SetFriction(PLAYER_FRICTION);
+			}
 			// Gravity
 			float grav_mult = (it->lograv ? 0.1 : 1.0) * (it->ladder == Actor::LADDER_CLIMBING ? 0.0 : 1.0);
-			b2Body* b = it->getBody();
 			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * grav_mult), b->GetWorldCenter());
 			// AI
 			if (it->type == Actor::AI) it->brains();
