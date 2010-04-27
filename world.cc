@@ -19,8 +19,9 @@ namespace {
 	static const unsigned MAX_POWERUPS = 4; // Maximum number of simultaneous power-ups
 	static const float offset = 3.0; // For spawning things away from borders
 
-	enum ElementType { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
-	static ElementType ElementTypes[] = { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
+	enum ElementType   { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
+	static ElementType
+	  ElementTypes[] = { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
 	struct WorldElement {
 		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
 		ElementType type;
@@ -208,15 +209,17 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* cli
 }
 
 
-bool World::addPlatform(float x, float y, float w) {
+bool World::addPlatform(float x, float y, float w, bool force) {
 	// Test for overlap
 	b2AABB aabb;
 	aabb.lowerBound = b2Vec2(x - tilesize, y - tilesize);
 	aabb.upperBound = b2Vec2(x + w * tilesize + tilesize, y + tilesize + tilesize);
-	AABBQueryCallback qc;
 	LOCKMUTEX;
-	world.QueryAABB(&qc, aabb);
-	if (qc()) return false;
+	if (!force) {
+		AABBQueryCallback qc;
+		world.QueryAABB(&qc, aabb);
+		if (qc()) return false;
+	}
 
 	Platform p(w, texture_ground, 0, tilesize);
 	// Create body
@@ -286,7 +289,9 @@ void World::addCrate(float x, float y) {
 }
 
 
-void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
+void World::addBridge(unsigned leftAnchorID, unsigned rightAnchorID) {
+	Platform leftAnchor = platforms.at(leftAnchorID);
+	Platform rightAnchor = platforms.at(rightAnchorID);
 	float segmentW = 0.5f * tilesize;
 	float x1 = leftAnchor.getX() + leftAnchor.getW() * 0.5f - segmentW * 0.5f;
 	float y1 = leftAnchor.getY() - leftAnchor.getH() * 0.5f + tilesize * 0.1f;
@@ -296,7 +301,7 @@ void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
 	segmentW = distance(x1,y1,x2,y2) / segments;
 	float xstep = (x2-x1) / segments;
 	float ystep = (y2-y1) / segments;
-	Bridge bridge(0, 0, tilesize);
+	Bridge bridge(leftAnchorID, rightAnchorID, 0, 0, tilesize);
 
 	b2PolygonShape shape;
 	shape.SetAsBox(segmentW * 0.5f, 0.05f * tilesize);
@@ -397,7 +402,7 @@ void World::generate() {
 		}
 		if (count > 1) {
 			count = randint(count-1);
-			addBridge(*(platforms.end()-count-2), *(platforms.end()-count-1));
+			addBridge(platforms.size()-count-2, platforms.size()-count-1);
 		}
 	}
 	//for (int i = 0; i < 4; i++) {
@@ -610,9 +615,8 @@ std::string World::serialize(bool skip_static) const {
 			data += std::string(1, BRIDGE);
 			data += std::string(1, (char)bridges.size());
 			for (Bridges::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
-				// TODO: Implement
-				//std::string temp(it->serialize(), sizeof(SerializedEntity));
-				//data += temp;
+				std::string temp(it->serialize(), sizeof(SerializedEntity));
+				data += temp;
 			}
 		}
 	}
@@ -687,7 +691,7 @@ void World::update(std::string data, Client* client) {
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
 			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
-			addPlatform(se->x - se->vx / 2 * tilesize, se->y - tilesize*0.5f, se->vx);
+			addPlatform(se->x - se->vx / 2 * tilesize, se->y - tilesize*0.5f, se->vx, true);
 		}
 	}
 	if (data[pos] == LADDER) {
@@ -704,9 +708,8 @@ void World::update(std::string data, Client* client) {
 		pos += 2;
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
-			//SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
-			// TODO: Implement
-			//addBridge();
+			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
+			addBridge(se->id, se->type);
 		}
 	}
 }

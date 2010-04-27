@@ -15,7 +15,7 @@ void Server::listen() {
 		case ENET_EVENT_TYPE_CONNECT: {
 			std::cout << "Client connected from " << e.peer->address.host << ":" << e.peer->address.port << std::endl;
 			// TODO: Proper generation
-			m_world->addActor(4, 2, Actor::REMOTE);
+			m_world->addActor(4, 4, Actor::REMOTE);
 			e.peer->data = &m_world->getActors().back();
 			{ // Send starting info
 				std::string msg = "  ";
