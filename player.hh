@@ -74,7 +74,7 @@ class Actor: public Entity {
 				body->SetLinearVelocity(b2Vec2(speed, v.y));
 			}
 		}
-		anim_frame = (anim_frame + 1) % 4;
+		anim_frame = int(GetSecs()*15) % 4;
 		dir = direction;
 	}
 
@@ -82,6 +82,7 @@ class Actor: public Entity {
 		if (!airborne || ladder == LADDER_CLIMBING) {
 			body->SetLinearVelocity(b2Vec2(0.0f, body->GetLinearVelocity().y));
 		}
+		anim_frame = 0;
 	}
 
 	virtual void jump(bool forcejump = false) {
