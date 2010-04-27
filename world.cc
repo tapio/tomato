@@ -310,6 +310,7 @@ void World::addBridge(unsigned leftAnchorID, unsigned rightAnchorID) {
 	fd.shape = &shape;
 	fd.density = 1.0f;
 	fd.friction = 3.0f;
+	fd.filter.categoryBits = 0x0002;
 
 	b2RevoluteJointDef jd;
 	b2Body* prevBody = leftAnchor.getBody();
@@ -358,6 +359,7 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 	fixtureDef.density = 0.1f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.restitution = 1.0001f; // Over-full bounciness
 	fixtureDef.friction = 0.0f; // No friction
+	fixtureDef.filter.maskBits = 0xFFFD;
 	pw.getBody()->CreateFixture(&fixtureDef);
 
 	// Set a random velocity
