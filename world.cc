@@ -281,7 +281,7 @@ void World::addCrate(float x, float y) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.density = 2.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 1.5f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.restitution = 0.05f;
 	cr.getBody()->CreateFixture(&fixtureDef);
 
@@ -733,11 +733,11 @@ void World::updateViewport() {
 			if (itpos.y > y2) y2 = itpos.y;
 		}
 	}
-	// Add borders and clamp box to screen size
-	x1 = clamp(x1 - xmargin, 0.0f, w);
-	x2 = clamp(x2 + xmargin, 0.0f, w);
-	y1 = clamp(y1 - ymargin, 0.0f, h);
-	y2 = clamp(y2 + ymargin, 0.0f, h);
+	// Add margins and clamp box to world
+	x1 -= xmargin; x2 += xmargin;
+	y1 -= ymargin; y2 += ymargin;
+	if (x2 - x1 >= w) { x1 = 0; x2 = w; }
+	if (y2 - y1 >= h) { y1 = 0; y2 = h; }
 	// Correct aspect ratio
 	float boxw = (x2-x1), boxh = (y2-y1);
 	if (boxh > boxw / ar) boxw = boxh * ar;

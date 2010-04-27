@@ -137,7 +137,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#endif
 		world.addActor(scrW/16-100, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
 		world.addActor(scrW/16-150, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(100/16, scrH/32, Actor::AI, tm.find("tomato")->second);
+		//world.addActor(100/16, scrH/32, Actor::AI, tm.find("tomato")->second);
 	}
 
 	Players& players = world.getActors();
