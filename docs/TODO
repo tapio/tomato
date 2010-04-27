@@ -1,12 +1,9 @@
 
 To Be Fixed
 ----------
-* Network game is b0rked
-* Networking hangs on exit
-* Bridges are not serialized / handled in networking
 * Hangs / crashes at exit (SDL_Quit, anything on Windows)
-* Fix speed / input delays constant for all platforms
 * Some ladders needed to the middle of the level
+* Fix speed / input delays constant for all platforms
 
 Main Goals
 ----------
