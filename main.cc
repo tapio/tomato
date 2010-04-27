@@ -17,6 +17,7 @@
 #include <GL/glu.h>
 #include <SDL.h>
 
+#include "GLFT_Font.hh"
 #include "util.hh"
 #include "filesystem.hh"
 #include "player.hh"
@@ -78,6 +79,7 @@ void flip() {
 	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
+	glColor4f(1,1,1,1);
 }
 
 /// OpenGL initialization
@@ -142,6 +144,9 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 	Players& players = world.getActors();
 	parse_keys(players, "keys.conf");
+	// Load font
+	GLFT_Font f;
+	f.open(getFilePath("fonts/FreeSerifBold.ttf"), 16);
 
 	// Launch threads
 	#ifdef USE_THREADS
@@ -168,8 +173,18 @@ bool main_loop(bool is_client, std::string host, int port) {
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
 
-		// Draw
+		// Render world
 		world.draw();
+
+		// Draw UI
+		glEnable(GL_TEXTURE_2D);
+		std::ostringstream oss; int i = 1;
+		for (Players::const_iterator it = players.begin(); it != players.end(); ++it, ++i)
+			oss << "Player " << i << ": " << it->points << "   ";
+		glColor4f(1.0f,0.0f,0.0f,0.75f);
+		f.beginDraw(10, 10) << oss.str() << f.endDraw();
+
+		// Flip
 		flip();
 	}
 	#ifdef USE_NETWORK
