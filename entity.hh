@@ -18,7 +18,7 @@ struct SerializedEntity {
 
 
 struct Entity {
-	Entity(float size, GLuint tex): world(NULL), body(NULL), size(size), texture(tex)
+	Entity(GLuint tex, float size = 0.5f): world(NULL), body(NULL), texture(tex), size(size)
 	{ }
 
 	virtual void draw(int frame = 0, int tiles = 4, bool flipped = false) const {
@@ -54,6 +54,6 @@ struct Entity {
 
 	World* world;
 	b2Body* body;
-	float size;
 	GLuint texture;
+	float size;
 };

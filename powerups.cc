@@ -41,7 +41,7 @@ void Powerup::touch(Actor* owner, Actor* other) {
 		std::cout << "PUNCH" << std::endl;
 		b2Vec2 v = other->getBody()->GetWorldCenter() - owner->getBody()->GetWorldCenter();
 		v.Normalize();
-		other->getBody()->ApplyLinearImpulse(50000.0f * v, other->getBody()->GetWorldCenter());
+		other->getBody()->ApplyLinearImpulse(1.0f * v, other->getBody()->GetWorldCenter());
 	}
 }
 

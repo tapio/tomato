@@ -119,7 +119,7 @@ void updateViewport(World& world) {
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
-	World world(scrW, scrH, tm, !is_client);
+	World world(scrW/32.0, scrH/32.0, tm, !is_client);
 	#ifdef USE_NETWORK
 	Client client(&world);
 
@@ -132,9 +132,9 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#else
 	if (true) {
 	#endif
-		world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
+		world.addActor(scrW/16-100, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(scrW/16-150, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(100/16, scrH/32, Actor::AI, tm.find("tomato")->second);
 	}
 
 	Players& players = world.getActors();
@@ -184,7 +184,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 void server_loop(int port) {
 #ifdef USE_NETWORK
 	TextureMap tm;
-	World world(scrW, scrH, tm);
+	World world(scrW/32.0, scrH/32.0, tm);
 	//Players& players = world.getActors();
 	Server server(&world, port);
 

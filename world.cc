@@ -17,7 +17,7 @@
 namespace {
 
 	static const unsigned MAX_POWERUPS = 4; // Maximum number of simultaneous power-ups
-	static const float offset = 50.0; // For spawning things away from borders
+	static const float offset = 3.0; // For spawning things away from borders
 
 	enum ElementType { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
 	static ElementType ElementTypes[] = { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
@@ -54,8 +54,8 @@ namespace {
 
 World::World(int width, int height, TextureMap& tm, bool master):
   is_master(master), world(b2Vec2(0.0f, 0.0f), true), w(width), h(height),
-  view_topleft(0,0), view_bottomright(w,h),
-  tilesize(32), water_height(64), timer_powerup(randf(4.0f, 7.0f))
+  SCALE(16.0), view_topleft(0,0), view_bottomright(w,h),
+  tilesize(1), water_height(2.5), timer_powerup(randf(4.0f, 7.0f))
 {
 	float hw = w*0.5, hh = h*0.5;
 
@@ -278,7 +278,7 @@ void World::addCrate(float x, float y) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.density = 3.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.restitution = 0.05f;
 	cr.getBody()->CreateFixture(&fixtureDef);
 
@@ -287,7 +287,7 @@ void World::addCrate(float x, float y) {
 
 
 void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
-	float segmentW = 10.0f;
+	float segmentW = 0.5f * tilesize;
 	float x1 = leftAnchor.getX() + leftAnchor.getW() * 0.5f - segmentW * 0.5f;
 	float y1 = leftAnchor.getY() - leftAnchor.getH() * 0.5f + tilesize * 0.1f;
 	float x2 = rightAnchor.getX() - rightAnchor.getW() * 0.5f + segmentW * 0.5f;
@@ -309,7 +309,7 @@ void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
 	b2RevoluteJointDef jd;
 	b2Body* prevBody = leftAnchor.getBody();
 	LOCKMUTEX;
-	for (int32 i = 0; i < segments; ++i) {
+	for (int i = 0; i < segments; ++i) {
 		b2BodyDef bd;
 		bd.type = b2_dynamicBody;
 		bd.position.Set(x1 + xstep * i + segmentW * 0.5f, y1 + ystep * i);
@@ -373,7 +373,7 @@ void World::generate() {
 	int ytilediff = int((y2-y1) / tilesize) + 1;
 	addPlatform(x + tilesize, y1, randint(2,4)); // Top left
 	addPlatform(x, y2, randint(2,4)); // Bottom left
-	addLadder(x, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
+	addLadder(x, y2 - ytilediff * tilesize, ytilediff); // Connect with ladder
 	addLadder(0, y2 - tilesize*0.333f, h - y2); // Left side ladder from water
 
 	float w1 = randint(2,4);
@@ -384,7 +384,7 @@ void World::generate() {
 	ytilediff = int((y2-y1) / tilesize) + 1;
 	addPlatform(x - w1*tilesize - tilesize, y1, w1); // Top right
 	addPlatform(x - w2*tilesize, y2, w2); // Bottom right
-	addLadder(x - tilesize, y2 - ytilediff * tilesize - 1, ytilediff); // Connect with ladder
+	addLadder(x - tilesize, y2 - ytilediff * tilesize, ytilediff); // Connect with ladder
 	addLadder(w - tilesize, y2 - tilesize*0.333f, h - y2); // Right side ladder from water
 	// Create rest of platforms
 	for (int j = yoff; j < h - water_height - yoff; j += 4*tilesize) {
@@ -708,11 +708,11 @@ void World::update(std::string data, Client* client) {
 
 void World::updateViewport() {
 	// Magick zooming camera variables
-	static const float xmargin = 300.0f;
-	static const float ymargin = 150.0f;
+	static const float xmargin = 8.0;
+	static const float ymargin = 4.0f;
 	static const float lerp_speed = 0.03;
 	float x1 = w, y1 = h, x2 = 0, y2 = 0;
-	float ar = w / float(h);
+	float ar = w / h;
 	{
 		LOCKMUTEX;
 		for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
@@ -725,10 +725,10 @@ void World::updateViewport() {
 		}
 	}
 	// Add borders and clamp box to screen size
-	x1 = clamp(x1 - xmargin, 0.0f, float(w));
-	x2 = clamp(x2 + xmargin, 0.0f, float(w));
-	y1 = clamp(y1 - ymargin, 0.0f, float(h));
-	y2 = clamp(y2 + ymargin, 0.0f, float(h));
+	x1 = clamp(x1 - xmargin, 0.0f, w);
+	x2 = clamp(x2 + xmargin, 0.0f, w);
+	y1 = clamp(y1 - ymargin, 0.0f, h);
+	y2 = clamp(y2 + ymargin, 0.0f, h);
 	// Correct aspect ratio
 	float boxw = (x2-x1), boxh = (y2-y1);
 	if (boxh > boxw / ar) boxw = boxh * ar;
@@ -768,9 +768,10 @@ void World::draw() const {
 			glLoadIdentity();
 			gluOrtho2D(view_topleft.x, view_bottomright.x, view_bottomright.y, view_topleft.y);
 		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 	}
 	{ // Background
-		static const int texsize = 256;
+		static const int texsize = 8;
 		CoordArray v_arr, t_arr;
 		for (int j = 0; j < h/texsize + 1; j++) {
 			for (int i = 0; i < w/texsize + 1; i++) {

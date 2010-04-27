@@ -20,7 +20,7 @@
 #include "player.hh"
 #include "worldelements.hh"
 
-#define GRAVITY 45.0f
+#define GRAVITY 2.5f
 
 class Client;
 
@@ -58,12 +58,13 @@ class World {
 	#endif
 	bool is_master;
 	b2World world;
-	int w;
-	int h;
+	float w;
+	float h;
+	float SCALE;
 	b2Vec2 view_topleft;
 	b2Vec2 view_bottomright;
-	int tilesize;
-	int water_height;
+	float tilesize;
+	float water_height;
 	GLuint texture_player;
 	GLuint texture_background;
 	GLuint texture_water;

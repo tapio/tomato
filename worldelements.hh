@@ -4,7 +4,7 @@
 #include "entity.hh"
 
 struct WorldElement: public Entity {
-	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): Entity(0, tex),
+	WorldElement(float w, float h, GLuint tex, GLuint tile, int tsize): Entity(tex, 0),
 	  w(w), h(h), tileid(tile), tilesize(tsize)
 	{ if (w != h && w != 0 && h != 0 && getBody()) buildVertices(); }
 	// ARGH, horibble spaghetti below

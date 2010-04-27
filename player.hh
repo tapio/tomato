@@ -14,7 +14,7 @@
 
 #define PLAYER_RESTITUTION 0.25f
 
-#define speed_move_ground 55.0f
+#define speed_move_ground 2.5f
 #define speed_move_airborne (speed_move_ground / 3.0f * 2.0f)
 #define speed_move_ladder (speed_move_ground / 3.0f)
 #define speed_jump (speed_move_ground * 0.9f)
@@ -26,7 +26,7 @@ class Actor: public Entity {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
 
-	Actor(GLuint tex = 0, Type t = HUMAN): Entity(16.0f, tex), type(t),
+	Actor(GLuint tex = 0, Type t = HUMAN): Entity(tex), type(t),
 	  key_up(), key_down(), key_left(), key_right(), key_action(),
 	  points(0), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), jump_dir(0),
 	  keypenalty(0), powerup(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
@@ -60,13 +60,13 @@ class Actor: public Entity {
 			// Get old speed
 			b2Vec2 v = body->GetLinearVelocity();
 			// Determine if jumping direction is already chosen
-			if (jump_dir == 0 && airborne && ladder == LADDER_NO && std::abs(v.x) > 0.1f) jump_dir = sign(v.x);
+			if (jump_dir == 0 && airborne && ladder == LADDER_NO && std::abs(v.x) > 0.01f) jump_dir = sign(v.x);
 			else if (jump_dir != 0 && airborne && ladder == LADDER_NO && sign(v.x) != sign(jump_dir))
 				body->SetLinearVelocity(b2Vec2(0, v.y));
 			else if (!airborne || ladder != LADDER_NO) jump_dir = 0;
 			// If airborne, only slow down the existing speed if trying to turn
 			if (airborne && jump_dir != 0 && direction != jump_dir) {
-				body->ApplyForce(b2Vec2(direction * 50, 0), body->GetWorldCenter());
+				body->ApplyForce(b2Vec2(direction * 0.005, 0), body->GetWorldCenter());
 			} else {
 				// Don't kill existing higher velocity
 				if (direction == dir && std::abs(v.x) > std::abs(speed)) speed = v.x;
