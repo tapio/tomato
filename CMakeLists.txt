@@ -94,6 +94,7 @@ install(TARGETS ${EXENAME} DESTINATION bin)
 
 if (WIN32)
 	file(GLOB DLL_FILES "bin/*.dll")
-	install(FILES ${DLL_FILES} DESTINATION bin)
+	file(GLOB SCRIPT_FILES "bin/*.bat")
+	install(FILES ${DLL_FILES} ${SCRIPT_FILES} DESTINATION bin)
 endif(WIN32)
 
