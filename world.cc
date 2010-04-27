@@ -250,7 +250,7 @@ void World::addLadder(float x, float y, float h) {
 	// Create shape
 	b2PolygonShape laddershape;
 	//laddershape.SetAsEdge(b2Vec2(0.5f*tilesize, y), b2Vec2(0.5f*tilesize, h));
-	laddershape.SetAsBox(0.10f*tilesize, h/2*tilesize);
+	laddershape.SetAsBox(0.10f*tilesize, h/2*tilesize - tilesize * 0.5f);
 	// Create fixture
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &laddershape;
