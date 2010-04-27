@@ -75,7 +75,8 @@ class Actor: public Entity {
 				if (std::abs(v.x) < std::abs(speed)) body->ApplyForce(b2Vec2(speed * 5, 0), body->GetWorldCenter());
 			}
 		}
-		anim_frame = int(GetSecs()*15) % 4;
+		if (airborne) anim_frame = 0;
+		else anim_frame = int(GetSecs()*15) % 4;
 		dir = direction;
 	}
 
