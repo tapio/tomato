@@ -85,7 +85,7 @@ target_link_libraries(${EXENAME} ${LIBS})
 # Installation
 file(GLOB IMAGE_FILES "images/*.png")
 file(GLOB CONF_FILES "*.conf")
-set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt")
+set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt" "docs/License.txt")
 
 install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
 install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL})
