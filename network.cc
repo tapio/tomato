@@ -10,7 +10,7 @@
 void Server::listen() {
 	ENetEvent e;
 	while (!m_quit) {
-		enet_host_service(m_server, &e, 1000);
+		enet_host_service(m_server, &e, 20);
 		switch (e.type) {
 		case ENET_EVENT_TYPE_CONNECT: {
 			std::cout << "Client connected from " << e.peer->address.host << ":" << e.peer->address.port << std::endl;
@@ -67,7 +67,7 @@ void Server::listen() {
 void Client::listen() {
 	ENetEvent e;
 	while (!m_quit) {
-		enet_host_service(m_client, &e, 1000);
+		enet_host_service(m_client, &e, 20);
 		switch (e.type) {
 		case ENET_EVENT_TYPE_RECEIVE: {
 			// TODO: Handle receive
