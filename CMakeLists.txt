@@ -85,10 +85,12 @@ target_link_libraries(${EXENAME} ${LIBS})
 
 # Installation
 file(GLOB IMAGE_FILES "images/*.png")
+file(GLOB FONT_FILES "fonts/*.ttf")
 file(GLOB CONF_FILES "*.conf")
 set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt")
 
 install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
+install(FILES ${FONT_FILES} DESTINATION ${SHARE_INSTALL}/fonts)
 install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL})
 install(FILES ${DOC_FILES} DESTINATION ${SHARE_INSTALL}/doc)
 install(TARGETS ${EXENAME} DESTINATION bin)
