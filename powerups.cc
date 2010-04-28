@@ -51,7 +51,7 @@ void Powerup::action(Actor* owner) {
 	if (ammo <= 0) return;
 	if (type == MINE) {
 		b2Vec2 pos = owner->getBody()->GetWorldCenter();
-		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 1.8, pos.y);
+		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 2.0, pos.y);
 		ammo--;
 	} else if (type == GUN) {
 		Actor* target = owner->getWorld()->shoot(*owner);
