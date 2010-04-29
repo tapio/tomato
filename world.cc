@@ -199,7 +199,7 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* cli
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
-	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 0.75f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.friction = PLAYER_FRICTION; // Friction
 	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
@@ -281,7 +281,8 @@ void World::addCrate(float x, float y) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.density = 1.5f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.friction = 0.5f;
 	fixtureDef.restitution = 0.05f;
 	cr.getBody()->CreateFixture(&fixtureDef);
 

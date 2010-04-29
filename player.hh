@@ -13,7 +13,7 @@
 #include "network.hh"
 
 #define PLAYER_RESTITUTION 0.25f
-#define PLAYER_FRICTION 0.05f
+#define PLAYER_FRICTION 0.2f
 
 #define speed_move_ground 2.5f
 #define speed_move_airborne (speed_move_ground / 3.0f * 2.0f)
