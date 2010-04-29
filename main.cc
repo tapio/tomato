@@ -28,6 +28,9 @@
 #define scrW 800
 #define scrH 600
 
+#define WW 25.0
+#define WH (WW*scrH/scrW)
+
 static bool QUIT = false;
 
 /// Keyboard input
@@ -122,7 +125,7 @@ void updateViewport(World& world) {
 /// Game loop
 bool main_loop(bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
-	World world(scrW/32.0, scrH/32.0, tm, !is_client);
+	World world(WW, WH, tm, !is_client);
 	#ifdef USE_NETWORK
 	Client client(&world);
 
@@ -135,8 +138,8 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#else
 	if (true) {
 	#endif
-		world.addActor(scrW/16-100, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(scrW/16-150, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(WW/2, WH/3, Actor::HUMAN, tm.find("tomato")->second);
+		world.addActor(WW/2+2, WH/3, Actor::HUMAN, tm.find("tomato")->second);
 		//world.addActor(100/16, scrH/32, Actor::AI, tm.find("tomato")->second);
 	}
 
@@ -187,7 +190,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 void server_loop(int port) {
 #ifdef USE_NETWORK
 	TextureMap tm;
-	World world(scrW/32.0, scrH/32.0, tm);
+	World world(WW, WH, tm);
 	//Players& players = world.getActors();
 	Server server(&world, port);
 
