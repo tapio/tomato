@@ -5,10 +5,9 @@
 
 #include "util.hh"
 
-/// Warning: These functions are not unicode capable, so special
-/// characters like ä and ö will be drawn as sequence of multiple
-/// characters. You can combat this issue by changing source file
-/// encoding to ISO-8859-1.
+/// Warning: These functions are not UTF-8 capable so other than ASCII
+/// characters are drawn incorrectly save for characters Ä, ä, Ö and ö which 
+/// are emulated.
 
 enum FontAlign {
 	ALIGN_LEFT = 0,

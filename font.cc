@@ -14,7 +14,7 @@ void buildFonts()
     		cx = float(x / 16.0);
 			cy = float(y / 16.0);
 
-			glNewList(font_base + (y*16+x), GL_COMPILE);
+			glNewList(font_base + (y*16+x)-1, GL_COMPILE);
 				glBegin(GL_QUADS);
 					glTexCoord2f(cx, 1 - cy - 0.0625 + 2*0.0039);
 					glVertex2i(0, 16-2);
@@ -25,7 +25,6 @@ void buildFonts()
 					glTexCoord2f(cx, 1 - cy - 0.0039);
 					glVertex2i(0, 0);
 				glEnd();
-				glTranslated(10, 0, 0);	// 10 really advance, fix when converting to arrays
 			glEndList();
 		}
 }
@@ -33,6 +32,7 @@ void buildFonts()
 void drawText(GLuint texture, Color color, const float x, const float y, const std::string& text, FontAlign align)
 {
 	float advance = 10.0;
+	float height = 16.0;
 	float xx = 0, yy = 0;
 	if(align == ALIGN_LEFT) {
 		xx = x; yy = y;
@@ -45,9 +45,6 @@ void drawText(GLuint texture, Color color, const float x, const float y, const s
 		float textlen = text.length()*advance;
 		xx = x - textlen; yy = y;
 	}
-	
-	// UTF-8 skandinavian character hack
-
 
 	glEnable(GL_TEXTURE_2D);
 	glColor4f(color.r, color.g, color.b, color.a);
@@ -59,10 +56,26 @@ void drawText(GLuint texture, Color color, const float x, const float y, const s
 	
 	glPushMatrix();
 	glTranslatef(xx, yy, 0);
- 	glListBase(font_base);
-	glCallLists(text.length(), GL_UNSIGNED_BYTE, text.c_str());
+ 	
+ 	const unsigned char* str = (unsigned char*)text.c_str();
+ 	for(unsigned int i=0; i<text.length(); ++i) {
+		// Newline
+		if(str[i] == '\n') { glTranslated(0, height, 0); i++; }
+		// 	ISO-8859-1 emulation
+		if(str[i] == 0xC3) {
+			i++;
+			if(str[i] == 0x84) { glCallList(0xC4); } // Ä
+			else if(str[i] == 0xA4) { glCallList(0xE4); } // ä
+			else if(str[i] == 0x96) { glCallList(0xD6); } // Ö
+			else if(str[i] == 0xB6) { glCallList(0xF6); } // ö
+			glTranslated(advance, 0.0, 0.0);
+			continue;
+		}
+		glCallList(str[i]);
+		glTranslated(advance, 0.0, 0.0);
+	}
 	glPopMatrix();
-	// Restore blend settings
+	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(1.0, 1.0, 1.0, 1.0);
 }

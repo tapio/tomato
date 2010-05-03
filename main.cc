@@ -136,9 +136,9 @@ bool main_loop(bool is_client, std::string host, int port) {
 		// Draw
 		world.draw();
 		
-		drawText(tm.find("font")->second, Color(0.5, 1, 0.4, 0.2), 400, 400, "ƒ‰kkˆset toimii", ALIGN_LEFT);	
-		drawText(tm.find("font")->second, Color(0.5, 0.1, 0.8, 0.2), 400, 420, "ƒ‰kkˆset toimii", ALIGN_CENTER);	
-		drawText(tm.find("font")->second, Color(0.4, 1, 0.4, 0.2), 400, 440, "ƒ‰kkˆset toimii", ALIGN_RIGHT);	
+		drawText(tm.find("font")->second, Color(0.5, 1, 0.4, 0.2), 400, 400, "√Ñ√§kk√∂set toimii", ALIGN_LEFT);	
+		drawText(tm.find("font")->second, Color(0.5, 0.1, 0.8, 0.2), 400, 420, "√Ñ√§kk√∂set toimii\nUusi rivi", ALIGN_CENTER);	
+		drawText(tm.find("font")->second, Color(0.4, 1, 0.4, 0.2), 400, 440, "√Ñ√§kk√∂set toimii, √ñ √§", ALIGN_RIGHT);	
 
 		flip();
 	}
