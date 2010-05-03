@@ -1,7 +1,5 @@
 #pragma once
 
-#define DEFAULT_PORT 1234
-
 #ifdef USE_NETWORK
 
 #include <cstdlib>
@@ -19,7 +17,7 @@ class World;
 
 class Server: public boost::noncopyable {
   public:
-	Server(World* world, int port = DEFAULT_PORT): m_quit(false), m_world(world), m_server(NULL) {
+	Server(World* world, int port): m_quit(false), m_world(world), m_server(NULL) {
 		m_address.host = ENET_HOST_ANY;
 		m_address.port = port;
 		// Create host at address, max_conns, unlimited up/down bandwith
@@ -69,7 +67,7 @@ class Client: public boost::noncopyable {
 		if (m_client) enet_host_destroy(m_client);
 	}
 
-	void connect(std::string host = "localhost", int port = DEFAULT_PORT) {
+	void connect(std::string host, int port) {
 		m_client = enet_host_create(NULL, 2, 0, 0);
 		if (m_client == NULL)
 			throw std::runtime_error("An error occurred while trying to create an ENet server host.");

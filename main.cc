@@ -18,15 +18,13 @@
 #include <SDL.h>
 
 #include "util.hh"
+#include "settings.hh"
 #include "filesystem.hh"
 #include "player.hh"
 #include "world.hh"
 #include "network.hh"
 #include "keys.hh"
 #include "texture.hh"
-
-#define scrW 800
-#define scrH 600
 
 #define WW 25.0
 #define WH (WW*scrH/scrW)
@@ -151,7 +149,7 @@ bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::s
 	}
 
 	Players& players = world.getActors();
-	parse_keys(players, "keys.conf");
+	parse_keys(players, getFilePath("keys.conf"));
 
 	while (titletime > GetSecs()); // Ensure title visibility
 
@@ -159,7 +157,8 @@ bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::s
 	#ifdef USE_THREADS
 	boost::thread thread_input(updateKeys, boost::ref(players));
 	boost::thread thread_physics(updateWorld, boost::ref(world));
-	boost::thread thread_viewport(updateViewport, boost::ref(world));
+	boost::thread thread_viewport;
+	if (config_zoom) thread_viewport = boost::thread(updateViewport, boost::ref(world));
 	#endif
 
 	// MAIN LOOP
@@ -174,7 +173,7 @@ bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::s
 		#endif
 		#if !defined(USE_THREADS)
 		world.update();
-		world.updateViewport();
+		if (config_zoom) world.updateViewport();
 		#elif !defined(WIN32)
 		// Max ~ 100 fps is enough for graphics
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
@@ -190,7 +189,7 @@ bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::s
 	#ifdef USE_THREADS
 	thread_input.join();
 	thread_physics.join();
-	thread_viewport.join();
+	if (config_zoom) thread_viewport.join();
 	#endif
 	return false;
 }
@@ -239,8 +238,10 @@ template<> bool parseVal(std::string& var, int& i, int argc, char** argv) {
 /// Program entry-point
 int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
-	std::string host("localhost");
-	int port = DEFAULT_PORT;
+
+	readConfig();
+	std::string host(config_default_host);
+	int port = config_default_port;
 	int num_players_local = 2;
 	int num_players_ai = 0;
 
@@ -280,7 +281,7 @@ int main(int argc, char** argv) {
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_Surface* screen = NULL;
-		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL);
+		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL | (config_fullscreen ? SDL_FULLSCREEN : 0));
 		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
 
 		setup_gl();
