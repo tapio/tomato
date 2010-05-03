@@ -24,6 +24,7 @@ GLuint load_texture(const std::string filename, bool repeat) {
 
 TextureMap load_textures() {
 	TextureMap tmap;
+	tmap.insert(std::pair<std::string, GLuint>("title", load_texture(getFilePath("images/title.png"), true)));
 	tmap.insert(std::pair<std::string, GLuint>("background", load_texture(getFilePath("images/bg.png"), true)));
 	tmap.insert(std::pair<std::string, GLuint>("water", load_texture(getFilePath("images/water.png"), true)));
 	tmap.insert(std::pair<std::string, GLuint>("ground", load_texture(getFilePath("images/ground.png"))));
@@ -76,3 +77,10 @@ void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex) {
 	glDisable(GL_TEXTURE_2D);
 }
 
+void drawImage(GLuint tex, int x, int y, int w, int h) {
+	float vert[] = { x, y + h,
+		             x, y,
+		             x + w, y,
+		             x + w, y + h };
+	drawVertexArray(&vert[0], &tex_square[0], 4, tex);
+}
