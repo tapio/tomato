@@ -138,9 +138,9 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#else
 	if (true) {
 	#endif
-		world.addActor(WW/2, WH/3, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(WW/2+2, WH/3, Actor::HUMAN, tm.find("tomato")->second);
-		//world.addActor(100/16, scrH/32, Actor::AI, tm.find("tomato")->second);
+		world.addActor(WW/2, WH/3, Actor::HUMAN, 1);
+		world.addActor(WW/2+2, WH/3, Actor::HUMAN, 2);
+		//world.addActor(100/16, scrH/32, Actor::AI, 3);
 	}
 
 	Players& players = world.getActors();

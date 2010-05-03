@@ -92,7 +92,7 @@ World::World(int width, int height, TextureMap& tm, bool master):
 	waterBody->SetUserData(&ElementTypes[WATER]);
 
 	// Get texture IDs
-	texture_player = tm.find("tomato")->second;
+	for (int i = 1; i <= 4; ++i) texture_player[i-1] = tm.find(std::string("tomato_") + num2str(i))->second;
 	texture_background = tm.find("background")->second;
 	texture_water = tm.find("water")->second;
 	texture_ground = tm.find("ground")->second;
@@ -180,8 +180,8 @@ void World::addMine(float x, float y) {
 }
 
 
-void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* client) {
-	if (tex == 0) tex = texture_player;
+void World::addActor(float x, float y, Actor::Type type, int character, Client* client) {
+	GLuint tex = texture_player[character - 1];
 	Actor* actor;
 	LOCKMUTEX;
 	if (client) actor = new OnlinePlayer(client, tex, type);
@@ -638,7 +638,7 @@ void World::update(std::string data, Client* client) {
 		if (createnew > 0) {
 			for (int i = 0; i < createnew; ++i) {
 				bool me = client && oldplayers + i + 1 == client->getID();
-				addActor(10, 10, me ? Actor::HUMAN : Actor::REMOTE, 0, me ? client : NULL);
+				addActor(10, 10, me ? Actor::HUMAN : Actor::REMOTE, oldplayers+i+1, me ? client : NULL);
 			}
 		}
 		LOCKMUTEX;
