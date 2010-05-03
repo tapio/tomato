@@ -87,7 +87,7 @@ target_link_libraries(${EXENAME} ${LIBS})
 file(GLOB IMAGE_FILES "images/*.png")
 file(GLOB FONT_FILES "fonts/*.ttf")
 file(GLOB CONF_FILES "*.conf")
-set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt")
+set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt" "docs/License.txt")
 
 install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
 install(FILES ${FONT_FILES} DESTINATION ${SHARE_INSTALL}/fonts)
@@ -97,6 +97,7 @@ install(TARGETS ${EXENAME} DESTINATION bin)
 
 if (WIN32)
 	file(GLOB DLL_FILES "bin/*.dll")
-	install(FILES ${DLL_FILES} DESTINATION bin)
+	file(GLOB SCRIPT_FILES "bin/*.bat")
+	install(FILES ${DLL_FILES} ${SCRIPT_FILES} DESTINATION bin)
 endif(WIN32)
 

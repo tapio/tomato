@@ -29,6 +29,9 @@
 #define scrW 800
 #define scrH 600
 
+#define WW 25.0
+#define WH (WW*scrH/scrW)
+
 static bool QUIT = false;
 
 /// Keyboard input
@@ -122,11 +125,17 @@ void updateViewport(World& world) {
 #endif
 
 /// Game loop
-bool main_loop(bool is_client, std::string host, int port) {
+bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
-	World world(scrW/32.0, scrH/32.0, tm, !is_client);
+	World world(WW, WH, tm, !is_client);
 	#ifdef USE_NETWORK
 	Client client(&world);
+
+	// Draw title
+	const int titlew = scrW/2, titleh = titlew/2;
+	drawImage(tm.find("title")->second, scrW/2 - titlew/2, scrH/2 - titleh/2, titlew, titleh);
+	flip();
+	double titletime = GetSecs() + 0.75;
 
 	if (is_client) {
 		client.connect(host, port);
@@ -137,9 +146,10 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#else
 	if (true) {
 	#endif
-		world.addActor(scrW/16-100, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(scrW/16-150, scrH/32, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(100/16, scrH/32, Actor::AI, tm.find("tomato")->second);
+		for (int i = 0; i < num_players_local + num_players_ai; ++i) {
+			b2Vec2 pos = world.randomSpawnLocked();
+			world.addActor(pos.x, pos.y, i >= num_players_local ? Actor::AI : Actor::HUMAN, (i % 4) + 1);
+		}
 	}
 
 	Players& players = world.getActors();
@@ -147,6 +157,8 @@ bool main_loop(bool is_client, std::string host, int port) {
 	// Load font
 	GLFT_Font f;
 	f.open(getFilePath("fonts/FreeSerifBold.ttf"), 16);
+
+	while (titletime > GetSecs()); // Ensure title visibility
 
 	// Launch threads
 	#ifdef USE_THREADS
@@ -202,7 +214,7 @@ bool main_loop(bool is_client, std::string host, int port) {
 void server_loop(int port) {
 #ifdef USE_NETWORK
 	TextureMap tm;
-	World world(scrW/32.0, scrH/32.0, tm);
+	World world(WW, WH, tm);
 	//Players& players = world.getActors();
 	Server server(&world, port);
 
@@ -221,30 +233,49 @@ void server_loop(int port) {
 #endif
 }
 
+/// Parse the cmd line argument's following value to variable
+template<typename T> bool parseVal(T& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = str2num<T>(std::string(argv[i+1]));
+		++i;
+		return true;
+	}
+	return false;
+}
+template<> bool parseVal(std::string& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = std::string(argv[i+1]);
+		++i;
+		return true;
+	}
+	return false;
+}
+
 /// Program entry-point
 int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
 	std::string host("localhost");
 	int port = DEFAULT_PORT;
+	int num_players_local = 2;
+	int num_players_ai = 0;
 
 	for (int i = 1; i < argc; i++) {
 		std::string arg(argv[i]);
 		if (arg == "--help" || std::string(argv[i]) == "-h") {
 			std::cout << "Usage: " << argv[0] << " "
-			  << "[--help | -h] [ [--server [port]] | [--client [host] [port]] ]"
+			  << "[--help | -h] [--players NUM] [--ai NUM] [ [--server [PORT]] | [--client [HOST] [PORT]] ]"
 			  << std::endl;
 			return 0;
 		}
 		else if (arg == "--server") {
 			dedicated_server = true;
-			if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
+			parseVal(port, i, argc, argv);
 		} else if (arg == "--client") {
 			client = true;
-			if (i < argc-1 && argv[i+1][0] != '-') {
-				host = argv[i+1]; ++i;
-				if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
-			}
-		}
+			if (parseVal(host, i, argc, argv))
+				parseVal(port, i, argc, argv);
+		} else if (arg == "--players") parseVal(num_players_local, i, argc, argv);
+		else if (arg == "--ai") parseVal(num_players_ai, i, argc, argv);
 	}
 
 	srand(time(NULL)); // Randomize RNG
@@ -268,7 +299,7 @@ int main(int argc, char** argv) {
 		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
 
 		setup_gl();
-		main_loop(client, host, port);
+		main_loop(num_players_local, num_players_ai, client, host, port);
 
 		// FIXME: SLD_Quit() hangs :(
 		//SDL_Quit();

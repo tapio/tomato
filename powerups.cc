@@ -20,7 +20,7 @@ void Powerup::equip(Actor* owner) {
 	else if (type == TELEPORT) { ammo = 2; }
 	else if (type == GUN) { ammo = 3; }
 	else if (type == DOUBLEJUMP) { owner->doublejump = DJUMP_ALLOW; }
-	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.1f); }
+	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.05f); }
 	else if (type == LOGRAV) { time = 10; owner->lograv = true; }
 	lifetime = Countdown(time);
 }
@@ -51,7 +51,7 @@ void Powerup::action(Actor* owner) {
 	if (ammo <= 0) return;
 	if (type == MINE) {
 		b2Vec2 pos = owner->getBody()->GetWorldCenter();
-		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 1.8, pos.y);
+		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 3.0, pos.y + owner->getSize() * 0.5);
 		ammo--;
 	} else if (type == GUN) {
 		Actor* target = owner->getWorld()->shoot(*owner);

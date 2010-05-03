@@ -13,7 +13,7 @@
 #include "network.hh"
 
 #define PLAYER_RESTITUTION 0.25f
-#define PLAYER_FRICTION 0.05f
+#define PLAYER_FRICTION 0.2f
 
 #define speed_move_ground 2.5f
 #define speed_move_airborne (speed_move_ground / 3.0f * 2.0f)
@@ -75,7 +75,8 @@ class Actor: public Entity {
 				if (std::abs(v.x) < std::abs(speed)) body->ApplyForce(b2Vec2(speed * 5, 0), body->GetWorldCenter());
 			}
 		}
-		anim_frame = int(GetSecs()*15) % 4;
+		if (airborne) anim_frame = 0;
+		else anim_frame = int(GetSecs()*15) % 4;
 		dir = direction;
 	}
 

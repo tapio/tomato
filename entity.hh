@@ -10,7 +10,7 @@ class World;
 struct SerializedEntity {
 	float x, y, vx, vy, a, va;
 	char id, type;
-	SerializedEntity(float x, float y, float vx, float vy, float a = 0, float va = 0):
+	SerializedEntity(float x, float y, float vx = 0, float vy = 0, float a = 0, float va = 0):
 		x(x), y(y), vx(vx), vy(vy), a(a), va(va), id(0), type(0) {}
 	operator char*() { return reinterpret_cast<char*>(this); } /// overload char cast
 	operator char const*() const { return reinterpret_cast<char const*>(this); } /// overload char const cast

@@ -19,8 +19,9 @@ namespace {
 	static const unsigned MAX_POWERUPS = 4; // Maximum number of simultaneous power-ups
 	static const float offset = 3.0; // For spawning things away from borders
 
-	enum ElementType { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
-	static ElementType ElementTypes[] = { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
+	enum ElementType   { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
+	static ElementType
+	  ElementTypes[] = { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
 	struct WorldElement {
 		WorldElement(ElementType type, void* element = NULL): type(type), ptr(element) { }
 		ElementType type;
@@ -91,7 +92,7 @@ World::World(int width, int height, TextureMap& tm, bool master):
 	waterBody->SetUserData(&ElementTypes[WATER]);
 
 	// Get texture IDs
-	texture_player = tm.find("tomato")->second;
+	for (int i = 1; i <= 4; ++i) texture_player[i-1] = tm.find(std::string("tomato_") + num2str(i))->second;
 	texture_background = tm.find("background")->second;
 	texture_water = tm.find("water")->second;
 	texture_ground = tm.find("ground")->second;
@@ -160,8 +161,8 @@ b2Vec2 World::randomSpawnLocked() const {
 
 
 void World::addMine(float x, float y) {
-	float minew = tilesize * 0.4f;
-	float mineh = tilesize * 0.2f;
+	float minew = tilesize * 0.3f;
+	float mineh = tilesize * 0.1f;
 	// Create body
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x, y);
@@ -179,8 +180,8 @@ void World::addMine(float x, float y) {
 }
 
 
-void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* client) {
-	if (tex == 0) tex = texture_player;
+void World::addActor(float x, float y, Actor::Type type, int character, Client* client) {
+	GLuint tex = texture_player[character - 1];
 	Actor* actor;
 	LOCKMUTEX;
 	if (client) actor = new OnlinePlayer(client, tex, type);
@@ -198,7 +199,7 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* cli
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
-	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 0.75f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.friction = PLAYER_FRICTION; // Friction
 	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
@@ -208,15 +209,17 @@ void World::addActor(float x, float y, Actor::Type type, GLuint tex, Client* cli
 }
 
 
-bool World::addPlatform(float x, float y, float w) {
+bool World::addPlatform(float x, float y, float w, bool force) {
 	// Test for overlap
 	b2AABB aabb;
 	aabb.lowerBound = b2Vec2(x - tilesize, y - tilesize);
 	aabb.upperBound = b2Vec2(x + w * tilesize + tilesize, y + tilesize + tilesize);
-	AABBQueryCallback qc;
 	LOCKMUTEX;
-	world.QueryAABB(&qc, aabb);
-	if (qc()) return false;
+	if (!force) {
+		AABBQueryCallback qc;
+		world.QueryAABB(&qc, aabb);
+		if (qc()) return false;
+	}
 
 	Platform p(w, texture_ground, 0, tilesize);
 	// Create body
@@ -278,7 +281,8 @@ void World::addCrate(float x, float y) {
 	// Define the dynamic body fixture.
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
-	fixtureDef.density = 2.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.density = 1.0f; // Set the density to be non-zero, so it will be dynamic.
+	fixtureDef.friction = 0.5f;
 	fixtureDef.restitution = 0.05f;
 	cr.getBody()->CreateFixture(&fixtureDef);
 
@@ -286,7 +290,9 @@ void World::addCrate(float x, float y) {
 }
 
 
-void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
+void World::addBridge(unsigned leftAnchorID, unsigned rightAnchorID) {
+	Platform leftAnchor = platforms.at(leftAnchorID);
+	Platform rightAnchor = platforms.at(rightAnchorID);
 	float segmentW = 0.5f * tilesize;
 	float x1 = leftAnchor.getX() + leftAnchor.getW() * 0.5f - segmentW * 0.5f;
 	float y1 = leftAnchor.getY() - leftAnchor.getH() * 0.5f + tilesize * 0.1f;
@@ -296,7 +302,7 @@ void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
 	segmentW = distance(x1,y1,x2,y2) / segments;
 	float xstep = (x2-x1) / segments;
 	float ystep = (y2-y1) / segments;
-	Bridge bridge(0, 0, tilesize);
+	Bridge bridge(leftAnchorID, rightAnchorID, 0, 0, tilesize);
 
 	b2PolygonShape shape;
 	shape.SetAsBox(segmentW * 0.5f, 0.05f * tilesize);
@@ -305,6 +311,7 @@ void World::addBridge(Platform& leftAnchor, Platform& rightAnchor) {
 	fd.shape = &shape;
 	fd.density = 1.0f;
 	fd.friction = 3.0f;
+	fd.filter.categoryBits = 0x0002;
 
 	b2RevoluteJointDef jd;
 	b2Body* prevBody = leftAnchor.getBody();
@@ -353,6 +360,7 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 	fixtureDef.density = 0.1f; // Set the density to be non-zero, so it will be dynamic.
 	fixtureDef.restitution = 1.0001f; // Over-full bounciness
 	fixtureDef.friction = 0.0f; // No friction
+	fixtureDef.filter.maskBits = 0xFFFD;
 	pw.getBody()->CreateFixture(&fixtureDef);
 
 	// Set a random velocity
@@ -397,7 +405,7 @@ void World::generate() {
 		}
 		if (count > 1) {
 			count = randint(count-1);
-			addBridge(*(platforms.end()-count-2), *(platforms.end()-count-1));
+			addBridge(platforms.size()-count-2, platforms.size()-count-1);
 		}
 	}
 	//for (int i = 0; i < 4; i++) {
@@ -610,9 +618,8 @@ std::string World::serialize(bool skip_static) const {
 			data += std::string(1, BRIDGE);
 			data += std::string(1, (char)bridges.size());
 			for (Bridges::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {
-				// TODO: Implement
-				//std::string temp(it->serialize(), sizeof(SerializedEntity));
-				//data += temp;
+				std::string temp(it->serialize(), sizeof(SerializedEntity));
+				data += temp;
 			}
 		}
 	}
@@ -631,7 +638,7 @@ void World::update(std::string data, Client* client) {
 		if (createnew > 0) {
 			for (int i = 0; i < createnew; ++i) {
 				bool me = client && oldplayers + i + 1 == client->getID();
-				addActor(10, 10, me ? Actor::HUMAN : Actor::REMOTE, 0, me ? client : NULL);
+				addActor(10, 10, me ? Actor::HUMAN : Actor::REMOTE, oldplayers+i+1, me ? client : NULL);
 			}
 		}
 		LOCKMUTEX;
@@ -687,7 +694,7 @@ void World::update(std::string data, Client* client) {
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
 			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
-			addPlatform(se->x - se->vx / 2 * tilesize, se->y - tilesize*0.5f, se->vx);
+			addPlatform(se->x - se->vx / 2 * tilesize, se->y - tilesize*0.5f, se->vx, true);
 		}
 	}
 	if (data[pos] == LADDER) {
@@ -704,9 +711,8 @@ void World::update(std::string data, Client* client) {
 		pos += 2;
 		// Create new
 		for (int i = 0; i < items; ++i, pos += sizeof(SerializedEntity)) {
-			//SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
-			// TODO: Implement
-			//addBridge();
+			SerializedEntity* se = reinterpret_cast<SerializedEntity*>(&data[pos]);
+			addBridge(se->id, se->type);
 		}
 	}
 }
@@ -730,11 +736,11 @@ void World::updateViewport() {
 			if (itpos.y > y2) y2 = itpos.y;
 		}
 	}
-	// Add borders and clamp box to screen size
-	x1 = clamp(x1 - xmargin, 0.0f, w);
-	x2 = clamp(x2 + xmargin, 0.0f, w);
-	y1 = clamp(y1 - ymargin, 0.0f, h);
-	y2 = clamp(y2 + ymargin, 0.0f, h);
+	// Add margins and clamp box to world
+	x1 -= xmargin; x2 += xmargin;
+	y1 -= ymargin; y2 += ymargin;
+	if (x2 - x1 >= w) { x1 = 0; x2 = w; }
+	if (y2 - y1 >= h) { y1 = 0; y2 = h; }
 	// Correct aspect ratio
 	float boxw = (x2-x1), boxh = (y2-y1);
 	if (boxh > boxw / ar) boxw = boxh * ar;

@@ -126,10 +126,15 @@ struct Crate: public WorldElement {
 };
 
 struct Bridge: public WorldElement {
-	Bridge(GLuint tex, GLuint tile, int tsize):
-	  WorldElement(0, 0, tex, tile, tsize)
-	{
+	Bridge(unsigned l, unsigned r, GLuint tex, GLuint tile, int tsize):
+	  WorldElement(0, 0, tex, tile, tsize), leftAnchor(l), rightAnchor(r)
+	{ }
 
+	SerializedEntity serialize() const {
+		SerializedEntity se(0,0);
+		se.id = leftAnchor;
+		se.type = rightAnchor;
+		return se;
 	}
 
 	void draw() const {
@@ -154,6 +159,8 @@ struct Bridge: public WorldElement {
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 	std::vector<b2Body*> bodies;
+	unsigned leftAnchor;
+	unsigned rightAnchor;
 };
 
 
