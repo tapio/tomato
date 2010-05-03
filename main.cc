@@ -123,7 +123,7 @@ void updateViewport(World& world) {
 #endif
 
 /// Game loop
-bool main_loop(bool is_client, std::string host, int port) {
+bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
 	World world(WW, WH, tm, !is_client);
 	#ifdef USE_NETWORK
@@ -138,9 +138,10 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#else
 	if (true) {
 	#endif
-		world.addActor(WW/2, WH/3, Actor::HUMAN, 1);
-		world.addActor(WW/2+2, WH/3, Actor::HUMAN, 2);
-		//world.addActor(100/16, scrH/32, Actor::AI, 3);
+		for (int i = 0; i < num_players_local + num_players_ai; ++i) {
+			b2Vec2 pos = world.randomSpawnLocked();
+			world.addActor(pos.x, pos.y, i >= num_players_local ? Actor::AI : Actor::HUMAN, (i % 4) + 1);
+		}
 	}
 
 	Players& players = world.getActors();
@@ -209,30 +210,49 @@ void server_loop(int port) {
 #endif
 }
 
+/// Parse the cmd line argument's following value to variable
+template<typename T> bool parseVal(T& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = str2num<T>(std::string(argv[i+1]));
+		++i;
+		return true;
+	}
+	return false;
+}
+template<> bool parseVal(std::string& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = std::string(argv[i+1]);
+		++i;
+		return true;
+	}
+	return false;
+}
+
 /// Program entry-point
 int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
 	std::string host("localhost");
 	int port = DEFAULT_PORT;
+	int num_players_local = 2;
+	int num_players_ai = 0;
 
 	for (int i = 1; i < argc; i++) {
 		std::string arg(argv[i]);
 		if (arg == "--help" || std::string(argv[i]) == "-h") {
 			std::cout << "Usage: " << argv[0] << " "
-			  << "[--help | -h] [ [--server [port]] | [--client [host] [port]] ]"
+			  << "[--help | -h] [--players NUM] [--ai NUM] [ [--server [PORT]] | [--client [HOST] [PORT]] ]"
 			  << std::endl;
 			return 0;
 		}
 		else if (arg == "--server") {
 			dedicated_server = true;
-			if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
+			parseVal(port, i, argc, argv);
 		} else if (arg == "--client") {
 			client = true;
-			if (i < argc-1 && argv[i+1][0] != '-') {
-				host = argv[i+1]; ++i;
-				if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
-			}
-		}
+			if (parseVal(host, i, argc, argv))
+				parseVal(port, i, argc, argv);
+		} else if (arg == "--players") parseVal(num_players_local, i, argc, argv);
+		else if (arg == "--ai") parseVal(num_players_ai, i, argc, argv);
 	}
 
 	srand(time(NULL)); // Randomize RNG
@@ -256,7 +276,7 @@ int main(int argc, char** argv) {
 		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
 
 		setup_gl();
-		main_loop(client, host, port);
+		main_loop(num_players_local, num_players_ai, client, host, port);
 
 		// FIXME: SLD_Quit() hangs :(
 		//SDL_Quit();
