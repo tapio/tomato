@@ -161,8 +161,8 @@ b2Vec2 World::randomSpawnLocked() const {
 
 
 void World::addMine(float x, float y) {
-	float minew = tilesize * 0.4f;
-	float mineh = tilesize * 0.2f;
+	float minew = tilesize * 0.3f;
+	float mineh = tilesize * 0.1f;
 	// Create body
 	b2BodyDef bodyDef;
 	bodyDef.position.Set(x, y);
