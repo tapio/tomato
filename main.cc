@@ -275,35 +275,41 @@ int main(int argc, char** argv) {
 	enet_initialize();
 	#endif
 
-	if (gamemode.find(".gamemode") == std::string::npos) gamemode += ".gamemode";
-	GameMode gm(getFilePath("data/" + gamemode));
-
 	// TODO: Main menu
 
-	#ifndef USE_NETWORK
-	if (!dedicated_server && !client) {
-	#endif
-	if (!dedicated_server) {
-		// SDL initialization stuff
-		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
-		SDL_WM_SetCaption(PACKAGE, PACKAGE);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_Surface* screen = NULL;
-		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL | (config_fullscreen ? SDL_FULLSCREEN : 0));
-		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
+	try {
+		if (gamemode.find(".gamemode") == std::string::npos) gamemode += ".gamemode";
+		GameMode gm(getFilePath("data/" + gamemode));
 
-		setup_gl();
-		main_loop(gm, num_players_local, num_players_ai, client, host, port);
+		#ifndef USE_NETWORK
+		if (!dedicated_server && !client) {
+		#endif
+		if (!dedicated_server) {
+			// SDL initialization stuff
+			if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
+			SDL_WM_SetCaption(PACKAGE, PACKAGE);
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+			SDL_Surface* screen = NULL;
+			screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL | (config_fullscreen ? SDL_FULLSCREEN : 0));
+			if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
 
-		// FIXME: SLD_Quit() hangs :(
-		//SDL_Quit();
-	} else server_loop(gm, port);
-	#ifndef USE_NETWORK
-	} else {
-		std::cout << "Networking support is disabled in this build." << std::endl;
+			setup_gl();
+			main_loop(gm, num_players_local, num_players_ai, client, host, port);
+
+			// FIXME: SLD_Quit() hangs :(
+			//SDL_Quit();
+		} else server_loop(gm, port);
+		#ifndef USE_NETWORK
+		else {
+			std::cout << "Networking support is disabled in this build." << std::endl;
+		}
+		}
+		#endif
+	} catch (std::exception& e) {
+		// TODO: Nicer output
+		std::cout << "-!- FATAL ERROR: " << e.what() << std::endl;
 	}
-	#endif
 	#ifdef USE_NETWORK
 	enet_deinitialize();
 	#endif
