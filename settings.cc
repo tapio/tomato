@@ -17,7 +17,7 @@ std::string config_default_host;
 void readConfig() {
 	using boost::property_tree::ptree;
 	ptree pt;
-	read_ini(getFilePath("settings.conf"), pt);
+	read_ini(getFilePath("data/settings.conf"), pt);
 
 	scrW = pt.get("Settings.screenwidth", 800);
 	scrH = pt.get("Settings.screenheight", 600);

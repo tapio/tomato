@@ -150,7 +150,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 	}
 
 	Players& players = world.getActors();
-	parse_keys(players, getFilePath("keys.conf"));
+	parse_keys(players, getFilePath("data/keys.conf"));
 
 	while (titletime > GetSecs()); // Ensure title visibility
 
@@ -241,8 +241,6 @@ int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
 
 	readConfig();
-
-	//GameMode(getFilePath("data/gametype.template"));
 
 	std::string gamemode("classic");
 	std::string host(config_default_host);
