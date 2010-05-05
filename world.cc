@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <GL/glu.h>
 #include <Box2D.h>
@@ -16,7 +17,7 @@
 
 namespace {
 
-	static const unsigned MAX_POWERUPS = 4; // Maximum number of simultaneous power-ups
+	static const unsigned SUPER_MAX_POWERUPS = 5; // Game mode cannot go over this
 	static const float offset = 3.0; // For spawning things away from borders
 
 	enum ElementType   { NONE, BORDER, WATER, PLATFORM, LADDER, CRATE, BRIDGE, POWERUP, ACTOR, MINE };
@@ -56,7 +57,7 @@ namespace {
 World::World(int width, int height, TextureMap& tm, GameMode gm, bool master):
   is_master(master), world(b2Vec2(0.0f, 0.0f), true), w(width), h(height),
   SCALE(16.0), view_topleft(0,0), view_bottomright(w,h),
-  tilesize(1), water_height(2.5), timer_powerup(randf(4.0f, 7.0f)), game(gm)
+  tilesize(1), water_height(2.5), timer_powerup(gm.getPowerupDelay()), game(gm)
 {
 	float hw = w*0.5, hh = h*0.5;
 
@@ -102,6 +103,7 @@ World::World(int width, int height, TextureMap& tm, GameMode gm, bool master):
 
 	// Generate
 	if (is_master) generate();
+	game.startRound();
 }
 
 
@@ -129,6 +131,24 @@ Actor* World::shoot(const Actor& shooter) {
 		b->SetUserData(&ElementTypes[ACTOR]);
 	}
 	return hit;
+}
+
+
+void World::kill(Actor* target, Actor* killer) {
+	if (!target) return;
+	target->die();
+
+	// TODO: Negative game mode scoring should add others' points
+	if (killer) {
+		target->points += game.getKilledPoints();
+		killer->points += game.getKillerPoints();
+	} else target->points += game.getSuicidePoints();
+
+	target->respawn = Countdown(game.getRespawnDelay());
+	target->equip(game.getDefaultPowerup());
+
+	std::cout << "DEATH! Points: " << target->points << std::endl;
+
 }
 
 
@@ -205,6 +225,7 @@ void World::addActor(float x, float y, Actor::Type type, int character, Client* 
 	// Add the shape to the body.
 	actor->getBody()->CreateFixture(&fixtureDef);
 	actor->world = this;
+	actor->equip(game.getDefaultPowerup());
 	actors.push_back(actor);
 }
 
@@ -339,7 +360,7 @@ void World::addBridge(unsigned leftAnchorID, unsigned rightAnchorID) {
 
 
 void World::addPowerup(float x, float y, Powerup::Type type) {
-	if (powerups.size() >= MAX_POWERUPS) return;
+	if (powerups.size() >= std::min((unsigned)game.getPowerupLimit(), SUPER_MAX_POWERUPS)) return;
 	PowerupEntity pw(type, texture_powerups);
 	// Define the dynamic body. We set its position and call the body factory.
 	b2BodyDef bodyDef;
@@ -445,12 +466,15 @@ void World::update() {
 			bool climbing = (it->ladder == Actor::LADDER_CLIMBING);
 			it->ladder = Actor::LADDER_NO;
 			// Water
-			if (it->getBody()->GetWorldCenter().y >= h - water_height) it->die();
+			if (!it->is_dead() && it->getBody()->GetWorldCenter().y >= h - water_height) kill(&(*it));
 			// Death
 			if (it->is_dead()) {
 				it->getBody()->SetLinearVelocity(b2Vec2());
-				it->getBody()->SetTransform(randomSpawn(), 0);
-				it->dead = false;
+				// TODO: Disable physics
+				if (game.getRespawnDelay() >= 0 && it->respawn()) {
+					it->getBody()->SetTransform(randomSpawn(), 0);
+					it->dead = false;
+				}
 				continue;
 			}
 			// Unequip power-up if expired
@@ -461,7 +485,8 @@ void World::update() {
 				if (ce->other->GetUserData()) et = *(static_cast<ElementType*>(ce->other->GetUserData()));
 				// Mines
 				if (et == MINE) {
-					it->die();
+					// TODO: Add killer
+					kill(&(*it));
 					world.DestroyBody(ce->other);
 					ce->other = NULL;
 				// Ladders
@@ -551,8 +576,8 @@ void World::update() {
 	} //< Mutex
 	// Create power-ups
 	if (timer_powerup() && is_master) {
-		addPowerup(randf(offset, w-offset), randf(offset, h-offset), Powerup::Random());
-		timer_powerup = Countdown(randf(5.0f, 8.0f));
+		addPowerup(randf(offset, w-offset), randf(offset, h-offset), game.randPowerup());
+		timer_powerup = Countdown(game.getPowerupDelay());
 	}
 	#ifdef USE_THREADS
 	// TODO: Hackish

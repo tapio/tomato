@@ -43,7 +43,7 @@ void handle_keys(Players& players) {
 			int k = event.key.keysym.sym;
 			if (k == SDLK_ESCAPE) { QUIT = true; return; }
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN) continue;
+				if (it->type != Actor::HUMAN || it->is_dead()) continue;
 				if (k == it->KEY_LEFT) it->key_left = true;
 				else if (k == it->KEY_RIGHT) it->key_right = true;
 				if (k == it->KEY_UP) it->key_up = true;
@@ -56,7 +56,7 @@ void handle_keys(Players& players) {
 		case SDL_KEYUP: {
 			int k = event.key.keysym.sym;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN) continue;
+				if (it->type != Actor::HUMAN || it->is_dead()) continue;
 				if (k == it->KEY_UP) { if (it->key_up) it->end_jumping(); it->key_up = false; }
 				if (k == it->KEY_DOWN) { if (it->key_down) it->end_jumping(); it->key_down = false; }
 				if (k == it->KEY_LEFT) { if (it->key_left) it->stop(); it->key_left = false; }
@@ -67,7 +67,7 @@ void handle_keys(Players& players) {
 		} // end switch
 	}
 	for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-		if (it->type != Actor::HUMAN) continue;
+		if (it->type != Actor::HUMAN || it->is_dead()) continue;
 		if (it->key_left) it->move(-1);
 		else if (it->key_right) it->move(1);
 		if (it->key_up) it->jump();
@@ -266,6 +266,10 @@ int main(int argc, char** argv) {
 		} else if (arg == "--players") parseVal(num_players_local, i, argc, argv);
 		else if (arg == "--ai") parseVal(num_players_ai, i, argc, argv);
 		else if (arg == "--gamemode") parseVal(gamemode, i, argc, argv);
+		else {
+			std:: cout << "Unrecognized option '" << arg << "'. Use --help for usage info." << std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	srand(time(NULL)); // Randomize RNG

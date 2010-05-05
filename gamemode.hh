@@ -16,7 +16,7 @@
 class GameMode {
 
   public:
-	GameMode(std::string gametypefile) {
+	GameMode(std::string gametypefile): default_powerup() {
 		using boost::property_tree::ptree;
 		ptree pt;
 		read_ini(gametypefile, pt);
@@ -31,17 +31,17 @@ class GameMode {
 		points_killer = pt.get("Scoring.killer", 0);
 		// Players
 		spawn_delay_player = pt.get("Players.respawntime", 0.0f);
-		int default_powerup = pt.get("Players.powerup", 0);
-		if (default_powerup != 0)
-			std::cout << "Warning: Unimplemented game mode modifier 'Players.powerup'." << std::endl;
+		int p_id = pt.get("Players.powerup", 0);
+		if (p_id < 0 || p_id > Powerup::POWERUPS) throw std::runtime_error("Invalid powerup number in " + gametypefile);
+		if (p_id > 0) default_powerup = Powerup(Powerup::PowerupTypes[p_id-1]);
 		// Powerups
 		max_powerups = pt.get("Powerups.limit", 4);
-		spawn_min_delay_powerup = pt.get("Powerups.mindelay", 5.0f);
-		spawn_max_delay_powerup = pt.get("Powerups.maxdelay", 10.0f);
+		spawn_min_delay_powerup = pt.get("Powerups.mindelay", 10.0f);
+		spawn_max_delay_powerup = pt.get("Powerups.maxdelay", 15.0f);
 		{ // Parse allowed powerups
 			std::string allowpw = boost::to_lower_copy(pt.get("Powerups.allow", "all"));
 			int all_at_once = 0;
-			if (allowpw == "" || allowpw == "all") all_at_once = 1;
+			if (allowpw.length() == 0 || allowpw == "all") all_at_once = 1;
 			else if (allowpw == "none" || allowpw[0] == '0') { all_at_once = -1; max_powerups = 0; }
 			// Initialize
 			for (int i = 0; i < Powerup::POWERUPS; ++i) powerups[i] = all_at_once > 0 ? true : false;
@@ -84,8 +84,13 @@ class GameMode {
 
 	std::string getName() const { return name; }
 	double timeLeft() const { return round_timer(); }
-	float randPowerupDelay() const { return randf(spawn_min_delay_powerup, spawn_max_delay_powerup); }
-	int getMaxPowerups() const { return max_powerups; }
+	float getRespawnDelay() const { return spawn_delay_player; }
+	float getPowerupDelay() const { return randf(spawn_min_delay_powerup, spawn_max_delay_powerup); }
+	Powerup getDefaultPowerup() const { return default_powerup; }
+	int getPowerupLimit() const { return max_powerups; }
+	int getSuicidePoints() const { return points_drowned; }
+	int getKilledPoints() const { return points_killed; }
+	int getKillerPoints() const { return points_killer; }
 
   private:
 
@@ -97,6 +102,7 @@ class GameMode {
 	int points_killed;
 	int points_killer;
 	float spawn_delay_player;
+	Powerup default_powerup;
 	int max_powerups;
 	float spawn_min_delay_powerup;
 	float spawn_max_delay_powerup;

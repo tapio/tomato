@@ -30,6 +30,7 @@ class World {
 	World(int width, int height, TextureMap& tm, GameMode gm, bool master = true);
 
 	Actor* shoot(const Actor& shooter);
+	void kill(Actor* target, Actor* killer = NULL);
 	bool safe2spawn(float x, float y) const;
 	b2Vec2 randomSpawn() const;
 	b2Vec2 randomSpawnLocked() const;
