@@ -24,13 +24,17 @@ GLuint load_texture(const std::string filename, bool repeat) {
 
 TextureMap load_textures() {
 	TextureMap tmap;
+	tmap.insert(std::pair<std::string, GLuint>("title", load_texture(getFilePath("images/title.png"), true)));
 	tmap.insert(std::pair<std::string, GLuint>("background", load_texture(getFilePath("images/bg.png"), true)));
 	tmap.insert(std::pair<std::string, GLuint>("water", load_texture(getFilePath("images/water.png"), true)));
 	tmap.insert(std::pair<std::string, GLuint>("ground", load_texture(getFilePath("images/ground.png"))));
 	tmap.insert(std::pair<std::string, GLuint>("ladder", load_texture(getFilePath("images/ladder.png"))));
 	tmap.insert(std::pair<std::string, GLuint>("crate", load_texture(getFilePath("images/crate.png"))));
 	tmap.insert(std::pair<std::string, GLuint>("powerups", load_texture(getFilePath("images/powerups.png"))));
-	tmap.insert(std::pair<std::string, GLuint>("tomato", load_texture(getFilePath("images/player_1.png"))));
+	tmap.insert(std::pair<std::string, GLuint>("tomato_1", load_texture(getFilePath("images/player_1.png"))));
+	tmap.insert(std::pair<std::string, GLuint>("tomato_2", load_texture(getFilePath("images/player_2.png"))));
+	tmap.insert(std::pair<std::string, GLuint>("tomato_3", load_texture(getFilePath("images/player_3.png"))));
+	tmap.insert(std::pair<std::string, GLuint>("tomato_4", load_texture(getFilePath("images/player_4.png"))));
 
 	return tmap;
 }
@@ -73,3 +77,10 @@ void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex) {
 	glDisable(GL_TEXTURE_2D);
 }
 
+void drawImage(GLuint tex, int x, int y, int w, int h) {
+	float vert[] = { x, y + h,
+		             x, y,
+		             x + w, y,
+		             x + w, y + h };
+	drawVertexArray(&vert[0], &tex_square[0], 4, tex);
+}

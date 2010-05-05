@@ -10,17 +10,18 @@
 void Server::listen() {
 	ENetEvent e;
 	while (!m_quit) {
-		enet_host_service(m_server, &e, 1000);
+		enet_host_service(m_server, &e, 20);
 		switch (e.type) {
 		case ENET_EVENT_TYPE_CONNECT: {
 			std::cout << "Client connected from " << e.peer->address.host << ":" << e.peer->address.port << std::endl;
 			// TODO: Proper generation
-			m_world->addActor(300, 100, Actor::REMOTE);
+			char newid = m_world->getActors().size() + 1;
+			m_world->addActor(4, 4, Actor::REMOTE, newid);
 			e.peer->data = &m_world->getActors().back();
 			{ // Send starting info
 				std::string msg = "  ";
 				msg[0] = MYID;
-				msg[1] = m_world->getActors().size();
+				msg[1] = newid;
 				ENetPacket* packet = enet_packet_create(msg.c_str(), msg.length(), ENET_PACKET_FLAG_RELIABLE);
 				enet_peer_send(e.peer, 0, packet); // Send through channel 0
 				enet_host_flush(m_server); // Don't dispatch events
@@ -67,7 +68,7 @@ void Server::listen() {
 void Client::listen() {
 	ENetEvent e;
 	while (!m_quit) {
-		enet_host_service(m_client, &e, 1000);
+		enet_host_service(m_client, &e, 20);
 		switch (e.type) {
 		case ENET_EVENT_TYPE_RECEIVE: {
 			// TODO: Handle receive

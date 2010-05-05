@@ -55,6 +55,7 @@ if (USE_NETWORK)
 endif()
 
 # Boost libraries
+list(APPEND BOOST_COMPONENTS filesystem system)
 find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
@@ -88,16 +89,17 @@ target_link_libraries(${EXENAME} ${LIBS})
 
 # Installation
 file(GLOB IMAGE_FILES "images/*.png")
-file(GLOB CONF_FILES "*.conf")
-set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt")
+file(GLOB CONF_FILES "data/*.conf" "data/*.gamemode")
+set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt" "docs/License.txt")
 
 install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
-install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL})
+install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL}/data)
 install(FILES ${DOC_FILES} DESTINATION ${SHARE_INSTALL}/doc)
 install(TARGETS ${EXENAME} DESTINATION bin)
 
 if (WIN32)
 	file(GLOB DLL_FILES "bin/*.dll")
-	install(FILES ${DLL_FILES} DESTINATION bin)
+	file(GLOB SCRIPT_FILES "bin/*.bat")
+	install(FILES ${DLL_FILES} ${SCRIPT_FILES} DESTINATION bin)
 endif(WIN32)
 

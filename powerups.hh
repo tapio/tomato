@@ -30,7 +30,7 @@ struct Powerup {
 
 struct PowerupEntity: public Entity {
 
-	PowerupEntity(Powerup::Type type, GLuint tex): Entity(16, tex), effect(type), lifetime(15)
+	PowerupEntity(Powerup::Type type, GLuint tex): Entity(tex), effect(type), lifetime(15)
 	{ }
 
 	virtual void draw() const { Entity::draw(effect.type); }

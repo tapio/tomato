@@ -18,15 +18,17 @@
 #include <SFML/Window.hpp>
 
 #include "util.hh"
+#include "settings.hh"
 #include "filesystem.hh"
 #include "player.hh"
 #include "world.hh"
 #include "network.hh"
 #include "keys.hh"
 #include "texture.hh"
+#include "gamemode.hh"
 
-#define scrW 800
-#define scrH 600
+#define WW 25.0
+#define WH (WW*scrH/scrW)
 
 static bool QUIT = false;
 
@@ -43,7 +45,7 @@ void handle_keys(sf::Window& app, Players& players) {
 			int k = event.Key.Code;
 			if (k == sf::Key::Escape) { QUIT = true; return; }
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN) continue;
+				if (it->type != Actor::HUMAN || it->is_dead()) continue;
 				if (k == it->KEY_LEFT) it->key_left = true;
 				else if (k == it->KEY_RIGHT) it->key_right = true;
 				if (k == it->KEY_UP) it->key_up = true;
@@ -56,7 +58,7 @@ void handle_keys(sf::Window& app, Players& players) {
 		case sf::Event::KeyReleased: {
 			int k = event.Key.Code;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN) continue;
+				if (it->type != Actor::HUMAN || it->is_dead()) continue;
 				if (k == it->KEY_UP) { if (it->key_up) it->end_jumping(); it->key_up = false; }
 				if (k == it->KEY_DOWN) { if (it->key_down) it->end_jumping(); it->key_down = false; }
 				if (k == it->KEY_LEFT) { if (it->key_left) it->stop(); it->key_left = false; }
@@ -69,7 +71,7 @@ void handle_keys(sf::Window& app, Players& players) {
 	}
 	// Do effects
 	for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-		if (it->type != Actor::HUMAN) continue;
+		if (it->type != Actor::HUMAN || it->is_dead()) continue;
 		if (it->key_left) it->move(-1);
 		else if (it->key_right) it->move(1);
 		if (it->key_up) it->jump();
@@ -94,6 +96,7 @@ void setup_gl() {
 	glColor4ub(255, 255, 255, 255);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
 }
 
 /// Thread functions
@@ -106,7 +109,10 @@ struct InputWrapper {
 
 #ifdef USE_THREADS
 void updateKeys(InputWrapper& iw) {
-	while (!QUIT) { handle_keys(iw.app, iw.players); }
+	while (!QUIT) {
+		handle_keys(iw.app, iw.players);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+	}
 }
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 void updateViewport(World& world) {
@@ -118,15 +124,21 @@ void updateViewport(World& world) {
 #endif
 
 /// Game loop
-bool main_loop(bool is_client, std::string host, int port) {
+bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
 	// Window initialization stuff
 	sf::Window App(sf::VideoMode(scrW, scrH, 32), PACKAGE);
 	setup_gl();
 
 	TextureMap tm = load_textures();
-	World world(scrW, scrH, tm, !is_client);
+	World world(WW, WH, tm, gm, !is_client);
 	#ifdef USE_NETWORK
 	Client client(&world);
+
+	// Draw title
+	const int titlew = scrW/2, titleh = titlew/2;
+	drawImage(tm.find("title")->second, scrW/2 - titlew/2, scrH/2 - titleh/2, titlew, titleh);
+	App.Display();
+	double titletime = GetSecs() + 0.75;
 
 	if (is_client) {
 		client.connect(host, port);
@@ -137,19 +149,23 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#else
 	if (true) {
 	#endif
-		world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
+		for (int i = 0; i < num_players_local + num_players_ai; ++i) {
+			b2Vec2 pos = world.randomSpawnLocked();
+			world.addActor(pos.x, pos.y, i >= num_players_local ? Actor::AI : Actor::HUMAN, (i % 4) + 1);
+		}
 	}
 
 	Players& players = world.getActors();
-	parse_keys(players, "keys.conf");
+	parse_keys(players, getFilePath("data/keys.conf"));
+
+	while (titletime > GetSecs()); // Ensure title visibility
 
 	// Launch threads
 	#ifdef USE_THREADS
 	//boost::thread thread_input(updateKeys, InputWrapper(App, players));
 	boost::thread thread_physics(updateWorld, boost::ref(world));
-	boost::thread thread_viewport(updateViewport, boost::ref(world));
+	boost::thread thread_viewport;
+	if (config_zoom) thread_viewport = boost::thread(updateViewport, boost::ref(world));
 	#endif
 
 	// MAIN LOOP
@@ -161,10 +177,10 @@ bool main_loop(bool is_client, std::string host, int port) {
 
 		handle_keys(App, players);
 
-		#ifndef USE_THREADS
+		#if !defined(USE_THREADS)
 		world.update();
-		world.updateViewport();
-		#else
+		if (config_zoom) world.updateViewport();
+		#elif !defined(WIN32)
 		// Max ~ 100 fps is enough for graphics
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
@@ -181,16 +197,16 @@ bool main_loop(bool is_client, std::string host, int port) {
 	#ifdef USE_THREADS
 	//thread_input.join();
 	thread_physics.join();
-	thread_viewport.join();
+	if (config_zoom) thread_viewport.join();
 	#endif
 	return false;
 }
 
 /// Server runs here
-void server_loop(int port) {
+void server_loop(GameMode gm, int port) {
 #ifdef USE_NETWORK
 	TextureMap tm;
-	World world(scrW, scrH, tm);
+	World world(WW, WH, tm, gm);
 	//Players& players = world.getActors();
 	Server server(&world, port);
 
@@ -209,29 +225,57 @@ void server_loop(int port) {
 #endif
 }
 
+/// Parse the cmd line argument's following value to variable
+template<typename T> bool parseVal(T& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = str2num<T>(std::string(argv[i+1]));
+		++i;
+		return true;
+	}
+	return false;
+}
+template<> bool parseVal(std::string& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = std::string(argv[i+1]);
+		++i;
+		return true;
+	}
+	return false;
+}
+
 /// Program entry-point
 int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
-	std::string host("localhost");
-	int port = DEFAULT_PORT;
+
+	readConfig();
+
+	std::string gamemode(config_default_gamemode);
+	std::string host(config_default_host);
+	int port = config_default_port;
+	int num_players_local = 2;
+	int num_players_ai = 0;
 
 	for (int i = 1; i < argc; i++) {
 		std::string arg(argv[i]);
 		if (arg == "--help" || std::string(argv[i]) == "-h") {
 			std::cout << "Usage: " << argv[0] << " "
-			  << "[--help | -h] [ [--server [port]] | [--client [host] [port]] ]"
+			  << "[--help | -h] [--players NUM] [--ai NUM] [ [--server [PORT]] | [--client [HOST] [PORT]] ]"
 			  << std::endl;
 			return 0;
 		}
 		else if (arg == "--server") {
 			dedicated_server = true;
-			if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
+			parseVal(port, i, argc, argv);
 		} else if (arg == "--client") {
 			client = true;
-			if (i < argc-1 && argv[i+1][0] != '-') {
-				host = argv[i+1]; ++i;
-				if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
-			}
+			if (parseVal(host, i, argc, argv))
+				parseVal(port, i, argc, argv);
+		} else if (arg == "--players") parseVal(num_players_local, i, argc, argv);
+		else if (arg == "--ai") parseVal(num_players_ai, i, argc, argv);
+		else if (arg == "--gamemode") parseVal(gamemode, i, argc, argv);
+		else {
+			std:: cout << "Unrecognized option '" << arg << "'. Use --help for usage info." << std::endl;
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -242,17 +286,26 @@ int main(int argc, char** argv) {
 
 	// TODO: Main menu
 
-	#ifndef USE_NETWORK
-	if (!dedicated_server && !client) {
-	#endif
-	if (!dedicated_server) {
-		main_loop(client, host, port);
-	} else server_loop(port);
-	#ifndef USE_NETWORK
-	} else {
-		std::cout << "Networking support is disabled in this build." << std::endl;
+	try {
+		if (gamemode.find(".gamemode") == std::string::npos) gamemode += ".gamemode";
+		GameMode gm(getFilePath("data/" + gamemode));
+
+		#ifndef USE_NETWORK
+		if (!dedicated_server && !client) {
+		#endif
+		if (!dedicated_server) {
+			main_loop(gm, num_players_local, num_players_ai, client, host, port);
+		} else server_loop(gm, port);
+		#ifndef USE_NETWORK
+		else {
+			std::cout << "Networking support is disabled in this build." << std::endl;
+		}
+		}
+		#endif
+	} catch (std::exception& e) {
+		// TODO: Nicer output
+		std::cout << "-!- FATAL ERROR: " << e.what() << std::endl;
 	}
-	#endif
 	#ifdef USE_NETWORK
 	enet_deinitialize();
 	#endif

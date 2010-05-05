@@ -25,3 +25,6 @@ float* getTileTexCoords(int tileid, int xtiles, int ytiles, bool horiz_flip = fa
 
 /// Draw a given vertex array with quads and given texture
 void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex);
+
+/// Draw an plain image
+void drawImage(GLuint tex, int x, int y, int w, int h);
