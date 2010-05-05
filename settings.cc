@@ -10,6 +10,7 @@ int scrH;
 
 bool config_fullscreen;
 bool config_zoom;
+std::string config_default_gamemode;
 int config_default_port;
 std::string config_default_host;
 
@@ -24,6 +25,7 @@ void readConfig() {
 
 	config_fullscreen = pt.get("Settings.fullscreen", false);
 	config_zoom = pt.get("Settings.zoom", true);
+	config_default_gamemode = pt.get("Settings.gamemode", "classic");
 	config_default_host = pt.get("Settings.host", "localhost");
 	config_default_port = pt.get("Settings.port", 1234);
 }

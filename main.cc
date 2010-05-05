@@ -242,7 +242,7 @@ int main(int argc, char** argv) {
 
 	readConfig();
 
-	std::string gamemode("classic");
+	std::string gamemode(config_default_gamemode);
 	std::string host(config_default_host);
 	int port = config_default_port;
 	int num_players_local = 2;
