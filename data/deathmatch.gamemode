@@ -1,0 +1,48 @@
+[Gamemode]
+name = Death Match
+
+; Maximum amount of time a round can last, in seconds
+timelimit = 5
+
+; Maximum score
+scorelimit = 10
+
+; Number of rounds
+rounds = 1
+
+[Scoring]
+; Negative score means giving a point to everybody else
+
+; Dropping to water
+drowned = -1
+
+; Killing with powerups
+killer = 1
+
+; Death by powerups
+killed = 0
+
+[Players]
+
+; Time before respawning, negative for no respawn
+respawntime = 2
+
+; Default powerup, 0 for none
+powerup = 0
+
+[Powerups]
+
+; Maximum number of simultaneous powerups
+limit = 4
+
+; List of allowed powerup indexes or 'all' or 'none'.
+; 10 = a, 11 = b, ... , 16 = f
+allow = 1 2 3 4 5 6 7 8 9 a b c d e f
+
+; How long before spawning a new powerup (seconds)
+mindelay = 10
+maxdelay = 15
+
+; How long the powerup lives before disappearing
+lifetime = 20
+
