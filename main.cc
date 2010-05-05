@@ -25,6 +25,7 @@
 #include "network.hh"
 #include "keys.hh"
 #include "texture.hh"
+#include "gamemode.hh"
 
 #define WW 25.0
 #define WH (WW*scrH/scrW)
@@ -240,6 +241,9 @@ int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
 
 	readConfig();
+
+	//GameMode(getFilePath("data/gametype.template"));
+
 	std::string host(config_default_host);
 	int port = config_default_port;
 	int num_players_local = 2;

@@ -1,0 +1,39 @@
+[Gametype]
+name = MyGameType
+
+; Maximum amount of time a round can last, in seconds
+timelimit = 0
+
+[Scoring]
+; Negative score means giving a point to everybody else
+
+; Dropping to water
+drown = -1
+
+; Killing with powerups
+kill = 1
+
+[Players]
+
+; Time before respawning, negative for no respawn
+respawntime = 0
+
+; Default powerup, 0 for none
+powerup = 0
+
+[Powerups]
+
+; Maximum number of simultaneous powerups
+limit = 4
+
+; List of allowed powerup indexes or 'all' or 'none'.
+; 10 = a, 11 = b, ... , 16 = f
+allow = 1 2 3 4 5 6 7 8 9 a b c d e f
+
+; How long before spawning a new powerup (seconds)
+mindelay = 3
+maxdelay = 5
+
+; How long the powerup lives before disappearing
+lifetime = 10
+
