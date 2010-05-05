@@ -122,9 +122,9 @@ void updateViewport(World& world) {
 #endif
 
 /// Game loop
-bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
+bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
-	World world(WW, WH, tm, !is_client);
+	World world(WW, WH, tm, gm, !is_client);
 	#ifdef USE_NETWORK
 	Client client(&world);
 
@@ -196,10 +196,10 @@ bool main_loop(int num_players_local, int num_players_ai, bool is_client, std::s
 }
 
 /// Server runs here
-void server_loop(int port) {
+void server_loop(GameMode gm, int port) {
 #ifdef USE_NETWORK
 	TextureMap tm;
-	World world(WW, WH, tm);
+	World world(WW, WH, tm, gm);
 	//Players& players = world.getActors();
 	Server server(&world, port);
 
@@ -244,6 +244,7 @@ int main(int argc, char** argv) {
 
 	//GameMode(getFilePath("data/gametype.template"));
 
+	std::string gamemode("classic");
 	std::string host(config_default_host);
 	int port = config_default_port;
 	int num_players_local = 2;
@@ -266,12 +267,16 @@ int main(int argc, char** argv) {
 				parseVal(port, i, argc, argv);
 		} else if (arg == "--players") parseVal(num_players_local, i, argc, argv);
 		else if (arg == "--ai") parseVal(num_players_ai, i, argc, argv);
+		else if (arg == "--gamemode") parseVal(gamemode, i, argc, argv);
 	}
 
 	srand(time(NULL)); // Randomize RNG
 	#ifdef USE_NETWORK
 	enet_initialize();
 	#endif
+
+	if (gamemode.find(".gamemode") == std::string::npos) gamemode += ".gamemode";
+	GameMode gm(getFilePath("data/" + gamemode));
 
 	// TODO: Main menu
 
@@ -289,11 +294,11 @@ int main(int argc, char** argv) {
 		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
 
 		setup_gl();
-		main_loop(num_players_local, num_players_ai, client, host, port);
+		main_loop(gm, num_players_local, num_players_ai, client, host, port);
 
 		// FIXME: SLD_Quit() hangs :(
 		//SDL_Quit();
-	} else server_loop(port);
+	} else server_loop(gm, port);
 	#ifndef USE_NETWORK
 	} else {
 		std::cout << "Networking support is disabled in this build." << std::endl;

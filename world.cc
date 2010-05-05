@@ -53,10 +53,10 @@ namespace {
 }
 
 
-World::World(int width, int height, TextureMap& tm, bool master):
+World::World(int width, int height, TextureMap& tm, GameMode gm, bool master):
   is_master(master), world(b2Vec2(0.0f, 0.0f), true), w(width), h(height),
   SCALE(16.0), view_topleft(0,0), view_bottomright(w,h),
-  tilesize(1), water_height(2.5), timer_powerup(randf(4.0f, 7.0f))
+  tilesize(1), water_height(2.5), timer_powerup(randf(4.0f, 7.0f)), game(gm)
 {
 	float hw = w*0.5, hh = h*0.5;
 

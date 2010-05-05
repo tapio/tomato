@@ -19,6 +19,7 @@
 #include "util.hh"
 #include "player.hh"
 #include "worldelements.hh"
+#include "gamemode.hh"
 
 #define GRAVITY 2.5f
 
@@ -26,7 +27,7 @@ class Client;
 
 class World {
   public:
-	World(int width, int height, TextureMap& tm, bool master = true);
+	World(int width, int height, TextureMap& tm, GameMode gm, bool master = true);
 
 	Actor* shoot(const Actor& shooter);
 	bool safe2spawn(float x, float y) const;
@@ -79,4 +80,5 @@ class World {
 	Bridges bridges;
 	Powerups powerups;
 	Countdown timer_powerup;
+	GameMode game;
 };

@@ -1,17 +1,26 @@
-[Gametype]
+[Gamemode]
 name = MyGameType
 
 ; Maximum amount of time a round can last, in seconds
 timelimit = 0
 
+; Maximum score per round, 0 to disable
+scorelimit = 3
+
+; Number of rounds
+rounds = 1
+
 [Scoring]
 ; Negative score means giving a point to everybody else
 
 ; Dropping to water
-drown = -1
+drowned = -1
 
 ; Killing with powerups
-kill = 1
+killer = 1
+
+; Death by powerups
+killed = 0
 
 [Players]
 
