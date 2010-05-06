@@ -222,7 +222,7 @@ void server_loop(GameMode gm, int port) {
 		// Compose game-state to send to clients
 		std::string state = world.serialize();
 		// Send game state to clients
-		if (state != "") server.send_to_all(state);
+		if (state != "") server.send(state);
 	}
 	server.terminate();
 #endif
