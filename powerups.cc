@@ -20,7 +20,7 @@ void Powerup::equip(Actor* owner) {
 	else if (type == TELEPORT) { ammo = 2; }
 	else if (type == GUN) { ammo = 3; }
 	else if (type == DOUBLEJUMP) { owner->doublejump = DJUMP_ALLOW; }
-	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.5f); }
+	else if (type == SUPERBALL) { time = 10; owner->getBody()->GetFixtureList()->SetRestitution(1.05f); }
 	else if (type == LOGRAV) { time = 10; owner->lograv = true; }
 	lifetime = Countdown(time);
 }
@@ -41,7 +41,7 @@ void Powerup::touch(Actor* owner, Actor* other) {
 		std::cout << "PUNCH" << std::endl;
 		b2Vec2 v = other->getBody()->GetWorldCenter() - owner->getBody()->GetWorldCenter();
 		v.Normalize();
-		other->getBody()->ApplyLinearImpulse(50000.0f * v, other->getBody()->GetWorldCenter());
+		other->getBody()->ApplyLinearImpulse(1.0f * v, other->getBody()->GetWorldCenter());
 	}
 }
 
@@ -51,15 +51,15 @@ void Powerup::action(Actor* owner) {
 	if (ammo <= 0) return;
 	if (type == MINE) {
 		b2Vec2 pos = owner->getBody()->GetWorldCenter();
-		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 1.8, pos.y);
+		owner->getWorld()->addMine(pos.x + owner->dir * owner->getSize() * 3.0, pos.y + owner->getSize() * 0.5);
 		ammo--;
 	} else if (type == GUN) {
 		Actor* target = owner->getWorld()->shoot(*owner);
-		if (target) target->die();
+		if (target) owner->getWorld()->kill(target, owner);
 		ammo--;
 	} else if (type == TELEPORT) {
 		owner->getBody()->SetLinearVelocity(b2Vec2());
-		owner->getBody()->SetTransform(owner->getWorld()->randomSpawn(), 0);
+		owner->getBody()->SetTransform(owner->getWorld()->randomSpawnLocked(), 0);
 		ammo--;
 	}
 }

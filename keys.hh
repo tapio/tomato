@@ -6,6 +6,7 @@
 #include <SDL.h>
 
 #include "player.hh"
+#include "filesystem.hh"
 
 namespace {
 	/// Returns a word (delimited by delim) in a string st at position pos (1-based)

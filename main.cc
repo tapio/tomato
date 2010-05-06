@@ -18,15 +18,18 @@
 #include <SDL.h>
 
 #include "util.hh"
+#include "settings.hh"
+#include "filesystem.hh"
 #include "player.hh"
 #include "world.hh"
 #include "network.hh"
 #include "keys.hh"
 #include "texture.hh"
 #include "font.hh"
+#include "gamemode.hh"
 
-#define scrW 800
-#define scrH 600
+#define WW 25.0
+#define WH (WW*scrH/scrW)
 
 static bool QUIT = false;
 
@@ -41,11 +44,12 @@ void handle_keys(Players& players) {
 			int k = event.key.keysym.sym;
 			if (k == SDLK_ESCAPE) { QUIT = true; return; }
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN) continue;
-				if (k == it->KEY_LEFT) it->move(-1);
-				else if (k == it->KEY_RIGHT) it->move(1);
-				if (k == it->KEY_UP) it->jump();
-				else if (k == it->KEY_DOWN) it->duck();
+				if (it->type != Actor::HUMAN || it->is_dead()) continue;
+				if (k == it->KEY_LEFT) it->key_left = true;
+				else if (k == it->KEY_RIGHT) it->key_right = true;
+				if (k == it->KEY_UP) it->key_up = true;
+				else if (k == it->KEY_DOWN) it->key_down = true;
+				// Action button doesn't require state tracking
 				if (k == it->KEY_ACTION) it->action();
 			}
 			break;
@@ -53,13 +57,22 @@ void handle_keys(Players& players) {
 		case SDL_KEYUP: {
 			int k = event.key.keysym.sym;
 			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN) continue;
-				if (k == it->KEY_UP || k == it->KEY_DOWN) it->end_jumping();
-				if (k == it->KEY_LEFT || k == it->KEY_RIGHT) it->stop();
+				if (it->type != Actor::HUMAN || it->is_dead()) continue;
+				if (k == it->KEY_UP) { if (it->key_up) it->end_jumping(); it->key_up = false; }
+				if (k == it->KEY_DOWN) { if (it->key_down) it->end_jumping(); it->key_down = false; }
+				if (k == it->KEY_LEFT) { if (it->key_left) it->stop(); it->key_left = false; }
+				if (k == it->KEY_RIGHT) { if (it->key_right) it->stop(); it->key_right = false; }
 			}
 			break;
 		}
 		} // end switch
+	}
+	for (Players::iterator it = players.begin(); it != players.end(); ++it) {
+		if (it->type != Actor::HUMAN || it->is_dead()) continue;
+		if (it->key_left) it->move(-1);
+		else if (it->key_right) it->move(1);
+		if (it->key_up) it->jump();
+		else if (it->key_down) it->duck();
 	}
 }
 
@@ -86,37 +99,73 @@ void setup_gl() {
 	glColor4ub(255, 255, 255, 255);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
 }
 
-void updateKeys(Players& players) { while (!QUIT) { handle_keys(players); } }
+/// Thread functions
+
+#ifdef USE_THREADS
+void updateKeys(Players& players) {
+	#ifndef WIN32 // SDL needs the keys to be in the main thread on Windows platform
+	while (!QUIT) {
+		handle_keys(players);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+	}
+	#endif
+}
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
+void updateViewport(World& world) {
+	while (!QUIT) {
+		world.updateViewport();
+		boost::this_thread::sleep(boost::posix_time::milliseconds(15));
+	}
+}
+#endif
 
 /// Game loop
-bool main_loop(bool is_client, std::string host, int port) {
-	if (is_client) srand(100);
+bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
 	buildFonts();
-	World world(scrW, scrH, tm, !is_client);
+	World world(WW, WH, tm, gm, !is_client);
+	Players& players = world.getActors();
+
+	// Draw title
+	const int titlew = scrW/2, titleh = titlew/2;
+	drawImage(tm.find("title")->second, scrW/2 - titlew/2, scrH/2 - titleh/2, titlew, titleh);
+	flip();
+	double titletime = GetSecs() + 0.75;
+
+	#ifdef USE_NETWORK
 	Client client(&world);
 
-	if (!is_client) {
-		world.addActor(scrW-100, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(scrW-150, scrH/2, Actor::HUMAN, tm.find("tomato")->second);
-		world.addActor(100, scrH/2, Actor::AI, tm.find("tomato")->second);
-	} else {
+	if (is_client) {
 		client.connect(host, port);
 		std::cout << "Connected to " << host << ":" << port << std::endl;
-		std::cout << "Receiving initial data..." << std::endl;
-		boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+		std::cout << "Waiting for players..." << std::endl;
+		while (true) {
+			boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+			if (players.size() >= 2) break;
+		}
+	} else {
+	#else
+	if (true) {
+	#endif
+		for (int i = 0; i < num_players_local + num_players_ai; ++i) {
+			b2Vec2 pos = world.randomSpawnLocked();
+			world.addActor(pos.x, pos.y, i >= num_players_local ? Actor::AI : Actor::HUMAN, (i % 4) + 1);
+		}
 	}
 
-	Players& players = world.getActors();
-	parse_keys(players, "../keys.conf");
+	parse_keys(players, getFilePath("data/keys.conf"));
+
+	while (titletime > GetSecs()); // Ensure title visibility
 
 	// Launch threads
 	#ifdef USE_THREADS
 	boost::thread thread_input(updateKeys, boost::ref(players));
 	boost::thread thread_physics(updateWorld, boost::ref(world));
+	boost::thread thread_viewport;
+	if (config_zoom) thread_viewport = boost::thread(updateViewport, boost::ref(world));
 	#endif
 
 	// MAIN LOOP
@@ -124,42 +173,54 @@ bool main_loop(bool is_client, std::string host, int port) {
 	FPS fps;
 	while (!QUIT) {
 		fps.update();
-		if ((SDL_GetTicks() % 200) == 0) fps.debugPrint();
+		if ((int(GetSecs()*1000) % 500) == 0) fps.debugPrint();
 
-		#ifndef USE_THREADS
+		#if defined(WIN32) || !defined(USE_THREADS) // SDL needs the keys to be in the main thread on Windows platform
 		handle_keys(players);
+		#endif
+		#if !defined(USE_THREADS)
 		world.update();
-		#else
+		if (config_zoom) world.updateViewport();
+		#elif !defined(WIN32)
+		// Max ~ 100 fps is enough for graphics
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
 
 		// Draw
 		world.draw();
-		
-		drawText(tm.find("font")->second, Color(0.5, 1, 0.4, 0.2), 400, 400, "Ääkköset toimii", ALIGN_LEFT);	
-		drawText(tm.find("font")->second, Color(0.5, 0.1, 0.8, 0.2), 400, 420, "Ääkköset toimii\nUusi rivi", ALIGN_CENTER);	
-		drawText(tm.find("font")->second, Color(0.4, 1, 0.4, 0.2), 400, 440, "Ääkköset toimii, Ö ä", ALIGN_RIGHT);	
+
+		drawText(tm.find("font")->second, Color(0.5, 1, 0.4, 0.2), 400, 400, "Ääkköset toimii", ALIGN_LEFT);
+		drawText(tm.find("font")->second, Color(0.5, 0.1, 0.8, 0.2), 400, 420, "Ääkköset toimii\nUusi rivi", ALIGN_CENTER);
+		drawText(tm.find("font")->second, Color(0.4, 1, 0.4, 0.2), 400, 440, "Ääkköset toimii, Ö ä", ALIGN_RIGHT);
 
 		flip();
 	}
-
+	#ifdef USE_NETWORK
 	if (is_client) client.terminate();
+	#endif
 	#ifdef USE_THREADS
 	thread_input.join();
 	thread_physics.join();
+	if (config_zoom) thread_viewport.join();
 	#endif
 	return false;
 }
 
 /// Server runs here
-void server_loop(int port) {
-	srand(100);
+void server_loop(GameMode gm, int port) {
+#ifdef USE_NETWORK
 	TextureMap tm;
-	World world(scrW, scrH, tm);
-	//Players& players = world.getActors();
+	World world(WW, WH, tm, gm);
+	Players& players = world.getActors();
 	Server server(&world, port);
 
 	std::cout << "Server listening on port " << port << std::endl;
+
+	// Wait for players before starting simulation
+	while (true) {
+		boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+		if (players.size() >= 2) break;
+	}
 
 	// MAIN LOOP
 	while (true) {
@@ -171,57 +232,107 @@ void server_loop(int port) {
 		if (state != "") server.send_to_all(state);
 	}
 	server.terminate();
+#endif
 }
+
+/// Parse the cmd line argument's following value to variable
+template<typename T> bool parseVal(T& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = str2num<T>(std::string(argv[i+1]));
+		++i;
+		return true;
+	}
+	return false;
+}
+template<> bool parseVal(std::string& var, int& i, int argc, char** argv) {
+	if (i < argc-1 && argv[i+1][0] != '-') {
+		var = std::string(argv[i+1]);
+		++i;
+		return true;
+	}
+	return false;
+}
+
+struct SDLContainer {
+	SDLContainer() {
+		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
+		SDL_WM_SetCaption(PACKAGE, PACKAGE);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		SDL_Surface* screen = NULL;
+		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL | (config_fullscreen ? SDL_FULLSCREEN : 0));
+		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
+	}
+	~SDLContainer() { /*SDL_Quit();*/ } // FIXME: SLD_Quit() hangs :(
+};
 
 /// Program entry-point
 int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
-	std::string host("localhost");
-	int port = DEFAULT_PORT;
+
+	readConfig();
+
+	std::string gamemode(config_default_gamemode);
+	std::string host(config_default_host);
+	int port = config_default_port;
+	int num_players_local = 2;
+	int num_players_ai = 0;
 
 	for (int i = 1; i < argc; i++) {
 		std::string arg(argv[i]);
 		if (arg == "--help" || std::string(argv[i]) == "-h") {
 			std::cout << "Usage: " << argv[0] << " "
-			  << "[--help | -h] [ [--server [port]] | [--client [host] [port]] ]"
+			  << "[--help | -h] [--players NUM] [--ai NUM] [ [--server [PORT]] | [--client [HOST] [PORT]] ]"
 			  << std::endl;
 			return 0;
 		}
 		else if (arg == "--server") {
 			dedicated_server = true;
-			if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
+			parseVal(port, i, argc, argv);
 		} else if (arg == "--client") {
 			client = true;
-			if (i < argc-1 && argv[i+1][0] != '-') {
-				host = argv[i+1]; ++i;
-				if (i < argc-1 && argv[i+1][0] != '-') { port = str2num<int>(std::string(argv[i+1])); ++i; }
-			}
-		} else ;
+			if (parseVal(host, i, argc, argv))
+				parseVal(port, i, argc, argv);
+		} else if (arg == "--players") parseVal(num_players_local, i, argc, argv);
+		else if (arg == "--ai") parseVal(num_players_ai, i, argc, argv);
+		else if (arg == "--gamemode") parseVal(gamemode, i, argc, argv);
+		else {
+			std:: cout << "Unrecognized option '" << arg << "'. Use --help for usage info." << std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	srand(time(NULL)); // Randomize RNG
-	enet_initialize();
 
 	// TODO: Main menu
 
-	if (!dedicated_server) {
-		// SDL initialization stuff
-		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
-		//SDL_WM_SetCaption(PACKAGE " " VERSION, PACKAGE);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_Surface* screen = NULL;
-		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL);
-		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
-		SDL_EnableKeyRepeat(50, 50);
+	try {
+		if (gamemode.find(".gamemode") == std::string::npos) gamemode += ".gamemode";
+		GameMode gm(getFilePath("data/" + gamemode));
 
-		setup_gl();
-		main_loop(client, host, port);
-
-		SDL_Quit();
-	} else server_loop(port);
-
-	enet_deinitialize();
-
+		#ifndef USE_NETWORK
+		if (!dedicated_server && !client) {
+		#else
+		ENetContainer enet; // Initialize ENet, automatic deinit
+		#endif
+		if (!dedicated_server) {
+			SDLContainer sdl; // Initialize SDL, automatic deinit
+			setup_gl();
+			main_loop(gm, num_players_local, num_players_ai, client, host, port);
+		} else server_loop(gm, port);
+		#ifndef USE_NETWORK
+		else {
+			std::cout << "Networking support is disabled in this build." << std::endl;
+		}
+		}
+		#endif
+	} catch (std::exception& e) {
+		// TODO: Nicer output
+		std::cout << "-!- FATAL ERROR: " << e.what() << std::endl;
+	}
+	#ifdef WIN32
+	// FIXME: Quirk to not hang on exit on Windows
+	_exit(0);
+	#endif
 	return 0;
 }

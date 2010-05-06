@@ -1,0 +1,40 @@
+
+To Be Fixed
+----------
+* Hangs / crashes at exit (SDL_Quit, anything on Windows)
+* Some ladders needed to the middle of the level
+* Fix speed / input delays constant for all platforms
+
+General stuff
+-------------
+* Any combination of local human, remote human and AI players
+* Customizable / scriptable game types
+
+Game types
+----------
+* Classic
+	- Last man standing scores
+	- New map after kill
+	- Best out of three (not counting draws)
+* Death match
+	- Immediate respawn
+	- No new map after death
+	- Time / kill limit
+* Tag
+	- One player starts with Punch
+	- No other power-ups
+	- Punch rotates
+
+Physics fun
+-----------
+* Ropes?
+* Soft-body tomatoes?
+* Particle-based water?
+
+Power-ups
+---------
+* Classics
+	- Deadly touch
+* New
+	- Very light / very heavy?
+

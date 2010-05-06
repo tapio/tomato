@@ -1,3 +1,6 @@
+#include "config.hh"
+
+#ifdef USE_NETWORK
 #include "network.hh"
 #include "world.hh"
 #include "player.hh"
@@ -7,20 +10,28 @@
 void Server::listen() {
 	ENetEvent e;
 	while (!m_quit) {
-		enet_host_service(m_server, &e, 1000);
+		enet_host_service(m_server, &e, 20);
 		switch (e.type) {
 		case ENET_EVENT_TYPE_CONNECT: {
 			std::cout << "Client connected from " << e.peer->address.host << ":" << e.peer->address.port << std::endl;
 			// TODO: Proper generation
-			m_world->addActor(300, 100, Actor::REMOTE);
+			char newid = m_world->getActors().size() + 1;
+			m_world->addActor(4, 4, Actor::REMOTE, newid);
 			e.peer->data = &m_world->getActors().back();
-			// Send starting info
-			std::string msg = "  ";
-			msg[0] = MYID;
-			msg[1] = m_world->getActors().size();
-			ENetPacket* packet = enet_packet_create(msg.c_str(), msg.length(), ENET_PACKET_FLAG_RELIABLE);
-			enet_peer_send(e.peer, 0, packet); // Send through channel 0
-			enet_host_flush(m_server); // Don't dispatch events
+			{ // Send starting info
+				std::string msg = "  ";
+				msg[0] = MYID;
+				msg[1] = newid;
+				ENetPacket* packet = enet_packet_create(msg.c_str(), msg.length(), ENET_PACKET_FLAG_RELIABLE);
+				enet_peer_send(e.peer, 0, packet); // Send through channel 0
+				enet_host_flush(m_server); // Don't dispatch events
+			}
+			{ // Send initial world data
+				std::string msg = m_world->serialize(false);
+				ENetPacket* packet = enet_packet_create(msg.c_str(), msg.length(), ENET_PACKET_FLAG_RELIABLE);
+				enet_peer_send(e.peer, 0, packet); // Send through channel 0
+				enet_host_flush(m_server); // Don't dispatch events
+			}
 			break;
 		} case ENET_EVENT_TYPE_RECEIVE: {
 			// TODO: Handle receive
@@ -57,7 +68,7 @@ void Server::listen() {
 void Client::listen() {
 	ENetEvent e;
 	while (!m_quit) {
-		enet_host_service(m_client, &e, 1000);
+		enet_host_service(m_client, &e, 20);
 		switch (e.type) {
 		case ENET_EVENT_TYPE_RECEIVE: {
 			// TODO: Handle receive
@@ -69,19 +80,10 @@ void Client::listen() {
 			if (e.packet->data[0] == MYID) {
 				m_id = e.packet->data[1];
 			} else {
-				// New players?
-				int oldplayers = m_world->getActors().size();
-				int addplayers = e.packet->data[1] - oldplayers;
-				if (addplayers > 0) {
-					for (int i = oldplayers+1; i <= oldplayers + addplayers; ++i) {
-						m_world->addActor(10, 10, i == m_id ? Actor::HUMAN : Actor::REMOTE, 0,
-						  i == m_id ? this : NULL);
-					}
-				} else if (addplayers < 0) throw std::runtime_error("Too few players from server.");
 				// Update state
-				m_world->update(std::string((char*)e.packet->data, e.packet->dataLength));
+				m_world->update(std::string((char*)e.packet->data, e.packet->dataLength), this);
 			}
- 			// Clean-up
+			// Clean-up
 			enet_packet_destroy(e.packet);
 			break;
 		} case ENET_EVENT_TYPE_DISCONNECT:
@@ -94,5 +96,6 @@ void Client::listen() {
 			break;
 		}
 	}
-
 }
+
+#endif // USE_NETWORK

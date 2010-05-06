@@ -12,23 +12,25 @@
 
 #define PI 3.1415926535
 
+double inline GetSecs() { return 0.001 * SDL_GetTicks(); }
+
 /// Timer
 struct Countdown {
-	Countdown(float seconds = 0): endtime(SDL_GetTicks() + seconds*1000) { }
-	bool operator()() const { return SDL_GetTicks() >= endtime; }
-	unsigned int endtime;
+	Countdown(double seconds = 0): endtime(GetSecs() + seconds) { }
+	bool operator()() const { return GetSecs() >= endtime; }
+	double endtime;
 };
 
 
 /// FPS counter
 struct FPS {
-	FPS(): record(SDL_GetTicks()), time(0) { }
-	void update() { time = (SDL_GetTicks() - record) / 1000.0f; record = SDL_GetTicks(); }
+	FPS(): record(GetSecs()), time(0) { }
+	void update() { time = GetSecs() - record; record = GetSecs(); }
 	float getTime() const { return time; }
-	float getFPS() const { return 1.0f / time; }
-	void debugPrint() const { std::cout << "FPS: " << getFPS() << " (" << getTime() << " ms)" << std::endl; }
-	unsigned int record;
-	float time;
+	float getFPS() const { return 1.0 / time; }
+	void debugPrint() const { std::cout << "FPS: " << getFPS() << " (" << getTime() << " s)" << std::endl; }
+	double record;
+	double time;
 };
 
 
@@ -73,6 +75,9 @@ void inline randdir(int& dx, int &dy) {
 	else { dx = randint(-1,1); dy = randdir(); }
 }
 
+template <typename T>
+T distance(T x1, T y1, T x2, T y2) { return std::sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)); }
+
 /// Limit val to range [min, max]
 template <typename T> T clamp(T val, T min = 0, T max = 1) {
 	if (min > max) throw std::logic_error("min > max");
@@ -92,3 +97,6 @@ std::string num2str(T i) { std::ostringstream oss; oss << i; return oss.str(); }
 
 template<typename T>
 T str2num(std::string str) { std::istringstream iss(str); T num; iss >> num; return num; }
+
+template<typename T>
+int hex2num(T str) { std::stringstream ss; ss << std::hex << str; int num; ss >> num; return num; }

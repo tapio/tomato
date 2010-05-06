@@ -15,7 +15,7 @@ const static float tex_square[] = { 0.0f, 0.0f,
 
 
 /// Load a single texture
-GLuint load_texture(const char* filename, bool repeat = false);
+GLuint load_texture(const std::string filename, bool repeat = false);
 
 /// Load all textures used by the program
 TextureMap load_textures();
@@ -25,3 +25,6 @@ float* getTileTexCoords(int tileid, int xtiles, int ytiles, bool horiz_flip = fa
 
 /// Draw a given vertex array with quads and given texture
 void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex);
+
+/// Draw an plain image
+void drawImage(GLuint tex, int x, int y, int w, int h);

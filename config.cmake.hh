@@ -4,9 +4,11 @@
 #ifndef CONFIG_HH
 #define CONFIG_HH
 
-#cmakedefine USE_THREADS
 #define PACKAGE "@CMAKE_PROJECT_NAME@"
+#define SHARED_DATA_DIR "@SHARE_INSTALL@"
 
+#cmakedefine USE_THREADS
+#cmakedefine USE_NETWORK
 
 #endif
 

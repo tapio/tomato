@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef USE_NETWORK
+
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
@@ -11,13 +13,19 @@
 #include <boost/noncopyable.hpp>
 #include <enet/enet.h>
 
-class World;
 
-#define DEFAULT_PORT 1234
+/// RAII Wrapper
+struct ENetContainer {
+	ENetContainer() { enet_initialize(); }
+	~ENetContainer() { enet_deinitialize(); }
+};
+
+
+class World;
 
 class Server: public boost::noncopyable {
   public:
-	Server(World* world, int port = DEFAULT_PORT): m_quit(false), m_world(world) {
+	Server(World* world, int port): m_quit(false), m_world(world), m_server(NULL) {
 		m_address.host = ENET_HOST_ANY;
 		m_address.port = port;
 		// Create host at address, max_conns, unlimited up/down bandwith
@@ -30,7 +38,7 @@ class Server: public boost::noncopyable {
 
 	~Server() {
 		terminate();
-		enet_host_destroy(m_server);
+		if (m_server) enet_host_destroy(m_server);
 	}
 
 	void listen();
@@ -39,7 +47,6 @@ class Server: public boost::noncopyable {
 	void send_to_all(std::string msg, int flag = 0) {
 		ENetPacket* packet = enet_packet_create (msg.c_str(), msg.length(), flag);
 		enet_host_broadcast(m_server, 0, packet); // Send through channel 0 to all peers
-		enet_host_flush(m_server); // Don't dispatch events
 	}
 
 	/// Send a char
@@ -61,14 +68,14 @@ class Server: public boost::noncopyable {
 class Client: public boost::noncopyable {
   public:
 	/// Construct new
-	Client(World* world): m_quit(false), m_id(0), m_world(world) { }
+	Client(World* world): m_quit(false), m_id(0), m_world(world), m_client(NULL), m_peer(NULL) { }
 
 	~Client() {
 		terminate();
-		enet_host_destroy(m_client);
+		if (m_client) enet_host_destroy(m_client);
 	}
 
-	void connect(std::string host = "localhost", int port = DEFAULT_PORT) {
+	void connect(std::string host, int port) {
 		m_client = enet_host_create(NULL, 2, 0, 0);
 		if (m_client == NULL)
 			throw std::runtime_error("An error occurred while trying to create an ENet server host.");
@@ -95,10 +102,8 @@ class Client: public boost::noncopyable {
 
 	/// Send a string
 	void send(std::string msg, int flag = ENET_PACKET_FLAG_RELIABLE) {
-		//std::cout << "Sending: " << msg << std::endl;
 		ENetPacket* packet = enet_packet_create(msg.c_str(), msg.length(), flag);
 		enet_peer_send(m_peer, 0, packet); // Send through channel 0
-		enet_host_flush(m_client); // Don't dispatch events
 	}
 
 	/// Send a char
@@ -107,6 +112,8 @@ class Client: public boost::noncopyable {
 	}
 
 	void terminate() { m_quit = true; m_thread.join(); }
+
+	char getID() const { return m_id; }
 
   private:
 	bool m_quit;
@@ -118,3 +125,12 @@ class Client: public boost::noncopyable {
 	boost::thread m_thread;
 };
 
+#else
+
+struct Client {
+
+	char getID() { return 0; }
+
+};
+
+#endif // USE_NETWORK
