@@ -1,6 +1,7 @@
 #include "config.hh"
 
 #ifdef USE_NETWORK
+#include <Box2D.h>
 #include "network.hh"
 #include "world.hh"
 #include "player.hh"
@@ -17,9 +18,11 @@ void Server::listen() {
 		switch (e.type) {
 		case ENET_EVENT_TYPE_CONNECT: {
 			std::cout << "Client connected from " << e.peer->address.host << ":" << e.peer->address.port << std::endl;
-			// TODO: Proper generation
 			char newid = m_world->getActors().size() + 1;
-			m_world->addActor(4, 4, Actor::REMOTE, newid);
+			// Spawn player
+			b2Vec2 pos = m_world->randomSpawn();
+			m_world->addActor(pos.x, pos.y, Actor::REMOTE, newid);
+			// Assign
 			e.peer->data = &m_world->getActors().back();
 			{ // Send starting info
 				std::string msg = "  ";
