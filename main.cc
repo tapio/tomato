@@ -304,7 +304,8 @@ int main(int argc, char** argv) {
 		GameMode gm(getFilePath("data/" + gamemode));
 
 		#ifndef USE_NETWORK
-		if (!dedicated_server && !client) {
+		if (dedicated_server || client)
+			throw std::runtime_error("Networking support is disabled in this build.");
 		#else
 		ENetContainer enet; // Initialize ENet, automatic deinit
 		#endif
@@ -313,12 +314,6 @@ int main(int argc, char** argv) {
 			setup_gl();
 			main_loop(gm, num_players_local, num_players_ai, client, host, port);
 		} else server_loop(gm, port);
-		#ifndef USE_NETWORK
-		else {
-			std::cout << "Networking support is disabled in this build." << std::endl;
-		}
-		}
-		#endif
 	} catch (std::exception& e) {
 		// TODO: Nicer output
 		std::cout << "-!- FATAL ERROR: " << e.what() << std::endl;
