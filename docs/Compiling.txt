@@ -1,6 +1,6 @@
 Dependencies
 ============
-* Boost
+* Boost 1.41
 	- Headers    General aids
 	- Thread     Multithreading
 	- Filesystem Path stuff
@@ -13,9 +13,11 @@ Dependencies
 
 Ubuntu / Debian:
 
-This terminal command should get you far with the dependencies (Box2D must be compiled manually):
+This terminal command should get you far with the dependencies:
 
-    $ sudo aptitude install libboost-all-dev libenet-dev libsdl1.2-dev libsoil-dev
+    $ sudo aptitude install libboost-all-dev libbox2d-dev libenet-dev libsdl1.2-dev libsoil-dev
+
+Boost version in the repositories is 1.40, but 1.41 is required for property_tree. However, it is header-only and you should be able to just download a newer version and drop the property_tree folder into Boost include directory.
 
 Windows:
 
