@@ -16,15 +16,15 @@
 class GameMode {
 
   public:
-	GameMode(std::string gametypefile): default_powerup() {
+	GameMode(std::string gametypefile): end(), default_powerup() {
 		using boost::property_tree::ptree;
 		ptree pt;
 		read_ini(gametypefile, pt);
 		// Game mode
 		name = pt.get("Gamemode.name", "Unknown");
-		timelimit = pt.get("Gamemode.timelimit", 0);
-		scorelimit = pt.get("Gamemode.scorelimit", 0);
-		rounds = pt.get("Gamemode.rounds", 1);
+		timelimit = std::abs(pt.get("Gamemode.timelimit", 0));
+		scorelimit = std::abs(pt.get("Gamemode.scorelimit", 0));
+		rounds = std::abs(pt.get("Gamemode.rounds", 1));
 		// Scoring
 		points_drowned = pt.get("Scoring.drowned", -1);
 		points_killed = pt.get("Scoring.killed", -1);
@@ -62,6 +62,7 @@ class GameMode {
 	bool startRound() {
 		if (rounds > 0) {
 			rounds--;
+			end = false;
 			round_timer = Countdown(timelimit);
 			return true;
 		} return false;
@@ -69,9 +70,12 @@ class GameMode {
 
 	/// Has the round ended?
 	bool roundEnded() const {
-		if (timelimit > 0 && round_timer()) return true;
+		if ((timelimit > 0 && round_timer()) || end) return true;
 		else return false;
 	}
+
+	/// All rounds done
+	bool gameEnded() const { return rounds == 0 && (timelimit == 0 || round_timer() || end); }
 
 	Powerup::Type randPowerup() {
 		int safetyswitch = 20;
@@ -84,6 +88,7 @@ class GameMode {
 
 	std::string getName() const { return name; }
 	double timeLeft() const { return round_timer(); }
+	int getScoreLimit() const { return scorelimit; }
 	float getRespawnDelay() const { return spawn_delay_player; }
 	float getPowerupDelay() const { return randf(spawn_min_delay_powerup, spawn_max_delay_powerup); }
 	Powerup getDefaultPowerup() const { return default_powerup; }
@@ -91,6 +96,7 @@ class GameMode {
 	int getSuicidePoints() const { return points_drowned; }
 	int getKilledPoints() const { return points_killed; }
 	int getKillerPoints() const { return points_killer; }
+	bool end;
 
   private:
 

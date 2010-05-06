@@ -21,6 +21,17 @@
 #define speed_jump (speed_move_ground * 0.9f)
 #define speed_climb speed_jump
 
+
+struct Points {
+	Points(): wins(0), total_score(0), round_score(0), kills(0), deaths(0) { }
+	void add(int howmuch) { total_score += howmuch; round_score += howmuch; }
+	int wins;
+	int total_score;
+	int round_score;
+	int kills;
+	int deaths;
+};
+
 class World;
 
 class Actor: public Entity {
@@ -29,7 +40,7 @@ class Actor: public Entity {
 
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(tex), type(t),
 	  key_up(), key_down(), key_left(), key_right(), key_action(),
-	  points(0), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), jump_dir(0),
+	  points(), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), jump_dir(0),
 	  wallpenalty(0), powerup(), respawn(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
@@ -164,7 +175,7 @@ class Actor: public Entity {
 	bool key_action;
 
 	// Flags / states
-	int points;
+	Points points;
 	bool dead;
 	int dir;
 	int anim_frame;

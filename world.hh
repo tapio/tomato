@@ -37,13 +37,16 @@ class World {
 
 	void addMine(float x, float y);
 	void addActor(float x, float y, Actor::Type type, int character = 1, Client* client = NULL);
+	void addActorBody(float x, float y, Actor* actor);
 	bool addPlatform(float x, float y, float w, bool force = false);
 	void addLadder(float x, float y, float h);
 	void addCrate(float x, float y);
 	void addBridge(unsigned leftAnchorID, unsigned rightAnchorID);
 	void addPowerup(float x, float y, Powerup::Type type);
 
-	void generate();
+	void generateBorders();
+	void generateLevel();
+	void newRound();
 
 	std::string serialize(bool skip_static = true) const;
 	void update();

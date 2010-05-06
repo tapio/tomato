@@ -59,38 +59,6 @@ World::World(int width, int height, TextureMap& tm, GameMode gm, bool master):
   SCALE(16.0), view_topleft(0,0), view_bottomright(w,h),
   tilesize(1), water_height(2.5), timer_powerup(gm.getPowerupDelay()), game(gm)
 {
-	float hw = w*0.5, hh = h*0.5;
-
-	// Define the border bodies
-	b2BodyDef borderBodyDef;
-	borderBodyDef.position.Set(hw, hh);
-	b2Body* borderBody = world.CreateBody(&borderBodyDef);
-
-	// Define the border shapes
-	b2PolygonShape borderBoxLeft, borderBoxRight, borderBoxTop, borderBoxBottom;
-	borderBoxLeft.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(-hw,hh));
-	borderBoxRight.SetAsEdge(b2Vec2(hw,-hh), b2Vec2(hw,hh));
-	borderBoxTop.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(hw,-hh));
-	borderBoxBottom.SetAsEdge(b2Vec2(-hw,hh), b2Vec2(hw,hh));
-
-	// Add the border fixtures to the body
-	borderBody->CreateFixture(&borderBoxLeft, 0.0f);
-	borderBody->CreateFixture(&borderBoxRight, 0.0f);
-	borderBody->CreateFixture(&borderBoxTop, 0.0f);
-	borderBody->CreateFixture(&borderBoxBottom, 0.0f);
-	borderBody->SetUserData(&ElementTypes[BORDER]);
-
-	// Create water
-	b2BodyDef waterBodyDef;
-	waterBodyDef.position.Set(hw, h - water_height*0.5f);
-	b2Body* waterBody = world.CreateBody(&waterBodyDef);
-	b2PolygonShape waterBox;
-	waterBox.SetAsBox(w*0.5f, water_height*0.5f);
-	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &waterBox;
-	fixtureDef.isSensor = true; // No collision response
-	waterBody->CreateFixture(&fixtureDef);
-	waterBody->SetUserData(&ElementTypes[WATER]);
 
 	// Get texture IDs
 	for (int i = 1; i <= 4; ++i) texture_player[i-1] = tm.find(std::string("tomato_") + num2str(i))->second;
@@ -102,7 +70,8 @@ World::World(int width, int height, TextureMap& tm, GameMode gm, bool master):
 	texture_powerups = tm.find("powerups")->second;
 
 	// Generate
-	if (is_master) generate();
+	generateBorders();
+	if (is_master) generateLevel();
 	game.startRound();
 }
 
@@ -137,17 +106,26 @@ Actor* World::shoot(const Actor& shooter) {
 void World::kill(Actor* target, Actor* killer) {
 	if (!target) return;
 	target->die();
-
+	target->points.deaths++;
 	// TODO: Negative game mode scoring should add others' points
 	if (killer) {
-		target->points += game.getKilledPoints();
-		killer->points += game.getKillerPoints();
-	} else target->points += game.getSuicidePoints();
+		target->points.add(game.getKilledPoints());
+		killer->points.add(game.getKillerPoints());
+		killer->points.kills++;
+	} else target->points.add(game.getSuicidePoints());
+
+	// Check for kill limit
+	if (game.getScoreLimit() > 0
+	  && ( std::abs(target->points.round_score) > game.getScoreLimit()
+	   || (killer && std::abs(killer->points.round_score) > game.getScoreLimit())))
+	{
+		game.end = true;
+	}
 
 	target->respawn = Countdown(game.getRespawnDelay());
 	target->equip(game.getDefaultPowerup());
 
-	std::cout << "DEATH! Points: " << target->points << std::endl;
+	std::cout << "DEATH! Points: " << target->points.round_score << std::endl;
 
 }
 
@@ -206,6 +184,14 @@ void World::addActor(float x, float y, Actor::Type type, int character, Client* 
 	LOCKMUTEX;
 	if (client) actor = new OnlinePlayer(client, tex, type);
 	else actor = new Actor(tex, type);
+	addActorBody(x, y, actor);
+	actor->world = this;
+	actor->equip(game.getDefaultPowerup());
+	actors.push_back(actor);
+}
+
+
+void World::addActorBody(float x, float y, Actor* actor) {
 	// Define the dynamic body. We set its position and call the body factory.
 	b2BodyDef bodyDef;
 	bodyDef.type = b2_dynamicBody;
@@ -224,9 +210,6 @@ void World::addActor(float x, float y, Actor::Type type, int character, Client* 
 	fixtureDef.restitution = PLAYER_RESTITUTION; // Bounciness
 	// Add the shape to the body.
 	actor->getBody()->CreateFixture(&fixtureDef);
-	actor->world = this;
-	actor->equip(game.getDefaultPowerup());
-	actors.push_back(actor);
 }
 
 
@@ -241,7 +224,6 @@ bool World::addPlatform(float x, float y, float w, bool force) {
 		world.QueryAABB(&qc, aabb);
 		if (qc()) return false;
 	}
-
 	Platform p(w, texture_ground, 0, tilesize);
 	// Create body
 	b2BodyDef bodyDef;
@@ -393,7 +375,40 @@ void World::addPowerup(float x, float y, Powerup::Type type) {
 }
 
 
-void World::generate() {
+void World::generateBorders() {
+	LOCKMUTEX;
+	float hw = w*0.5, hh = h*0.5;
+	// Define the border bodies
+	b2BodyDef borderBodyDef;
+	borderBodyDef.position.Set(hw, hh);
+	b2Body* borderBody = world.CreateBody(&borderBodyDef);
+	// Define the border shapes
+	b2PolygonShape borderBoxLeft, borderBoxRight, borderBoxTop, borderBoxBottom;
+	borderBoxLeft.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(-hw,hh));
+	borderBoxRight.SetAsEdge(b2Vec2(hw,-hh), b2Vec2(hw,hh));
+	borderBoxTop.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(hw,-hh));
+	borderBoxBottom.SetAsEdge(b2Vec2(-hw,hh), b2Vec2(hw,hh));
+	// Add the border fixtures to the body
+	borderBody->CreateFixture(&borderBoxLeft, 0.0f);
+	borderBody->CreateFixture(&borderBoxRight, 0.0f);
+	borderBody->CreateFixture(&borderBoxTop, 0.0f);
+	borderBody->CreateFixture(&borderBoxBottom, 0.0f);
+	borderBody->SetUserData(&ElementTypes[BORDER]);
+	// Create water
+	b2BodyDef waterBodyDef;
+	waterBodyDef.position.Set(hw, h - water_height*0.5f);
+	b2Body* waterBody = world.CreateBody(&waterBodyDef);
+	b2PolygonShape waterBox;
+	waterBox.SetAsBox(w*0.5f, water_height*0.5f);
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &waterBox;
+	fixtureDef.isSensor = true; // No collision response
+	waterBody->CreateFixture(&fixtureDef);
+	waterBody->SetUserData(&ElementTypes[WATER]);
+}
+
+
+void World::generateLevel() {
 	float xoff = 1.5*tilesize;
 	float yoff = 2.5*tilesize;
 	// Create starting platforms
@@ -405,7 +420,6 @@ void World::generate() {
 	addPlatform(x, y2, randint(2,4)); // Bottom left
 	addLadder(x, y2 - ytilediff * tilesize, ytilediff); // Connect with ladder
 	addLadder(0, y2 - tilesize*0.333f, h - y2); // Left side ladder from water
-
 	float w1 = randint(2,4);
 	float w2 = randint(2,4);
 	x = randf(w - xoff - tilesize - tilesize, w - xoff - tilesize);
@@ -439,6 +453,41 @@ void World::generate() {
 }
 
 
+void World::newRound() {
+	// TODO: Proper game ending
+	if (game.gameEnded()) {
+		std::cout << "Game ended." << std::endl;
+		exit(0);
+	}
+	// TODO: Show previous round winner etc.
+
+
+	// FIXME: For some reason trying to generate new world crashes @ Platform::buildVertices
+	/*
+	{ 	LOCKMUTEX;
+		platforms.clear();
+		ladders.clear();
+		crates.clear();
+		bridges.clear();
+		powerups.clear();
+		// Reset physics world
+		world = b2World(b2Vec2(), true);
+	}
+	generateBorders();
+	generateLevel();
+	*/
+	{ 	LOCKMUTEX;
+		for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
+			it->points.round_score = 0;
+			b2Vec2 pos = randomSpawn();
+			addActorBody(pos.x, pos.y, &(*it));
+			it->dead = false;
+		}
+	}
+	game.startRound();
+}
+
+
 void World::update() {
 	// Prepare for simulation. Typically we use a time step of 1/60 of a
 	// second (60Hz) and 10 iterations. This provides a high quality simulation
@@ -460,6 +509,7 @@ void World::update() {
 		world.ClearForces();
 
 		// Update actors' airborne etc. status + gravity
+		int alive_people = 0;
 		for (Actors::iterator it = actors.begin(); it != actors.end(); ++it) {
 			it->airborne = true;
 			bool hitwall = false;
@@ -476,7 +526,7 @@ void World::update() {
 					it->dead = false;
 				}
 				continue;
-			}
+			} else alive_people++; // Count alive
 			// Unequip power-up if expired
 			if (it->powerup.expired()) it->unequip();
 			// Check for contacts
@@ -544,7 +594,7 @@ void World::update() {
 			// AI
 			if (it->type == Actor::AI) it->brains();
 		} //< End of Actors loop
-
+		if (alive_people <= 1) game.end = true;
 		// Crates
 		for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
 			b2Body* b = it->getBody();
@@ -579,6 +629,7 @@ void World::update() {
 		addPowerup(randf(offset, w-offset), randf(offset, h-offset), game.randPowerup());
 		timer_powerup = Countdown(game.getPowerupDelay());
 	}
+	if (game.roundEnded()) newRound();
 	#ifdef USE_THREADS
 	// TODO: Hackish
 	t = GetSecs() - t;
