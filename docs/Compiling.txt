@@ -22,9 +22,10 @@ Boost version in the repositories is 1.40, but 1.41 is required for property_tre
 Windows:
 
 You can use the win32/dependencies.bat batch script to download (most of) them.
-Box2D and ENet requires manual compiling, Boost binaries can be found from the internet.
+Boost binaries can be found from the internet, but Box2D and ENet requires manual compiling.
 
 **NOTE:** You may wish to disable the Box2D examples compilation for easier building.
+**NOTE:** There are pre-compiled libraries of Box2D and ENet in win32/lib/ -directory you may try.
 
 
 Compiling
