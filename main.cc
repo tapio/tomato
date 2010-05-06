@@ -125,6 +125,7 @@ void updateViewport(World& world) {
 bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
 	TextureMap tm = load_textures();
 	World world(WW, WH, tm, gm, !is_client);
+	Players& players = world.getActors();
 	#ifdef USE_NETWORK
 	Client client(&world);
 
@@ -137,8 +138,11 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 	if (is_client) {
 		client.connect(host, port);
 		std::cout << "Connected to " << host << ":" << port << std::endl;
-		std::cout << "Receiving initial data..." << std::endl;
-		boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+		std::cout << "Waiting for players..." << std::endl;
+		while (true) {
+			boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+			if (players.size() >= 2) break;
+		}
 	} else {
 	#else
 	if (true) {
@@ -149,7 +153,6 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		}
 	}
 
-	Players& players = world.getActors();
 	parse_keys(players, getFilePath("data/keys.conf"));
 
 	while (titletime > GetSecs()); // Ensure title visibility
@@ -200,10 +203,16 @@ void server_loop(GameMode gm, int port) {
 #ifdef USE_NETWORK
 	TextureMap tm;
 	World world(WW, WH, tm, gm);
-	//Players& players = world.getActors();
+	Players& players = world.getActors();
 	Server server(&world, port);
 
 	std::cout << "Server listening on port " << port << std::endl;
+
+	// Wait for players before starting simulation
+	while (true) {
+		boost::this_thread::sleep(boost::posix_time::milliseconds(500));
+		if (players.size() >= 2) break;
+	}
 
 	// MAIN LOOP
 	while (true) {
