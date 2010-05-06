@@ -55,7 +55,7 @@ void Powerup::action(Actor* owner) {
 		ammo--;
 	} else if (type == GUN) {
 		Actor* target = owner->getWorld()->shoot(*owner);
-		if (target) target->die();
+		if (target) owner->getWorld()->kill(target, owner);
 		ammo--;
 	} else if (type == TELEPORT) {
 		owner->getBody()->SetLinearVelocity(b2Vec2());

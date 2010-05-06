@@ -96,3 +96,6 @@ std::string num2str(T i) { std::ostringstream oss; oss << i; return oss.str(); }
 
 template<typename T>
 T str2num(std::string str) { std::istringstream iss(str); T num; iss >> num; return num; }
+
+template<typename T>
+int hex2num(T str) { std::stringstream ss; ss << std::hex << str; int num; ss >> num; return num; }

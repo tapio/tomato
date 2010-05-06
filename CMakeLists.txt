@@ -86,12 +86,12 @@ target_link_libraries(${EXENAME} ${LIBS})
 # Installation
 file(GLOB IMAGE_FILES "images/*.png")
 file(GLOB FONT_FILES "fonts/*.ttf")
-file(GLOB CONF_FILES "*.conf")
+file(GLOB CONF_FILES "data/*.conf" "data/*.gamemode")
 set(DOC_FILES "docs/Readme.txt" "docs/Authors.txt" "docs/Compiling.txt" "docs/License.txt")
 
-install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
 install(FILES ${FONT_FILES} DESTINATION ${SHARE_INSTALL}/fonts)
-install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL})
+install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
+install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL}/data)
 install(FILES ${DOC_FILES} DESTINATION ${SHARE_INSTALL}/doc)
 install(TARGETS ${EXENAME} DESTINATION bin)
 
