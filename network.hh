@@ -13,6 +13,14 @@
 #include <boost/noncopyable.hpp>
 #include <enet/enet.h>
 
+
+/// RAII Wrapper
+struct ENetContainer {
+	ENetContainer() { enet_initialize(); }
+	~ENetContainer() { enet_deinitialize(); }
+};
+
+
 class World;
 
 class Server: public boost::noncopyable {
