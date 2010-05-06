@@ -853,10 +853,11 @@ void World::draw() const {
 	{ // Magic zooming viewport
 		LOCKMUTEX;
 		glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
 			glLoadIdentity();
 			gluOrtho2D(view_topleft.x, view_bottomright.x, view_bottomright.y, view_topleft.y);
 		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+			glLoadIdentity();
 	}
 	{ // Background
 		static const int texsize = 8;
@@ -918,4 +919,8 @@ void World::draw() const {
 		LOCKMUTEX;
 		drawVertexArray(&v_arr[0], &t_arr[0], v_arr.size()/2, texture_water);
 	}
+	glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 }
