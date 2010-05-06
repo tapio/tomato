@@ -126,14 +126,15 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 	TextureMap tm = load_textures();
 	World world(WW, WH, tm, gm, !is_client);
 	Players& players = world.getActors();
-	#ifdef USE_NETWORK
-	Client client(&world);
 
 	// Draw title
 	const int titlew = scrW/2, titleh = titlew/2;
 	drawImage(tm.find("title")->second, scrW/2 - titlew/2, scrH/2 - titleh/2, titlew, titleh);
 	flip();
 	double titletime = GetSecs() + 0.75;
+
+	#ifdef USE_NETWORK
+	Client client(&world);
 
 	if (is_client) {
 		client.connect(host, port);
