@@ -12,3 +12,9 @@ Authors of Tomaatti
 * Antti Virta
 	- Most of the graphics
 	- Testing
+
+
+
+Some code (mainly filesystem stuff and a few utilities) has
+been borrowed from Performous-project (http://performous.org)
+under GPL.
