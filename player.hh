@@ -5,6 +5,7 @@
 #include <GL/gl.h>
 #include <Box2D.h>
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/noncopyable.hpp>
 
 #include "util.hh"
 #include "texture.hh"
@@ -35,16 +36,31 @@ struct Points {
 
 class World;
 
-class Actor: public Entity {
+class Actor: public boost::noncopyable, public Entity {
+	static int ref_count;
+	static int human_count;
+
   public:
-	enum Type { HUMAN, AI, REMOTE } type;
+	enum Type { HUMAN, AI, REMOTE } const type;
 	static const std::string Names[NAMES];
 
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(tex), type(t),
 	  key_up(), key_down(), key_left(), key_right(), key_action(),
 	  points(), dead(false), dir(-1), anim_frame(0), airborne(true), ladder(LADDER_NO), jumping(0), jump_dir(0),
 	  wallpenalty(0), powerup(), respawn(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
-	{ }
+	{
+		name = Names[ref_count % NAMES];
+		++ref_count;
+		if (type == HUMAN) {
+			keys_id = human_count;
+			++human_count;
+		}
+	}
+
+	~Actor() {
+		--ref_count;
+		if (type == HUMAN) --human_count;
+	}
 
 	void brains();
 
@@ -88,6 +104,11 @@ class Actor: public Entity {
 	bool can_jump() const { return !airborne || (jumping > 0 && jumping < 5)
 		|| (jumping == 0 && doublejump == DJUMP_ALLOW); }
 
+	std::string getName() const { return name; }
+
+	void key_state(int k, bool pressed);
+	void handle_keys();
+
 	int KEY_UP;
 	int KEY_DOWN;
 	int KEY_LEFT;
@@ -99,6 +120,9 @@ class Actor: public Entity {
 	bool key_left;
 	bool key_right;
 	bool key_action;
+
+	int keys_id;
+	std::string name;
 
 	// Flags / states
 	Points points;

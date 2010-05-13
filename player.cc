@@ -1,6 +1,10 @@
 #include "player.hh"
 
+/// Statics
 const std::string Actor::Names[] = { "Fresh", "Frozen", "Raw", "Roasted" };
+int Actor::ref_count = 0;
+int Actor::human_count = 0;
+
 
 void Actor::brains() {
 	static Countdown actiontimer(1.0);
@@ -83,4 +87,24 @@ void Actor::end_jumping() {
 	if (ladder == Actor::LADDER_CLIMBING) {
 		body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, 0.0f));
 	}
+}
+
+
+void Actor::key_state(int k, bool pressed) {
+	if (type != Actor::HUMAN || is_dead()) return;
+	// Action button doesn't require state tracking
+	if (k == KEY_ACTION && pressed) action();
+	// Movement keys use state tracking
+	else if (k == KEY_UP) { if (!pressed && key_up) end_jumping(); key_up = pressed; }
+	else if (k == KEY_DOWN) { if (!pressed && key_down) end_jumping(); key_down = pressed; }
+	else if (k == KEY_LEFT) { if (!pressed && key_left) stop(); key_left = pressed; }
+	else if (k == KEY_RIGHT) { if (!pressed && key_right) stop(); key_right = pressed; }
+}
+
+void Actor::handle_keys() {
+	if (type != Actor::HUMAN || is_dead()) return;
+	if (key_left) move(-1);
+	else if (key_right) move(1);
+	if (key_up) jump();
+	else if (key_down) duck();
 }

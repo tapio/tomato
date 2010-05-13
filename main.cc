@@ -43,37 +43,20 @@ void handle_keys(Players& players) {
 		case SDL_KEYDOWN: {
 			int k = event.key.keysym.sym;
 			if (k == SDLK_ESCAPE) { QUIT = true; return; }
-			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN || it->is_dead()) continue;
-				if (k == it->KEY_LEFT) it->key_left = true;
-				else if (k == it->KEY_RIGHT) it->key_right = true;
-				if (k == it->KEY_UP) it->key_up = true;
-				else if (k == it->KEY_DOWN) it->key_down = true;
-				// Action button doesn't require state tracking
-				if (k == it->KEY_ACTION) it->action();
-			}
+			for (Players::iterator it = players.begin(); it != players.end(); ++it)
+				it->key_state(k, true);
 			break;
 			}
 		case SDL_KEYUP: {
 			int k = event.key.keysym.sym;
-			for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-				if (it->type != Actor::HUMAN || it->is_dead()) continue;
-				if (k == it->KEY_UP) { if (it->key_up) it->end_jumping(); it->key_up = false; }
-				if (k == it->KEY_DOWN) { if (it->key_down) it->end_jumping(); it->key_down = false; }
-				if (k == it->KEY_LEFT) { if (it->key_left) it->stop(); it->key_left = false; }
-				if (k == it->KEY_RIGHT) { if (it->key_right) it->stop(); it->key_right = false; }
-			}
+			for (Players::iterator it = players.begin(); it != players.end(); ++it)
+				it->key_state(k, false);
 			break;
 		}
 		} // end switch
 	}
-	for (Players::iterator it = players.begin(); it != players.end(); ++it) {
-		if (it->type != Actor::HUMAN || it->is_dead()) continue;
-		if (it->key_left) it->move(-1);
-		else if (it->key_right) it->move(1);
-		if (it->key_up) it->jump();
-		else if (it->key_down) it->duck();
-	}
+	for (Players::iterator it = players.begin(); it != players.end(); ++it)
+		it->handle_keys();
 }
 
 /// Double buffering
@@ -196,7 +179,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		glEnable(GL_TEXTURE_2D);
 		std::ostringstream oss; int i = 1;
 		for (Players::const_iterator it = players.begin(); it != players.end(); ++it, ++i)
-			oss << "Player " << i << ": " << it->points.round_score << "   ";
+			oss << it->getName() << ": " << it->points.round_score << "   ";
 		glColor4f(1.0f,0.0f,0.0f,0.75f);
 		f.out(10, 10) << oss.str() << f.end();
 
