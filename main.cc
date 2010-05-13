@@ -17,7 +17,7 @@
 #include <GL/glu.h>
 #include <SDL.h>
 
-#include "GLFT_Font.hh"
+#include "font.hh"
 #include "util.hh"
 #include "settings.hh"
 #include "filesystem.hh"
@@ -130,8 +130,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 	Players& players = world.getActors();
 
 	// Load font
-	GLFT_Font f;
-	f.open(getFilePath("fonts/FreeSerifBold.ttf"), 16);
+	Font f(getFilePath("fonts/FreeSerifBold.ttf"), 16);
 
 	// Draw title
 	const int titlew = scrW/2, titleh = titlew/2;
@@ -199,7 +198,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		for (Players::const_iterator it = players.begin(); it != players.end(); ++it, ++i)
 			oss << "Player " << i << ": " << it->points.round_score << "   ";
 		glColor4f(1.0f,0.0f,0.0f,0.75f);
-		f.beginDraw(10, 10) << oss.str() << f.endDraw();
+		f.out(10, 10) << oss.str() << f.end();
 
 		// Flip
 		flip();
