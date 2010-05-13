@@ -51,6 +51,17 @@ namespace {
 		bool operator()() {return (m_fixture); }
 		b2Fixture* m_fixture;
 	};
+
+
+	void addScore(Actors& pls, Actor* pl, int score) {
+		if (!pl) return;
+		if (score >= 0) pl->points.add(score);
+		else {
+			for (Actors::iterator it = pls.begin(); it != pls.end(); ++it) {
+				if (&(*it) != pl) it->points.add(-score);
+			}
+		}
+	}
 }
 
 
@@ -107,12 +118,11 @@ void World::kill(Actor* target, Actor* killer) {
 	if (!target) return;
 	target->die();
 	target->points.deaths++;
-	// TODO: Negative game mode scoring should add others' points
 	if (killer) {
-		target->points.add(game.getKilledPoints());
-		killer->points.add(game.getKillerPoints());
+		addScore(actors, target, game.getKilledPoints());
+		addScore(actors, killer, game.getKillerPoints());
 		killer->points.kills++;
-	} else target->points.add(game.getSuicidePoints());
+	} else addScore(actors, target, game.getSuicidePoints());
 
 	// Check for kill limit
 	if (game.getScoreLimit() > 0
