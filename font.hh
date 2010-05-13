@@ -57,7 +57,7 @@ class FTLibraryContainer {
 
 
 class StreamFlusher { };
-std::ostream& operator<<(std::ostream& os, const StreamFlusher& rhs);
+std::ostream& operator<<(std::ostream& os, const StreamFlusher&);
 
 /// Font class
 class Font: public boost::noncopyable

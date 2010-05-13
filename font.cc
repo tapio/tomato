@@ -38,7 +38,7 @@
 FT_Library FTLibraryContainer::m_library;
 FTLibraryContainer Font::library_;
 
-std::ostream& operator<<(std::ostream& os, const StreamFlusher& rhs) { return os.flush(); }
+std::ostream& operator<<(std::ostream& os, const StreamFlusher&) { return os.flush(); }
 
 void Font::open(const std::string& filename, unsigned int size)
 {
