@@ -17,6 +17,7 @@
 #include <GL/glu.h>
 #include <SDL.h>
 
+#include "GLFT_Font.hh"
 #include "util.hh"
 #include "settings.hh"
 #include "filesystem.hh"
@@ -80,6 +81,7 @@ void flip() {
 	SDL_GL_SwapBuffers();
 	glClear(GL_COLOR_BUFFER_BIT);
 	glLoadIdentity();
+	glColor4f(1,1,1,1);
 }
 
 /// OpenGL initialization
@@ -126,6 +128,10 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 	TextureMap tm = load_textures();
 	World world(WW, WH, tm, gm, !is_client);
 	Players& players = world.getActors();
+
+	// Load font
+	GLFT_Font f;
+	f.open(getFilePath("fonts/FreeSerifBold.ttf"), 16);
 
 	// Draw title
 	const int titlew = scrW/2, titleh = titlew/2;
@@ -184,8 +190,18 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
 
-		// Draw
+		// Render world
 		world.draw();
+
+		// Draw UI
+		glEnable(GL_TEXTURE_2D);
+		std::ostringstream oss; int i = 1;
+		for (Players::const_iterator it = players.begin(); it != players.end(); ++it, ++i)
+			oss << "Player " << i << ": " << it->points.round_score << "   ";
+		glColor4f(1.0f,0.0f,0.0f,0.75f);
+		f.beginDraw(10, 10) << oss.str() << f.endDraw();
+
+		// Flip
 		flip();
 	}
 	#ifdef USE_NETWORK

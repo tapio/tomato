@@ -61,12 +61,13 @@ include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
 
 # Find all the libs that don't require extra parameters
-foreach(lib Box2D SDL SOIL OpenGL)
+foreach(lib Box2D Freetype SDL SOIL OpenGL)
 	find_package(${lib} REQUIRED)
 	include_directories(${${lib}_INCLUDE_DIRS})
 	list(APPEND LIBS ${${lib}_LIBRARIES})
 	add_definitions(${${lib}_DEFINITIONS})
 endforeach(lib)
+
 
 # Gather sources
 file(GLOB SOURCE_FILES "*.cc")
@@ -84,9 +85,11 @@ target_link_libraries(${EXENAME} ${LIBS})
 
 # Installation
 file(GLOB IMAGE_FILES "images/*.png")
+file(GLOB FONT_FILES "fonts/*.ttf")
 file(GLOB CONF_FILES "data/*.conf" "data/*.gamemode")
 file(GLOB DOC_FILES "doc/*.txt")
 
+install(FILES ${FONT_FILES} DESTINATION ${SHARE_INSTALL}/fonts)
 install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
 install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL}/data)
 install(FILES ${DOC_FILES} DESTINATION ${SHARE_INSTALL}/doc)
