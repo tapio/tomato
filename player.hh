@@ -21,6 +21,7 @@
 #define speed_jump (speed_move_ground * 0.9f)
 #define speed_climb speed_jump
 
+#define NAMES 4
 
 struct Points {
 	Points(): wins(0), total_score(0), round_score(0), kills(0), deaths(0) { }
@@ -37,6 +38,7 @@ class World;
 class Actor: public Entity {
   public:
 	enum Type { HUMAN, AI, REMOTE } type;
+	static const std::string Names[NAMES];
 
 	Actor(GLuint tex = 0, Type t = HUMAN): Entity(tex), type(t),
 	  key_up(), key_down(), key_left(), key_right(), key_action(),
@@ -44,92 +46,14 @@ class Actor: public Entity {
 	  wallpenalty(0), powerup(), respawn(), invisible(false), doublejump(DJUMP_DISALLOW), reversecontrols(false), lograv(false)
 	{ }
 
-	void brains() {
-		static Countdown actiontimer(1.0);
-		static bool stopped = false;
-		if (actiontimer()) {
-			stopped = false;
-			if (randbool() && randbool() && randbool()) stopped = true;
-			if (ladder != LADDER_NO && randbool()) jump();
-			else move(randbool() ? -1 : 1);
-			actiontimer = Countdown(randf(0.5f, 1.5f));
-		} else if (!stopped) {
-			if (ladder != LADDER_NO && randbool()) jump();
-			else move(dir);
-		}
-	}
+	void brains();
 
-	virtual void move(int direction) {
-		if (reversecontrols) direction = -direction;
-		if (direction != dir) { dir = direction; return; }
-		if (direction == dir || can_jump()) {
-			// Calc base speed depending on state
-			float speed = airborne ? speed_move_airborne : speed_move_ground;
-			if (ladder == LADDER_CLIMBING) speed = speed_move_ladder;
-			// Apply direction
-			speed *= direction;
-			// Get old speed
-			b2Vec2 v = body->GetLinearVelocity();
-			// Determine if jumping direction is already chosen
-			if (jump_dir == 0 && airborne && ladder == LADDER_NO && std::abs(v.x) > 0.01f) jump_dir = sign(v.x);
-			else if (jump_dir != 0 && airborne && ladder == LADDER_NO && sign(v.x) != sign(jump_dir))
-				body->SetLinearVelocity(b2Vec2(0, v.y));
-			else if (!airborne || ladder != LADDER_NO) jump_dir = 0;
-			// If airborne, only slow down the existing speed if trying to turn
-			if (airborne && jump_dir != 0 && direction != jump_dir) {
-				body->ApplyForce(b2Vec2(direction * 3, 0), body->GetWorldCenter());
-			} else {
-				// Don't kill existing higher velocity
-				if (direction == dir && std::abs(v.x) > std::abs(speed)) speed = v.x;
-				// Set the speed
-				//body->SetLinearVelocity(b2Vec2(speed, v.y));
-				if (std::abs(v.x) < std::abs(speed)) body->ApplyForce(b2Vec2(speed * 5, 0), body->GetWorldCenter());
-			}
-		}
-		if (airborne) anim_frame = 0;
-		else anim_frame = int(GetSecs()*15) % 4;
-		dir = direction;
-	}
-
-	virtual void stop() {
-		if (!airborne || ladder == LADDER_CLIMBING) {
-			body->SetLinearVelocity(b2Vec2(0.0f, body->GetLinearVelocity().y));
-		}
-		anim_frame = 0;
-	}
-
-	virtual void jump(bool forcejump = false) {
-		if (ladder != LADDER_NO) {
-			ladder = LADDER_CLIMBING;
-			body->SetLinearVelocity(b2Vec2(0.0f, -speed_climb));
-			return;
-		}
-		if (!can_jump() && !forcejump) return;
-		body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, -speed_jump));
-		// Handle double jump
-		if (airborne && jumping == 0 && doublejump == DJUMP_ALLOW)
-			doublejump = DJUMP_JUMPED;
-		jumping++;
-	}
-
-	virtual void duck() {
-		if (ladder == LADDER_YES || ladder == LADDER_CLIMBING) {
-			ladder = LADDER_CLIMBING;
-			body->SetLinearVelocity(b2Vec2(0.0f, speed_climb));
-			return;
-		}
-	}
-
-	virtual void end_jumping() {
-		jumping = 0;
-		if (ladder == Actor::LADDER_CLIMBING) {
-			body->SetLinearVelocity(b2Vec2(body->GetLinearVelocity().x, 0.0f));
-		}
-	}
-
-	virtual void action() {
-		powerup.action(this);
-	}
+	virtual void move(int direction);
+	virtual void jump(bool forcejump = false);
+	virtual void duck();
+	virtual void stop();
+	virtual void end_jumping();
+	virtual void action() { powerup.action(this); }
 
 	void equip(Powerup p) {
 		powerup.unequip(this);
