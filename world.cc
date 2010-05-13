@@ -116,8 +116,8 @@ void World::kill(Actor* target, Actor* killer) {
 
 	// Check for kill limit
 	if (game.getScoreLimit() > 0
-	  && ( std::abs(target->points.round_score) > game.getScoreLimit()
-	   || (killer && std::abs(killer->points.round_score) > game.getScoreLimit())))
+	  && ( std::abs(target->points.round_score) >= game.getScoreLimit()
+	   || (killer && std::abs(killer->points.round_score) >= game.getScoreLimit())))
 	{
 		game.end = true;
 	}
@@ -594,7 +594,7 @@ void World::update() {
 			// AI
 			if (it->type == Actor::AI) it->brains();
 		} //< End of Actors loop
-		if (alive_people <= 1) game.end = true;
+		if (alive_people <= 1) game.noOpponentsLeft();
 		// Crates
 		for (Crates::iterator it = crates.begin(); it != crates.end(); ++it) {
 			b2Body* b = it->getBody();

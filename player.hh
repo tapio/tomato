@@ -142,6 +142,8 @@ class Actor: public Entity {
 	void die() {
 		unequip();
 		dead = true;
+		// Reset key states
+		key_up = false; key_down = false; key_left = false; key_right = false; key_action = false;
 	}
 
 	virtual void draw() const { Entity::draw(anim_frame, 4, dir < 0); }

@@ -2,7 +2,7 @@
 name = Death Match
 
 ; Maximum amount of time a round can last, in seconds
-timelimit = 5
+timelimit = 180
 
 ; Maximum score
 scorelimit = 10

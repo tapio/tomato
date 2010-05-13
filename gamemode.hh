@@ -68,6 +68,9 @@ class GameMode {
 		} return false;
 	}
 
+	/// End round if 0-1 players alive and no respawn
+	void noOpponentsLeft() { if (spawn_delay_player < 0) end = true; }
+
 	/// Has the round ended?
 	bool roundEnded() const {
 		if ((timelimit > 0 && round_timer()) || end) return true;
@@ -75,7 +78,7 @@ class GameMode {
 	}
 
 	/// All rounds done
-	bool gameEnded() const { return rounds == 0 && (timelimit == 0 || round_timer() || end); }
+	bool gameEnded() const { return rounds == 0 && roundEnded(); }
 
 	Powerup::Type randPowerup() {
 		int safetyswitch = 20;
