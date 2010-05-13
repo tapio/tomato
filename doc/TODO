@@ -2,12 +2,15 @@
 To Be Fixed
 ----------
 * Hangs / crashes at exit (SDL_Quit, anything on Windows)
-* Some ladders needed to the middle of the level
 * Fix speed / input delays constant for all platforms
+* Current game mode stuff is confusing as no victory screen is presented
+* Some ladders needed to the middle of the level?
 
 General stuff
 -------------
 * Text rendering (WIP)
+	- Unicode handling
+	- Make Font class virtual so that multiple back-ends (e.g. from-bitmap) could be used.
 * Text input
 * Any combination of local human, remote human and AI players
 * Non-dedicated server
@@ -21,6 +24,7 @@ Effects
 * Needed
 	- Water splash
 	- Tomato explosion
+* Text pop-up for kills and stuff
 
 Lobby screen
 ------------
@@ -41,7 +45,7 @@ Theme system
 	- themes/ --> ThemeName/ --> file
 	- Images, sounds, fonts... everything in the theme folder
 
-Game types
+Game modes
 ----------
 * Classic
 	- Last man standing scores
