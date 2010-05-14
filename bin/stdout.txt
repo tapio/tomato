@@ -1,3 +1,2 @@
 Game started.
-DEATH! Points: -1
-FPS: 250 (0.004 s)
+FPS: 4.9505 (0.202 s)
