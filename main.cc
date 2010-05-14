@@ -165,6 +165,9 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		doKeys(players);
 		world.update();
 		if (config_zoom) world.updateViewport();
+		#else
+		/// max 100 FPS
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
 
 		// Render world
