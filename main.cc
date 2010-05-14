@@ -34,7 +34,7 @@
 static bool QUIT = false;
 
 /// Keyboard input
-void handle_keys(Players& players) {
+void update_keys(Players& players) {
 	SDL_Event event;
 	while(SDL_PollEvent(&event)) {
 		switch(event.type) {
@@ -55,8 +55,6 @@ void handle_keys(Players& players) {
 		}
 		} // end switch
 	}
-	for (Players::iterator it = players.begin(); it != players.end(); ++it)
-		it->handle_keys();
 }
 
 /// Double buffering
@@ -89,13 +87,13 @@ void setup_gl() {
 /// Thread functions
 
 #ifdef USE_THREADS
-void updateKeys(Players& players) {
-	#ifndef WIN32 // SDL needs the keys to be in the main thread on Windows platform
+void doKeys(Players& players) {
 	while (!QUIT) {
-		handle_keys(players);
+		for (Players::iterator it = players.begin(); it != players.end(); ++it)
+			it->handle_keys();
 		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 	}
-	#endif
+
 }
 void updateWorld(World& world) { while (!QUIT) { world.update(); } }
 void updateViewport(World& world) {
@@ -148,7 +146,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 
 	// Launch threads
 	#ifdef USE_THREADS
-	boost::thread thread_input(updateKeys, boost::ref(players));
+	boost::thread thread_input(doKeys, boost::ref(players));
 	boost::thread thread_physics(updateWorld, boost::ref(world));
 	boost::thread thread_viewport;
 	if (config_zoom) thread_viewport = boost::thread(updateViewport, boost::ref(world));
@@ -161,15 +159,12 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		fps.update();
 		if ((int(GetSecs()*1000) % 500) == 0) fps.debugPrint();
 
-		#if defined(WIN32) || !defined(USE_THREADS) // SDL needs the keys to be in the main thread on Windows platform
-		handle_keys(players);
-		#endif
+		update_keys(players);
+
 		#if !defined(USE_THREADS)
+		doKeys(players);
 		world.update();
 		if (config_zoom) world.updateViewport();
-		#elif !defined(WIN32)
-		// Max ~ 100 fps is enough for graphics
-		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		#endif
 
 		// Render world
