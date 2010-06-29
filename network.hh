@@ -25,7 +25,7 @@ class World;
 
 class NetworkObject: public boost::noncopyable {
   public:
-	NetworkObject(World* world): m_quit(false), m_world(world), m_host(NULL), m_peer(NULL) { }
+	NetworkObject(World* world): m_quit(false), m_id(), m_world(world), m_host(NULL), m_peer(NULL) { }
 
 	~NetworkObject() {
 		terminate();

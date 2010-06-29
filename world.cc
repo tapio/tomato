@@ -653,7 +653,7 @@ std::string World::serialize(bool skip_static) const {
 	LOCKMUTEX;
 	std::string data = "";
 	// Players
-	if (actors.size() > 0) {
+	if (!actors.empty()) {
 		data += std::string(1, ACTOR);
 		data += std::string(1, (char)actors.size());
 		for (Actors::const_iterator it = actors.begin(); it != actors.end(); ++it) {
@@ -662,7 +662,7 @@ std::string World::serialize(bool skip_static) const {
 		}
 	}
 	// Crates
-	if (crates.size() > 0) {
+	if (!crates.empty()) {
 		data += std::string(1, CRATE);
 		data += std::string(1, (char)crates.size());
 		for (Crates::const_iterator it = crates.begin(); it != crates.end(); ++it) {
@@ -671,7 +671,7 @@ std::string World::serialize(bool skip_static) const {
 		}
 	}
 	// Power-ups
-	if (powerups.size() > 0) {
+	if (!powerups.empty()) {
 		data += std::string(1, POWERUP);
 		data += std::string(1, (char)powerups.size());
 		for (Powerups::const_iterator it = powerups.begin(); it != powerups.end(); ++it) {
@@ -682,7 +682,7 @@ std::string World::serialize(bool skip_static) const {
 	// Static objects
 	if (!skip_static) {
 		// Platforms
-		if (platforms.size() > 0) {
+		if (!platforms.empty()) {
 			data += std::string(1, PLATFORM);
 			data += std::string(1, (char)platforms.size());
 			for (Platforms::const_iterator it = platforms.begin(); it != platforms.end(); ++it) {
@@ -691,7 +691,7 @@ std::string World::serialize(bool skip_static) const {
 			}
 		}
 		// Ladders
-		if (ladders.size() > 0) {
+		if (!ladders.empty()) {
 			data += std::string(1, LADDER);
 			data += std::string(1, (char)ladders.size());
 			for (Ladders::const_iterator it = ladders.begin(); it != ladders.end(); ++it) {
@@ -700,7 +700,7 @@ std::string World::serialize(bool skip_static) const {
 			}
 		}
 		// Bridges
-		if (bridges.size() > 0) {
+		if (!bridges.empty()) {
 			data += std::string(1, BRIDGE);
 			data += std::string(1, (char)bridges.size());
 			for (Bridges::const_iterator it = bridges.begin(); it != bridges.end(); ++it) {

@@ -7,7 +7,7 @@
 #include "texture.hh"
 #include "filesystem.hh"
 
-GLuint load_texture(const std::string filename, bool repeat) {
+GLuint load_texture(const std::string& filename, bool repeat) {
 	GLuint handle = SOIL_load_OGL_texture
 		(
 			filename.c_str(),
