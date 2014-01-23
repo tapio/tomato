@@ -1,23 +1,21 @@
 Dependencies
 ============
-* Boost 1.41
+* Boost >=1.41
 	- Headers    General aids
 	- Thread     Multithreading
 	- Filesystem Path stuff
 	- System     Required by Filesystem
-* Box2D          Physics
-* ENet           Networking
+* Box2D 2.3.x    Physics
+* ENet 1.3.x     Networking
 * OpenGL         Graphics
-* SDL            Input and OpenGL context
+* SDL2           Input and OpenGL context
 * SOIL           Texture loading
 
 Ubuntu / Debian:
 
 This terminal command should get you far with the dependencies:
 
-    $ sudo aptitude install libboost-all-dev libbox2d-dev libenet-dev libsdl1.2-dev libsoil-dev
-
-Boost version in the repositories is 1.40, but 1.41 is required for property_tree. However, it is header-only and you should be able to just download a newer version and drop the property_tree folder into Boost include directory.
+    $ sudo aptitude install libboost-all-dev libbox2d-dev libenet-dev libsdl2-dev libsoil-dev
 
 Windows:
 
@@ -25,7 +23,6 @@ You can use the win32/dependencies.bat batch script to download (most of) them.
 Boost binaries can be found from the internet, but Box2D and ENet requires manual compiling.
 
 **NOTE:** You may wish to disable the Box2D examples compilation for easier building.
-**NOTE:** There are pre-compiled libraries of Box2D and ENet in win32/lib/ -directory you may try.
 
 
 Compiling
