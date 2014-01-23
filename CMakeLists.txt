@@ -70,13 +70,13 @@ endforeach(lib)
 
 
 # Gather sources
-file(GLOB SOURCE_FILES "*.cc")
-file(GLOB HEADER_FILES "*.hh")
+file(GLOB SOURCE_FILES "src/*.cc")
+file(GLOB HEADER_FILES "src/*.hh")
 
 set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
 
 # Generate config.hh
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.hh" "${CMAKE_CURRENT_BINARY_DIR}/config.hh" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/config.cmake.hh" "${CMAKE_CURRENT_BINARY_DIR}/config.hh" @ONLY)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # Executable
