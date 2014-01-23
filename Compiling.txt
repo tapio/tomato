@@ -19,7 +19,7 @@ This terminal command should get you far with the dependencies:
 
 Windows:
 
-You can use the win32/dependencies.bat batch script to download (most of) them.
+You can use the tool/dependencies.bat batch script to download (most of) them.
 Boost binaries can be found from the internet, but Box2D and ENet requires manual compiling.
 
 **NOTE:** You may wish to disable the Box2D examples compilation for easier building.
