@@ -64,8 +64,8 @@ class Server: public NetworkObject {
 	Server(World* world, int port): NetworkObject(world) {
 		m_address.host = ENET_HOST_ANY;
 		m_address.port = port;
-		// Create host at address, max_conns, unlimited up/down bandwith
-		m_host = enet_host_create(&m_address, 16, 0, 0);
+		// Create host at address, peerCount, channelCount, unlimited up/down bandwith
+		m_host = enet_host_create(&m_address, 16, 2, 0, 0);
 		if (m_host == NULL)
 			throw std::runtime_error("An error occurred while trying to create an ENet host.");
 		// Start listener thread
@@ -82,14 +82,15 @@ class Client: public NetworkObject {
 	Client(World* world): NetworkObject(world), m_id(0) { }
 
 	void connect(std::string host, int port) {
-		m_host = enet_host_create(NULL, 2, 0, 0);
+		// Create host at address, peerCount, channelCount, unlimited up/down bandwith
+		m_host = enet_host_create(NULL, 2, 2, 0, 0);
 		if (m_host == NULL)
 			throw std::runtime_error("An error occurred while trying to create an ENet host.");
 
 		enet_address_set_host(&m_address, host.c_str());
 		m_address.port = port;
-		// Initiate the connection, allocating the two channels 0 and 1.
-		m_peer = enet_host_connect(m_host, &m_address, 2);
+		// Initiate the connection, allocating the two channels 0 and 1, with 0 data.
+		m_peer = enet_host_connect(m_host, &m_address, 2, 0);
 		if (m_peer == NULL)
 			throw std::runtime_error("No available peers for initiating an ENet connection.");
 		// Wait up to 5 seconds for the connection attempt to succeed.
