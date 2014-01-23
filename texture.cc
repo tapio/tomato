@@ -78,9 +78,9 @@ void drawVertexArray(const float* v_a, const float* t_a, GLuint n, GLuint tex) {
 }
 
 void drawImage(GLuint tex, int x, int y, int w, int h) {
-	float vert[] = { x, y + h,
-		             x, y,
-		             x + w, y,
-		             x + w, y + h };
+	float vert[] = { (float)x, (float)(y + h),
+		             (float)x, (float)y,
+		             (float)(x + w), (float)y,
+		             (float)(x + w), (float)(y + h) };
 	drawVertexArray(&vert[0], &tex_square[0], 4, tex);
 }
