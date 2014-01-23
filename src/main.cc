@@ -158,7 +158,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		}
 	}
 
-	parse_keys(players, getFilePath("data/keys.conf"));
+	parse_keys(players, getFilePath("config/keys.conf"));
 
 	while (titletime > GetSecs()); // Ensure title visibility
 
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
 
 	try {
 		if (gamemode.find(".gamemode") == std::string::npos) gamemode += ".gamemode";
-		GameMode gm(getFilePath("data/" + gamemode));
+		GameMode gm(getFilePath("config/" + gamemode));
 
 		#ifndef USE_NETWORK
 		if (dedicated_server || client)

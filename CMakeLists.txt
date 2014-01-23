@@ -84,14 +84,14 @@ add_executable(${EXENAME} ${SOURCES})
 target_link_libraries(${EXENAME} ${LIBS})
 
 # Installation
-file(GLOB IMAGE_FILES "images/*.png")
-file(GLOB FONT_FILES "fonts/*.ttf")
-file(GLOB CONF_FILES "data/*.conf" "data/*.gamemode")
-file(GLOB DOC_FILES "doc/*.txt")
+file(GLOB IMAGE_FILES "data/images/*.png")
+file(GLOB FONT_FILES "data/fonts/*.ttf")
+file(GLOB CONF_FILES "data/config/*.conf" "data/config/*.gamemode")
+file(GLOB DOC_FILES "*.txt *.md")
 
 install(FILES ${FONT_FILES} DESTINATION ${SHARE_INSTALL}/fonts)
 install(FILES ${IMAGE_FILES} DESTINATION ${SHARE_INSTALL}/images)
-install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL}/data)
+install(FILES ${CONF_FILES} DESTINATION ${SHARE_INSTALL}/config)
 install(FILES ${DOC_FILES} DESTINATION ${SHARE_INSTALL}/doc)
 install(TARGETS ${EXENAME} DESTINATION bin)
 
