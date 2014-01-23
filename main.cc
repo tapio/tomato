@@ -57,14 +57,6 @@ void update_keys(Players& players) {
 	}
 }
 
-/// Double buffering
-void flip() {
-	SDL_GL_SwapBuffers();
-	glClear(GL_COLOR_BUFFER_BIT);
-	glLoadIdentity();
-	glColor4f(1,1,1,1);
-}
-
 /// OpenGL initialization
 void setup_gl() {
 	glViewport(0, 0, scrW, scrH);
@@ -104,8 +96,34 @@ void updateViewport(World& world) {
 }
 #endif
 
+struct SDLContainer {
+	SDLContainer() {
+		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1)
+			throw std::runtime_error("SDL_Init failed");
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		window = SDL_CreateWindow(PACKAGE,
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			scrW, scrH, SDL_WINDOW_OPENGL | (config_fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
+		if (!window) throw std::runtime_error(std::string("SDL_CreateWindow failed ") + SDL_GetError());
+		SDL_GL_CreateContext(window);
+	}
+	~SDLContainer() { SDL_Quit(); }
+
+	void flip() {
+		SDL_GL_SwapWindow(window);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glLoadIdentity();
+		glColor4f(1,1,1,1);
+	}
+
+	SDL_Window* window;
+};
+
 /// Game loop
 bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_client, std::string host, int port) {
+	SDLContainer sdl; // Initialize SDL, automatic deinit
+	setup_gl();
 	TextureMap tm = load_textures();
 	World world(WW, WH, tm, gm, !is_client);
 	Players& players = world.getActors();
@@ -116,7 +134,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 	// Draw title
 	const int titlew = scrW/2, titleh = titlew/2;
 	drawImage(tm.find("title")->second, scrW/2 - titlew/2, scrH/2 - titleh/2, titlew, titleh);
-	flip();
+	sdl.flip();
 	double titletime = GetSecs() + 0.75;
 
 	#ifdef USE_NETWORK
@@ -182,7 +200,7 @@ bool main_loop(GameMode gm, int num_players_local, int num_players_ai, bool is_c
 		f.out(10, 10) << oss.str() << f.end();
 
 		// Flip
-		flip();
+		sdl.flip();
 	}
 	#ifdef USE_NETWORK
 	if (is_client) client.terminate();
@@ -242,19 +260,6 @@ template<> bool parseVal(std::string& var, int& i, int argc, char** argv) {
 	return false;
 }
 
-struct SDLContainer {
-	SDLContainer() {
-		if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) ==  -1) throw std::runtime_error("SDL_Init failed");
-		SDL_WM_SetCaption(PACKAGE, PACKAGE);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_Surface* screen = NULL;
-		screen = SDL_SetVideoMode(scrW, scrH, 32, SDL_OPENGL | (config_fullscreen ? SDL_FULLSCREEN : 0));
-		if (!screen) throw std::runtime_error(std::string("SDL_SetVideoMode failed ") + SDL_GetError());
-	}
-	~SDLContainer() { /*SDL_Quit();*/ } // FIXME: SLD_Quit() hangs :(
-};
-
 /// Program entry-point
 int main(int argc, char** argv) {
 	bool dedicated_server = false, client = false;
@@ -306,17 +311,11 @@ int main(int argc, char** argv) {
 		ENetContainer enet; // Initialize ENet, automatic deinit
 		#endif
 		if (!dedicated_server) {
-			SDLContainer sdl; // Initialize SDL, automatic deinit
-			setup_gl();
 			main_loop(gm, num_players_local, num_players_ai, client, host, port);
 		} else server_loop(gm, port);
 	} catch (std::exception& e) {
 		// TODO: Nicer output
 		std::cout << "-!- FATAL ERROR: " << e.what() << std::endl;
 	}
-	#ifdef WIN32
-	// FIXME: Quirk to not hang on exit on Windows
-	_exit(0);
-	#endif
 	return 0;
 }
