@@ -5,7 +5,6 @@
 #include <sstream>
 #include <vector>
 #include <stdexcept>
-#include <iostream>
 
 #include <GL/gl.h>
 #include <SDL.h>
@@ -77,9 +76,6 @@ void inline randdir(int& dx, int &dy) {
 
 template <typename T>
 T distance(T x1, T y1, T x2, T y2) { return std::sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)); }
-
-/** Implement C99 mathematical rounding (which C++ unfortunately currently lacks) **/
-template <typename T> T round(T val) { return int(val + (val >= 0 ? 0.5 : -0.5)); }
 
 /// Limit val to range [min, max]
 template <typename T> T clamp(T val, T min = 0, T max = 1) {

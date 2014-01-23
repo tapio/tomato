@@ -5,7 +5,6 @@
 #include <vector>
 #include <GL/gl.h>
 
-typedef GLuint Texture;
 typedef std::map<std::string, GLuint> TextureMap;
 typedef std::vector<float> CoordArray;
 
