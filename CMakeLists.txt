@@ -34,7 +34,7 @@ mark_as_advanced(SHARE_INSTALL)
 # Set default compile flags for GCC
 if (CMAKE_COMPILER_IS_GNUCXX)
 	message(STATUS "GCC detected, adding compile flags")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11")
 endif()
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
@@ -56,7 +56,7 @@ endif()
 
 # Boost libraries
 list(APPEND BOOST_COMPONENTS filesystem system)
-find_package(Boost 1.36 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+find_package(Boost 1.41 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBS ${Boost_LIBRARIES})
 
