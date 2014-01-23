@@ -66,7 +66,7 @@ namespace {
 
 
 World::World(int width, int height, TextureMap& tm, GameMode gm, bool master):
-  is_master(master), world(b2Vec2(0.0f, 0.0f), true), w(width), h(height),
+  is_master(master), world(b2Vec2(0.0f, 0.0f)), w(width), h(height),
   SCALE(16.0), view_topleft(0,0), view_bottomright(w,h),
   tilesize(1), water_height(2.5), timer_powerup(gm.getPowerupDelay()), game(gm)
 {
@@ -393,11 +393,11 @@ void World::generateBorders() {
 	borderBodyDef.position.Set(hw, hh);
 	b2Body* borderBody = world.CreateBody(&borderBodyDef);
 	// Define the border shapes
-	b2PolygonShape borderBoxLeft, borderBoxRight, borderBoxTop, borderBoxBottom;
-	borderBoxLeft.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(-hw,hh));
-	borderBoxRight.SetAsEdge(b2Vec2(hw,-hh), b2Vec2(hw,hh));
-	borderBoxTop.SetAsEdge(b2Vec2(-hw,-hh), b2Vec2(hw,-hh));
-	borderBoxBottom.SetAsEdge(b2Vec2(-hw,hh), b2Vec2(hw,hh));
+	b2EdgeShape borderBoxLeft, borderBoxRight, borderBoxTop, borderBoxBottom;
+	borderBoxLeft.Set(b2Vec2(-hw,-hh), b2Vec2(-hw,hh));
+	borderBoxRight.Set(b2Vec2(hw,-hh), b2Vec2(hw,hh));
+	borderBoxTop.Set(b2Vec2(-hw,-hh), b2Vec2(hw,-hh));
+	borderBoxBottom.Set(b2Vec2(-hw,hh), b2Vec2(hw,hh));
 	// Add the border fixtures to the body
 	borderBody->CreateFixture(&borderBoxLeft, 0.0f);
 	borderBody->CreateFixture(&borderBoxRight, 0.0f);
@@ -600,7 +600,7 @@ void World::update() {
 			}
 			// Gravity
 			float grav_mult = (it->lograv ? 0.1 : 1.0) * (it->ladder == Actor::LADDER_CLIMBING ? 0.0 : 1.0);
-			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * grav_mult), b->GetWorldCenter());
+			b->ApplyForceToCenter(b2Vec2(0, b->GetMass() * GRAVITY * grav_mult), true);
 			// AI
 			if (it->type == Actor::AI) it->brains();
 		} //< End of Actors loop
@@ -611,7 +611,7 @@ void World::update() {
 			float y = b->GetWorldCenter().y - it->getSize()*0.5f;
 			// Float on water
 			if (y >= h - water_height) {
-				b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY * -1.2), b->GetWorldCenter());
+				b->ApplyForceToCenter(b2Vec2(0, b->GetMass() * GRAVITY * -1.2), true);
 				// Water friction
 				b->SetLinearVelocity(0.97 * b->GetLinearVelocity());
 				b->SetAngularVelocity(0.99 * b->GetAngularVelocity());
@@ -622,7 +622,7 @@ void World::update() {
 				//b->SetTransform(b2Vec2(randf(offset, w-offset), randf(offset, h*0.667)), 0);
 			}
 			// Gravity
-			b->ApplyForce(b2Vec2(0, b->GetMass() * GRAVITY), b->GetWorldCenter());
+			b->ApplyForceToCenter(b2Vec2(0, b->GetMass() * GRAVITY), true);
 		}
 		// Remove expired power-ups
 		for (Powerups::iterator pu = powerups.begin(); pu != powerups.end(); ) {

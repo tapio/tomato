@@ -39,13 +39,13 @@ void Actor::move(int direction) {
 		else if (!airborne || ladder != LADDER_NO) jump_dir = 0;
 		// If airborne, only slow down the existing speed if trying to turn
 		if (airborne && jump_dir != 0 && direction != jump_dir) {
-			body->ApplyForce(b2Vec2(direction * 3, 0), body->GetWorldCenter());
+			body->ApplyForceToCenter(b2Vec2(direction * 3, 0), true);
 		} else {
 			// Don't kill existing higher velocity
 			if (direction == dir && std::abs(v.x) > std::abs(speed)) speed = v.x;
 			// Set the speed
 			//body->SetLinearVelocity(b2Vec2(speed, v.y));
-			if (std::abs(v.x) < std::abs(speed)) body->ApplyForce(b2Vec2(speed * 5, 0), body->GetWorldCenter());
+			if (std::abs(v.x) < std::abs(speed)) body->ApplyForceToCenter(b2Vec2(speed * 5, 0), true);
 		}
 	}
 	if (airborne) anim_frame = 0;
